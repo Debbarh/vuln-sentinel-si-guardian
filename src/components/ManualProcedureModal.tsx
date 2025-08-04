@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Trash2, User, FileText, Paperclip, Clock, CheckCircle, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -13,11 +14,11 @@ interface ProcedureStep {
   id: string;
   title: string;
   description: string;
-  responsible: string;
+  responsibles: string[]; // Changé pour permettre plusieurs responsables
   estimatedDuration: number;
   completed: boolean;
   notes: string;
-  attachments: string[];
+  attachments: Array<{ name: string; type: string }>; // Ajout du type pour contrôle
   order: number;
 }
 
@@ -41,7 +42,7 @@ const ManualProcedureModal = ({
       id: "step-1",
       title: "Évaluation initiale",
       description: "Analyser la vulnérabilité et son impact sur les systèmes",
-      responsible: "Équipe Sécurité",
+      responsibles: ["Équipe Sécurité"],
       estimatedDuration: 2,
       completed: false,
       notes: "",
@@ -50,9 +51,9 @@ const ManualProcedureModal = ({
     },
     {
       id: "step-2",
-      title: "Classification et priorisation",
+      title: "Classification et priorisation", 
       description: "Définir le niveau de priorité et les ressources nécessaires",
-      responsible: "Chef de projet sécurité",
+      responsibles: ["Chef de projet sécurité"],
       estimatedDuration: 1,
       completed: false,
       notes: "",
@@ -63,7 +64,7 @@ const ManualProcedureModal = ({
       id: "step-3",
       title: "Plan d'action",
       description: "Élaborer la stratégie de remédiation détaillée",
-      responsible: "Équipe Infrastructure",
+      responsibles: ["Équipe Infrastructure"],
       estimatedDuration: 3,
       completed: false,
       notes: "",
@@ -71,10 +72,10 @@ const ManualProcedureModal = ({
       order: 3
     },
     {
-      id: "step-4",
+      id: "step-4", 
       title: "Implémentation",
       description: "Appliquer les mesures correctives sur les systèmes",
-      responsible: "Équipe Infrastructure",
+      responsibles: ["Équipe Infrastructure"],
       estimatedDuration: 4,
       completed: false,
       notes: "",
@@ -84,8 +85,8 @@ const ManualProcedureModal = ({
     {
       id: "step-5",
       title: "Validation et clôture",
-      description: "Vérifier l'efficacité et finaliser le traitement",
-      responsible: "Équipe Sécurité",
+      description: "Vérifier l'efficacité et finaliser le traitement", 
+      responsibles: ["Équipe Sécurité"],
       estimatedDuration: 2,
       completed: false,
       notes: "",
