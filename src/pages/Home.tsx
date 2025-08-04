@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { 
   Shield, 
   AlertTriangle, 
@@ -134,33 +135,92 @@ const Home = () => {
 
       {/* Hero Section */}
       <section className="pt-20 pb-16">
-        <div className="container mx-auto px-6 text-center">
-          <Badge className="mb-6" variant="outline">
-            🚀 Nouvelle version disponible - Workflows avancés
-          </Badge>
-          
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-            Maîtrisez vos
-            <span className="text-blue-600 block">Vulnérabilités SI</span>
-          </h1>
-          
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            VulnGuard centralise la surveillance, l'analyse et le traitement de vos vulnérabilités 
-            avec des workflows intelligents et une intégration MaCERT native. Evaluez et pilotez 
-            votre maturité ISO 27001 avec des audits automatisés et des plans d'action personnalisés.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link to="/register">
-              <Button size="lg" className="text-lg px-8 py-6">
-                Commencer maintenant
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-              Demander une démo
-            </Button>
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-12">
+            <Badge className="mb-6" variant="outline">
+              🚀 Nouvelle version disponible - Workflows avancés
+            </Badge>
+            
+            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Plateforme complète de
+              <span className="text-blue-600 block">Sécurité SI</span>
+            </h1>
           </div>
+
+          {/* Carousel des modules */}
+          <Carousel className="w-full max-w-5xl mx-auto mb-12">
+            <CarouselContent>
+              {/* Module VulnGuard */}
+              <CarouselItem>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
+                  <CardContent className="p-12 text-center">
+                    <div className="flex justify-center mb-6">
+                      <div className="p-4 bg-blue-600 rounded-2xl">
+                        <Shield className="h-12 w-12 text-white" />
+                      </div>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                      VulnGuard
+                    </h2>
+                    <h3 className="text-xl font-semibold text-blue-600 mb-4">
+                      Gestion des Vulnérabilités
+                    </h3>
+                    <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                      Centralise la surveillance, l'analyse et le traitement de vos vulnérabilités 
+                      avec des workflows intelligents et une intégration MaCERT native.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link to="/register">
+                        <Button size="lg" className="text-lg px-8 py-4">
+                          Accéder au module
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Button size="lg" variant="outline" className="text-lg px-8 py-4">
+                        Demander une démo
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+
+              {/* Module ISO 27001 */}
+              <CarouselItem>
+                <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
+                  <CardContent className="p-12 text-center">
+                    <div className="flex justify-center mb-6">
+                      <div className="p-4 bg-green-600 rounded-2xl">
+                        <Award className="h-12 w-12 text-white" />
+                      </div>
+                    </div>
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                      ISO 27001
+                    </h2>
+                    <h3 className="text-xl font-semibold text-green-600 mb-4">
+                      Évaluation de Maturité
+                    </h3>
+                    <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+                      Évaluez et pilotez votre maturité ISO 27001 avec des audits automatisés, 
+                      des plans d'action personnalisés et un suivi de progression.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link to="/maturity">
+                        <Button size="lg" className="text-lg px-8 py-4 bg-green-600 hover:bg-green-700">
+                          Commencer l'évaluation
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
+                        Voir l'audit
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </CarouselItem>
+            </CarouselContent>
+            <CarouselPrevious className="left-4" />
+            <CarouselNext className="right-4" />
+          </Carousel>
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
