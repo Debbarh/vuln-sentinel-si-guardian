@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Download, Calendar, TrendingUp, Shield, AlertTriangle, Clock, Settings, Trash2, Edit, Play } from "lucide-react";
 
 const ReportsPanel = () => {
+  const navigate = useNavigate();
   // Fonction pour générer et télécharger le PDF
   const generatePDFReport = () => {
     const reportDate = new Date().toLocaleDateString('fr-FR', {
@@ -496,6 +498,17 @@ const ReportsPanel = () => {
     return labels[type] || type;
   };
 
+  const navigateToReport = (type) => {
+    const routes = {
+      security: "/reports/security",
+      compliance: "/reports/compliance",
+      vulnerability: "/reports/vulnerability", 
+      executive: "/reports/executive",
+      audit: "/reports/audit"
+    };
+    navigate(routes[type] || "/dashboard");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -867,6 +880,15 @@ const ReportsPanel = () => {
                     </div>
                     
                     <div className="flex items-center space-x-2 ml-4">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigateToReport(schedule.type)}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        Voir le rapport
+                      </Button>
+                      
                       <Button
                         variant="outline"
                         size="sm"

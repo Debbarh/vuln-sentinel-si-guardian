@@ -14,6 +14,11 @@ import Vulnerabilities from "./pages/Vulnerabilities";
 import TreatmentPage from "./pages/TreatmentPage";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import SecurityReport from "./pages/reports/SecurityReport";
+import ComplianceReport from "./pages/reports/ComplianceReport";
+import VulnerabilityReport from "./pages/reports/VulnerabilityReport";
+import ExecutiveReport from "./pages/reports/ExecutiveReport";
+import AuditReport from "./pages/reports/AuditReport";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +39,11 @@ const App = () => (
           <Route path="/vulnerabilities" element={<Vulnerabilities />} />
           <Route path="/treatment" element={<TreatmentPage />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/reports/security" element={<SecurityReport />} />
+          <Route path="/reports/compliance" element={<ComplianceReport />} />
+          <Route path="/reports/vulnerability" element={<VulnerabilityReport />} />
+          <Route path="/reports/executive" element={<ExecutiveReport />} />
+          <Route path="/reports/audit" element={<AuditReport />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
