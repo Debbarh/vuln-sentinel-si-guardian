@@ -6,9 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, Clock, User, Calendar, AlertTriangle } from "lucide-react";
-import { toast } from "@/components/ui/sonner";
+import { CheckCircle, Clock, User, Calendar, AlertTriangle, Settings, PlayCircle, FileText, Paperclip } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import WorkflowManager from "./WorkflowManager";
+import CustomWorkflowModal from "./CustomWorkflowModal";
+import ManualProcedureModal from "./ManualProcedureModal";
 
 interface Alert {
   id: number;
@@ -97,35 +99,68 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
     }
   ];
 
+  const [showCustomWorkflow, setShowCustomWorkflow] = useState(false);
+  const [showManualProcedure, setShowManualProcedure] = useState(false);
+
   const handleStepComplete = () => {
     if (currentStep < treatmentSteps.length) {
       setCurrentStep(currentStep + 1);
-      toast.success(`Étape ${currentStep} complétée`);
+      toast({
+        title: "Étape complétée",
+        description: `Étape ${currentStep} complétée`,
+      });
     }
   };
 
   const handleWorkflowStart = (workflowId: string) => {
-    toast.success(`Workflow ${workflowId} démarré avec succès`);
+    toast({
+      title: "Workflow démarré",
+      description: `Workflow ${workflowId} démarré avec succès`,
+    });
     if (alert) {
       onStatusUpdate(alert.id, "en_cours", assignedTo, "Workflow de traitement démarré");
     }
   };
 
   const handleTaskComplete = (executionId: string, taskId: string, comments: string) => {
-    toast.success(`Tâche ${taskId} terminée`);
+    toast({
+      title: "Tâche terminée",
+      description: `Tâche ${taskId} terminée`,
+    });
   };
 
   const handleFinalSubmit = () => {
     if (!newStatus || !assignedTo) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
       return;
     }
 
     if (alert) {
       onStatusUpdate(alert.id, newStatus, assignedTo, comments);
-      toast.success("Procédure de traitement terminée avec succès");
+      toast({
+        title: "Succès",
+        description: "Procédure de traitement terminée avec succès",
+      });
       handleClose();
     }
+  };
+
+  const handleCustomWorkflowSave = (steps: any[]) => {
+    if (alert) {
+      onStatusUpdate(alert.id, "en_cours", "Workflow personnalisé", "Workflow personnalisé créé et démarré");
+    }
+    setShowCustomWorkflow(false);
+  };
+
+  const handleManualProcedureComplete = (steps: any[]) => {
+    if (alert) {
+      onStatusUpdate(alert.id, "resolu", "Procédure manuelle", "Procédure manuelle terminée");
+    }
+    setShowManualProcedure(false);
   };
 
   const handleClose = () => {
@@ -201,197 +236,131 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
             </TabsList>
             
             <TabsContent value="workflow" className="space-y-4">
-              <WorkflowManager
-                alertId={alert.id}
-                assetType={getAssetType(alert.asset)}
-                severity={alert.severity}
-                onWorkflowStart={handleWorkflowStart}
-                onTaskComplete={handleTaskComplete}
-              />
-            </TabsContent>
-            
-            <TabsContent value="manual" className="space-y-4">
-              {/* Progression des étapes */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
-                    <Clock className="h-5 w-5" />
-                    <span>Progression - Étape {currentStep} sur {treatmentSteps.length}</span>
+                    <Settings className="h-5 w-5" />
+                    <span>Workflow Personnalisé</span>
                   </CardTitle>
+                  <CardDescription>
+                    Créez et personnalisez votre workflow basé sur la procédure manuelle
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {treatmentSteps.map((step) => (
-                      <div key={step.step} className={`border rounded-lg p-4 ${
-                        step.step === currentStep ? 'border-blue-500 bg-blue-50' : 
-                        step.step < currentStep ? 'border-green-500 bg-green-50' : 'border-gray-200'
-                      }`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold flex items-center space-x-2">
-                            {step.step < currentStep ? (
-                              <CheckCircle className="h-5 w-5 text-green-500" />
-                            ) : step.step === currentStep ? (
-                              <Clock className="h-5 w-5 text-blue-500" />
-                            ) : (
-                              <div className="h-5 w-5 border-2 border-gray-300 rounded-full" />
-                            )}
-                            <span>Étape {step.step}: {step.title}</span>
-                          </h3>
-                          {step.step === currentStep && (
-                            <Button onClick={handleStepComplete} size="sm">
-                              Marquer comme terminé
-                            </Button>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{step.description}</p>
-                        <ul className="text-sm space-y-1">
-                          {step.actions.map((action, index) => (
-                            <li key={index} className="flex items-center space-x-2">
-                              <div className="h-1 w-1 bg-gray-400 rounded-full" />
-                              <span>{action}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
+                <CardContent className="space-y-4">
+                  <div className="p-4 border rounded-lg bg-blue-50">
+                    <p className="text-sm text-blue-800">
+                      Le workflow personnalisé vous permet de récupérer automatiquement la procédure manuelle 
+                      et de la modifier selon vos besoins : ajouter/supprimer des étapes, assigner des responsables, 
+                      ajouter des notes et des pièces jointes.
+                    </p>
+                  </div>
+                  
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={() => setShowCustomWorkflow(true)}
+                      size="lg"
+                      className="flex items-center space-x-2"
+                    >
+                      <PlayCircle className="h-5 w-5" />
+                      <span>Démarrer le workflow personnalisé</span>
+                    </Button>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <h4 className="font-semibold text-sm">Fonctionnalités disponibles:</h4>
+                    <ul className="text-sm space-y-2 text-gray-600">
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Récupération automatique de la procédure manuelle</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Modification des étapes (ajouter/supprimer)</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Assignment de responsables par étape</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Ajout de notes et pièces jointes</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span>Suivi en temps réel de l'avancement</span>
+                      </li>
+                    </ul>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Formulaire de finalisation (visible seulement à la dernière étape) */}
-              {currentStep > treatmentSteps.length && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>Finalisation du traitement</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Nouveau statut *</label>
-                      <Select value={newStatus} onValueChange={setNewStatus}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez le statut final" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en_cours">En cours</SelectItem>
-                          <SelectItem value="en_attente">En attente</SelectItem>
-                          <SelectItem value="resolu">Résolu</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Assigné à *</label>
-                      <Select value={assignedTo} onValueChange={setAssignedTo}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez un responsable" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Équipe Sécurité">Équipe Sécurité</SelectItem>
-                          <SelectItem value="Équipe Infrastructure">Équipe Infrastructure</SelectItem>
-                          <SelectItem value="Admin Base de données">Admin Base de données</SelectItem>
-                          <SelectItem value="Équipe Réseau">Équipe Réseau</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Actions entreprises</label>
-                      <Textarea
-                        value={actionTaken}
-                        onChange={(e) => setActionTaken(e.target.value)}
-                        placeholder="Décrivez les actions entreprises pour traiter cette vulnérabilité..."
-                        rows={3}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Commentaires additionnels</label>
-                      <Textarea
-                        value={comments}
-                        onChange={(e) => setComments(e.target.value)}
-                        placeholder="Ajoutez vos commentaires sur le traitement..."
-                        rows={3}
-                      />
-                    </div>
-
-                    <div className="flex space-x-2 pt-4">
-                      <Button onClick={handleFinalSubmit} className="flex-1">
-                        Finaliser le traitement
-                      </Button>
-                      <Button variant="outline" onClick={handleClose}>
-                        Annuler
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Traitement Rapide pour procédure manuelle */}
+            </TabsContent>
+            
+            <TabsContent value="manual" className="space-y-4">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Clock className="h-5 w-5" />
-                    <span>Procédure Manuelle Standard</span>
+                    <span>Procédure Manuelle</span>
                   </CardTitle>
                   <CardDescription>
-                    Procédure traditionnelle en 5 étapes
+                    Exécution de la procédure manuelle standard avec responsables et documentation
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-600">
-                    La procédure manuelle standard est disponible mais nous recommandons 
-                    d'utiliser le système de workflow personnalisé pour un meilleur suivi.
-                  </p>
+                <CardContent className="space-y-4">
+                  <div className="p-4 border rounded-lg bg-green-50">
+                    <p className="text-sm text-green-800">
+                      La procédure manuelle vous permet d'exécuter les étapes standard avec la possibilité 
+                      d'assigner des responsables, d'ajouter des notes et des pièces jointes pour chaque étape.
+                    </p>
+                  </div>
                   
-                  {/* Formulaire de finalisation rapide */}
-                  <div className="mt-6 space-y-4 p-4 border rounded">
-                    <h3 className="font-semibold">Traitement Rapide</h3>
-                    
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Nouveau statut *</label>
-                      <Select value={newStatus} onValueChange={setNewStatus}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez le statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="en_cours">En cours</SelectItem>
-                          <SelectItem value="en_attente">En attente</SelectItem>
-                          <SelectItem value="resolu">Résolu</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Assigné à *</label>
-                      <Select value={assignedTo} onValueChange={setAssignedTo}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez un responsable" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Équipe Sécurité">Équipe Sécurité</SelectItem>
-                          <SelectItem value="Équipe Infrastructure">Équipe Infrastructure</SelectItem>
-                          <SelectItem value="Admin Base de données">Admin Base de données</SelectItem>
-                          <SelectItem value="Équipe Réseau">Équipe Réseau</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Commentaires</label>
-                      <Textarea
-                        value={comments}
-                        onChange={(e) => setComments(e.target.value)}
-                        placeholder="Décrivez les actions entreprises..."
-                        rows={3}
-                      />
-                    </div>
-
-                    <Button onClick={handleFinalSubmit} className="w-full">
-                      Mettre à jour l'alerte
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={() => setShowManualProcedure(true)}
+                      size="lg"
+                      variant="outline"
+                      className="flex items-center space-x-2"
+                    >
+                      <PlayCircle className="h-5 w-5" />
+                      <span>Démarrer la procédure manuelle</span>
                     </Button>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <h4 className="font-semibold text-sm">Étapes de la procédure:</h4>
+                    <div className="space-y-2">
+                      {treatmentSteps.map((step) => (
+                        <div key={step.step} className="flex items-center space-x-3 p-3 border rounded">
+                          <Badge variant="outline">Étape {step.step}</Badge>
+                          <div>
+                            <p className="font-medium text-sm">{step.title}</p>
+                            <p className="text-xs text-gray-600">{step.description}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 space-y-3">
+                    <h4 className="font-semibold text-sm">Fonctionnalités disponibles:</h4>
+                    <ul className="text-sm space-y-2 text-gray-600">
+                      <li className="flex items-center space-x-2">
+                        <User className="h-4 w-4 text-blue-500" />
+                        <span>Assignment de responsables par étape</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <FileText className="h-4 w-4 text-blue-500" />
+                        <span>Ajout de notes d'exécution</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <Paperclip className="h-4 w-4 text-blue-500" />
+                        <span>Gestion des pièces jointes</span>
+                      </li>
+                      <li className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4 text-blue-500" />
+                        <span>Suivi de progression étape par étape</span>
+                      </li>
+                    </ul>
                   </div>
                 </CardContent>
               </Card>
@@ -405,6 +374,23 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
           </div>
         </div>
       </SheetContent>
+
+      {/* Modaux pour les workflows */}
+      <CustomWorkflowModal
+        isOpen={showCustomWorkflow}
+        onClose={() => setShowCustomWorkflow(false)}
+        alertId={alert.id}
+        alertTitle={alert.title}
+        onWorkflowSave={handleCustomWorkflowSave}
+      />
+
+      <ManualProcedureModal
+        isOpen={showManualProcedure}
+        onClose={() => setShowManualProcedure(false)}
+        alertId={alert.id}
+        alertTitle={alert.title}
+        onProcedureComplete={handleManualProcedureComplete}
+      />
     </Sheet>
   );
 };
