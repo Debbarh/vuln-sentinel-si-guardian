@@ -147,98 +147,122 @@ const Home = () => {
             </h1>
           </div>
 
-          {/* Carousel des modules */}
-          <Carousel className="w-full max-w-5xl mx-auto mb-12">
-            <CarouselContent>
-              {/* Module VulnGuard */}
-              <CarouselItem>
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
-                  <CardContent className="p-12 text-center">
-                    <div className="flex justify-center mb-6">
-                      <div className="p-4 bg-blue-600 rounded-2xl">
-                        <Shield className="h-12 w-12 text-white" />
-                      </div>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                      VulnGuard
-                    </h2>
-                    <h3 className="text-xl font-semibold text-blue-600 mb-4">
-                      Gestion des Vulnérabilités
-                    </h3>
-                    <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                      Centralise la surveillance, l'analyse et le traitement de vos vulnérabilités 
-                      avec des workflows intelligents et une intégration MaCERT native.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Link to="/register">
-                        <Button size="lg" className="text-lg px-8 py-4">
-                          Accéder au module
-                          <ArrowRight className="ml-2 h-5 w-5" />
-                        </Button>
-                      </Link>
-                      <Button size="lg" variant="outline" className="text-lg px-8 py-4">
-                        Demander une démo
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
+          {/* Carousel moderne des modules */}
+          <div className="relative w-full max-w-6xl mx-auto mb-12">
+            <Carousel className="w-full overflow-hidden rounded-3xl" opts={{ loop: true, align: "center" }}>
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {/* Module VulnGuard */}
+                <CarouselItem className="pl-2 md:pl-4">
+                  <div className="relative group">
+                    <Card className="border-0 shadow-2xl bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 overflow-hidden transition-all duration-500 hover:shadow-3xl hover:scale-[1.02]">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-indigo-600/10"></div>
+                      <CardContent className="relative p-16 text-center">
+                        <div className="flex justify-center mb-8">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-blue-600 rounded-3xl blur-lg opacity-50 animate-pulse"></div>
+                            <div className="relative p-6 bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl shadow-lg">
+                              <Shield className="h-16 w-16 text-white" />
+                            </div>
+                          </div>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+                          VulnGuard
+                        </h2>
+                        <div className="h-1 w-24 bg-gradient-to-r from-blue-600 to-indigo-600 mx-auto mb-6 rounded-full"></div>
+                        <h3 className="text-2xl font-semibold text-blue-700 mb-6">
+                          Gestion des Vulnérabilités
+                        </h3>
+                        <p className="text-lg text-gray-700 mb-10 max-w-2xl mx-auto leading-relaxed">
+                          Centralise la surveillance, l'analyse et le traitement de vos vulnérabilités 
+                          avec des workflows intelligents et une intégration MaCERT native.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                          <Link to="/register">
+                            <Button size="lg" className="text-lg px-10 py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                              Accéder au module
+                              <ArrowRight className="ml-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                          <Button size="lg" variant="outline" className="text-lg px-10 py-6 border-2 border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-lg">
+                            Demander une démo
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
 
-              {/* Module ISO 27001 */}
-              <CarouselItem>
-                <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
-                  <CardContent className="p-12 text-center">
-                    <div className="flex justify-center mb-6">
-                      <div className="p-4 bg-green-600 rounded-2xl">
-                        <Award className="h-12 w-12 text-white" />
-                      </div>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                      ISO 27001
-                    </h2>
-                    <h3 className="text-xl font-semibold text-green-600 mb-4">
-                      Évaluation de Maturité
-                    </h3>
-                    <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-                      Évaluez et pilotez votre maturité ISO 27001 avec des audits automatisés, 
-                      des plans d'action personnalisés et un suivi de progression.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Link to="/maturity">
-                        <Button size="lg" className="text-lg px-8 py-4 bg-green-600 hover:bg-green-700">
-                          Commencer l'évaluation
-                          <ArrowRight className="ml-2 h-5 w-5" />
-                        </Button>
-                      </Link>
-                      <Button size="lg" variant="outline" className="text-lg px-8 py-4 border-green-600 text-green-600 hover:bg-green-600 hover:text-white">
-                        Voir l'audit
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </CarouselItem>
-            </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
-          </Carousel>
+                {/* Module ISO 27001 */}
+                <CarouselItem className="pl-2 md:pl-4">
+                  <div className="relative group">
+                    <Card className="border-0 shadow-2xl bg-gradient-to-br from-emerald-50 via-green-100 to-teal-100 overflow-hidden transition-all duration-500 hover:shadow-3xl hover:scale-[1.02]">
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 to-teal-600/10"></div>
+                      <CardContent className="relative p-16 text-center">
+                        <div className="flex justify-center mb-8">
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-emerald-600 rounded-3xl blur-lg opacity-50 animate-pulse"></div>
+                            <div className="relative p-6 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-3xl shadow-lg">
+                              <Award className="h-16 w-16 text-white" />
+                            </div>
+                          </div>
+                        </div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+                          ISO 27001
+                        </h2>
+                        <div className="h-1 w-24 bg-gradient-to-r from-emerald-600 to-teal-600 mx-auto mb-6 rounded-full"></div>
+                        <h3 className="text-2xl font-semibold text-emerald-700 mb-6">
+                          Évaluation de Maturité
+                        </h3>
+                        <p className="text-lg text-gray-700 mb-10 max-w-2xl mx-auto leading-relaxed">
+                          Évaluez et pilotez votre maturité ISO 27001 avec des audits automatisés, 
+                          des plans d'action personnalisés et un suivi de progression.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                          <Link to="/maturity">
+                            <Button size="lg" className="text-lg px-10 py-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                              Commencer l'évaluation
+                              <ArrowRight className="ml-2 h-5 w-5" />
+                            </Button>
+                          </Link>
+                          <Button size="lg" variant="outline" className="text-lg px-10 py-6 border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all duration-300 shadow-lg">
+                            Voir l'audit
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              </CarouselContent>
+              
+              {/* Navigation moderne */}
+              <CarouselPrevious className="left-6 h-12 w-12 bg-white/90 border-0 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300" />
+              <CarouselNext className="right-6 h-12 w-12 bg-white/90 border-0 shadow-xl hover:bg-white hover:shadow-2xl transition-all duration-300" />
+            </Carousel>
+
+            {/* Indicateurs de slide */}
+            <div className="flex justify-center mt-8 space-x-3">
+              <div className="h-2 w-8 bg-blue-600 rounded-full opacity-80"></div>
+              <div className="h-2 w-2 bg-gray-300 rounded-full"></div>
+            </div>
+          </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
-            <div>
-              <div className="text-3xl font-bold text-blue-600">500+</div>
-              <div className="text-gray-600">Organisations</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
+            <div className="text-center group hover:scale-105 transition-transform duration-300">
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">500+</div>
+              <div className="text-gray-600 text-sm font-medium">Organisations</div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-blue-600">50K+</div>
-              <div className="text-gray-600">Vulnérabilités traitées</div>
+            <div className="text-center group hover:scale-105 transition-transform duration-300">
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">50K+</div>
+              <div className="text-gray-600 text-sm font-medium">Vulnérabilités traitées</div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-blue-600">99.9%</div>
-              <div className="text-gray-600">Disponibilité</div>
+            <div className="text-center group hover:scale-105 transition-transform duration-300">
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">99.9%</div>
+              <div className="text-gray-600 text-sm font-medium">Disponibilité</div>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-blue-600">24/7</div>
-              <div className="text-gray-600">Support</div>
+            <div className="text-center group hover:scale-105 transition-transform duration-300">
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">24/7</div>
+              <div className="text-gray-600 text-sm font-medium">Support</div>
             </div>
           </div>
         </div>
