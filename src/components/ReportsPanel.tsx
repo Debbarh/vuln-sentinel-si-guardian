@@ -577,6 +577,281 @@ const ReportsPanel = () => {
     navigate(routes[type] || "/dashboard");
   };
 
+  // Fonctions de génération PDF directes pour les rapports prédéfinis
+  const generateSecurityPDFDirect = () => {
+    const reportDate = new Date().toLocaleDateString('fr-FR');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Rapport de Sécurité - ${reportDate}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+          .header { text-align: center; border-bottom: 3px solid #EF4444; padding-bottom: 20px; margin-bottom: 30px; }
+          .header h1 { color: #1F2937; margin: 0; font-size: 28px; }
+          .section { margin-bottom: 30px; }
+          .section h2 { color: #1F2937; border-left: 4px solid #EF4444; padding-left: 15px; }
+          .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+          .metric-card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 15px; background: #F9FAFB; text-align: center; }
+          .metric-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+          .critical { color: #EF4444; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🛡️ Rapport de Sécurité</h1>
+          <p>Vue globale de la posture de sécurité - ${reportDate}</p>
+        </div>
+        <div class="section">
+          <h2>📊 Métriques de Sécurité</h2>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value critical">7.2/10</div>
+              <div>Score de risque global</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">${complianceMetrics.totalAssets}</div>
+              <div>Actifs totaux</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value critical">8</div>
+              <div>Vulnérabilités critiques</div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    downloadPDF(htmlContent, 'rapport-securite');
+  };
+
+  const generateCompliancePDFDirect = () => {
+    const reportDate = new Date().toLocaleDateString('fr-FR');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Rapport de Conformité ISO 27001 - ${reportDate}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+          .header { text-align: center; border-bottom: 3px solid #3B82F6; padding-bottom: 20px; margin-bottom: 30px; }
+          .header h1 { color: #1F2937; margin: 0; font-size: 28px; }
+          .section { margin-bottom: 30px; }
+          .section h2 { color: #1F2937; border-left: 4px solid #3B82F6; padding-left: 15px; }
+          .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+          .metric-card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 15px; background: #F9FAFB; text-align: center; }
+          .metric-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+          .success { color: #10B981; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>📋 Rapport de Conformité ISO 27001</h1>
+          <p>Évaluation de la conformité aux contrôles - ${reportDate}</p>
+        </div>
+        <div class="section">
+          <h2>🎯 Conformité Globale</h2>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value success">${complianceMetrics.complianceRate}%</div>
+              <div>Conformité globale</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">10</div>
+              <div>Domaines évalués</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">2</div>
+              <div>Non-conformités actives</div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    downloadPDF(htmlContent, 'rapport-conformite-iso27001');
+  };
+
+  const generateExecutivePDFDirect = () => {
+    const reportDate = new Date().toLocaleDateString('fr-FR');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Tableau de Bord Exécutif - ${reportDate}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+          .header { text-align: center; border-bottom: 3px solid #8B5CF6; padding-bottom: 20px; margin-bottom: 30px; }
+          .header h1 { color: #1F2937; margin: 0; font-size: 28px; }
+          .section { margin-bottom: 30px; }
+          .section h2 { color: #1F2937; border-left: 4px solid #8B5CF6; padding-left: 15px; }
+          .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px; }
+          .metric-card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 15px; background: #F9FAFB; text-align: center; }
+          .metric-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>📈 Tableau de Bord Exécutif</h1>
+          <p>Vue synthétique pour la direction - ${reportDate}</p>
+        </div>
+        <div class="section">
+          <h2>🎯 KPI Clés</h2>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value">7.2/10</div>
+              <div>Score de sécurité</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">85.9%</div>
+              <div>Conformité</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">4.2j</div>
+              <div>MTTR moyen</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">89%</div>
+              <div>Taux de patching</div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    downloadPDF(htmlContent, 'tableau-bord-executif');
+  };
+
+  const generateVulnerabilityPDFDirect = () => {
+    const reportDate = new Date().toLocaleDateString('fr-FR');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Rapport de Vulnérabilités - ${reportDate}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+          .header { text-align: center; border-bottom: 3px solid #F59E0B; padding-bottom: 20px; margin-bottom: 30px; }
+          .header h1 { color: #1F2937; margin: 0; font-size: 28px; }
+          .section { margin-bottom: 30px; }
+          .section h2 { color: #1F2937; border-left: 4px solid #F59E0B; padding-left: 15px; }
+          .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px; }
+          .metric-card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 15px; background: #F9FAFB; text-align: center; }
+          .metric-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+          .critical { color: #EF4444; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>🐛 Rapport de Vulnérabilités</h1>
+          <p>Suivi des vulnérabilités du SI - ${reportDate}</p>
+        </div>
+        <div class="section">
+          <h2>⚠️ Vue d'ensemble</h2>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value">143</div>
+              <div>Total actives</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value critical">8</div>
+              <div>Critiques</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">12</div>
+              <div>Nouvelles ce mois</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">18</div>
+              <div>Corrigées ce mois</div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    downloadPDF(htmlContent, 'rapport-vulnerabilites');
+  };
+
+  const generateAuditPDFDirect = () => {
+    const reportDate = new Date().toLocaleDateString('fr-FR');
+    
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Rapport d'Audit - ${reportDate}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+          .header { text-align: center; border-bottom: 3px solid #10B981; padding-bottom: 20px; margin-bottom: 30px; }
+          .header h1 { color: #1F2937; margin: 0; font-size: 28px; }
+          .section { margin-bottom: 30px; }
+          .section h2 { color: #1F2937; border-left: 4px solid #10B981; padding-left: 15px; }
+          .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+          .metric-card { border: 1px solid #E5E7EB; border-radius: 8px; padding: 15px; background: #F9FAFB; text-align: center; }
+          .metric-value { font-size: 20px; font-weight: bold; margin-bottom: 5px; }
+          .success { color: #10B981; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>📋 Rapport d'Audit</h1>
+          <p>Suivi des contrôles et efficacité - ${reportDate}</p>
+        </div>
+        <div class="section">
+          <h2>🔍 Résultats d'Audit</h2>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-value">15</div>
+              <div>Audits réalisés</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value success">92%</div>
+              <div>Taux de conformité</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">3</div>
+              <div>Actions correctives</div>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    downloadPDF(htmlContent, 'rapport-audit');
+  };
+
+  // Fonction utilitaire pour télécharger un PDF
+  const downloadPDF = (htmlContent, filename) => {
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${filename}-${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        setTimeout(() => { printWindow.print(); printWindow.close(); }, 100);
+      }
+    }, 100);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -1016,42 +1291,120 @@ const ReportsPanel = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="border rounded-lg p-4 hover:bg-gray-50">
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => navigate("/reports/security")}
+            >
               <h3 className="font-semibold mb-2">Rapport Mensuel de Sécurité</h3>
               <p className="text-sm text-gray-600 mb-3">
                 Vue d'ensemble des vulnérabilités traitées et du niveau de sécurité global
               </p>
               <div className="flex items-center justify-between">
                 <Badge variant="outline">Mensuel</Badge>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    generateSecurityPDFDirect();
+                  }}
+                >
                   <Download className="h-4 w-4 mr-1" />
                   Générer
                 </Button>
               </div>
             </div>
 
-            <div className="border rounded-lg p-4 hover:bg-gray-50">
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => navigate("/reports/compliance")}
+            >
               <h3 className="font-semibold mb-2">Rapport de Conformité</h3>
               <p className="text-sm text-gray-600 mb-3">
                 État de conformité aux standards de sécurité (ISO 27001, NIST)
               </p>
               <div className="flex items-center justify-between">
                 <Badge variant="outline">Trimestriel</Badge>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    generateCompliancePDFDirect();
+                  }}
+                >
                   <Download className="h-4 w-4 mr-1" />
                   Générer
                 </Button>
               </div>
             </div>
 
-            <div className="border rounded-lg p-4 hover:bg-gray-50">
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => navigate("/reports/executive")}
+            >
               <h3 className="font-semibold mb-2">Tableau de Bord Exécutif</h3>
               <p className="text-sm text-gray-600 mb-3">
                 Métriques clés et indicateurs de risque pour la direction
               </p>
               <div className="flex items-center justify-between">
                 <Badge variant="outline">Hebdomadaire</Badge>
-                <Button size="sm" variant="outline">
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    generateExecutivePDFDirect();
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Générer
+                </Button>
+              </div>
+            </div>
+
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => navigate("/reports/vulnerability")}
+            >
+              <h3 className="font-semibold mb-2">Rapport de Vulnérabilités</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Analyse détaillée des vulnérabilités actives et corrigées
+              </p>
+              <div className="flex items-center justify-between">
+                <Badge variant="outline">Bi-mensuel</Badge>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    generateVulnerabilityPDFDirect();
+                  }}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Générer
+                </Button>
+              </div>
+            </div>
+
+            <div 
+              className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              onClick={() => navigate("/reports/audit")}
+            >
+              <h3 className="font-semibold mb-2">Rapport d'Audit</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Suivi des contrôles réalisés et de leur efficacité
+              </p>
+              <div className="flex items-center justify-between">
+                <Badge variant="outline">Trimestriel</Badge>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    generateAuditPDFDirect();
+                  }}
+                >
                   <Download className="h-4 w-4 mr-1" />
                   Générer
                 </Button>
