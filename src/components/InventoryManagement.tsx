@@ -8,7 +8,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Server, Database, Globe, Router, Smartphone, Edit, Trash2, Monitor, Shield, Code } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Asset {
   id: number;
@@ -74,6 +76,7 @@ interface Asset {
 }
 
 const InventoryManagement = () => {
+  const { toast } = useToast();
   const [assets, setAssets] = useState<Asset[]>([
     {
       id: 1,
@@ -116,7 +119,9 @@ const InventoryManagement = () => {
     environment: "Dev"
   });
 
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -174,12 +179,35 @@ const InventoryManagement = () => {
 
   const handleDeleteAsset = (id: number) => {
     setAssets(assets.filter(asset => asset.id !== id));
+    toast({
+      title: "Actif supprimé",
+      description: "L'actif a été supprimé avec succès de l'inventaire.",
+    });
   };
 
-  const renderSpecificFields = () => {
-    if (!newAsset.type) return null;
+  const handleEditAsset = (asset: Asset) => {
+    setEditingAsset({ ...asset });
+    setIsEditDialogOpen(true);
+  };
 
-    switch (newAsset.type) {
+  const handleUpdateAsset = () => {
+    if (editingAsset) {
+      setAssets(assets.map(asset => 
+        asset.id === editingAsset.id ? editingAsset : asset
+      ));
+      setEditingAsset(null);
+      setIsEditDialogOpen(false);
+      toast({
+        title: "Actif modifié",
+        description: "L'actif a été mis à jour avec succès.",
+      });
+    }
+  };
+
+  const renderSpecificFields = (currentAsset = newAsset, setCurrentAsset = setNewAsset) => {
+    if (!currentAsset.type) return null;
+
+    switch (currentAsset.type) {
       case "Système d'exploitation":
         return (
           <>
@@ -187,15 +215,15 @@ const InventoryManagement = () => {
               <Label htmlFor="version" className="text-right">Version</Label>
               <Input
                 id="version"
-                value={newAsset.version || ""}
-                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                value={currentAsset.version || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, version: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: 22.04 LTS, 2019"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="architecture" className="text-right">Architecture</Label>
-              <Select onValueChange={(value) => setNewAsset({...newAsset, architecture: value as "32 bits" | "64 bits"})}>
+              <Select onValueChange={(value) => setCurrentAsset({...currentAsset, architecture: value as "32 bits" | "64 bits"})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner l'architecture" />
                 </SelectTrigger>
@@ -209,8 +237,8 @@ const InventoryManagement = () => {
               <Label htmlFor="language" className="text-right">Langue</Label>
               <Input
                 id="language"
-                value={newAsset.language || ""}
-                onChange={(e) => setNewAsset({...newAsset, language: e.target.value})}
+                value={currentAsset.language || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, language: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Français, Anglais"
               />
@@ -219,8 +247,8 @@ const InventoryManagement = () => {
               <Label htmlFor="associatedServer" className="text-right">Serveur associé</Label>
               <Input
                 id="associatedServer"
-                value={newAsset.associatedServer || ""}
-                onChange={(e) => setNewAsset({...newAsset, associatedServer: e.target.value})}
+                value={currentAsset.associatedServer || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, associatedServer: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: SRV-PROD-01"
               />
@@ -235,15 +263,15 @@ const InventoryManagement = () => {
               <Label htmlFor="version" className="text-right">Version</Label>
               <Input
                 id="version"
-                value={newAsset.version || ""}
-                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                value={currentAsset.version || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, version: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: 1.2.3"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="softwareType" className="text-right">Type</Label>
-              <Select onValueChange={(value) => setNewAsset({...newAsset, softwareType: value as "Bureau" | "Serveur" | "Plugin" | "Mobile"})}>
+              <Select onValueChange={(value) => setCurrentAsset({...currentAsset, softwareType: value as "Bureau" | "Serveur" | "Plugin" | "Mobile"})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner le type" />
                 </SelectTrigger>
@@ -259,8 +287,8 @@ const InventoryManagement = () => {
               <Label htmlFor="vendor" className="text-right">Fournisseur/Éditeur</Label>
               <Input
                 id="vendor"
-                value={newAsset.vendor || ""}
-                onChange={(e) => setNewAsset({...newAsset, vendor: e.target.value})}
+                value={currentAsset.vendor || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, vendor: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Microsoft, Adobe"
               />
@@ -269,8 +297,8 @@ const InventoryManagement = () => {
               <Label htmlFor="hostSystem" className="text-right">Système hôte</Label>
               <Input
                 id="hostSystem"
-                value={newAsset.hostSystem || ""}
-                onChange={(e) => setNewAsset({...newAsset, hostSystem: e.target.value})}
+                value={currentAsset.hostSystem || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, hostSystem: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Windows 11, Ubuntu 22.04"
               />
@@ -279,8 +307,8 @@ const InventoryManagement = () => {
               <Label htmlFor="impactedUsers" className="text-right">Utilisateurs impactés</Label>
               <Input
                 id="impactedUsers"
-                value={newAsset.impactedUsers || ""}
-                onChange={(e) => setNewAsset({...newAsset, impactedUsers: e.target.value})}
+                value={currentAsset.impactedUsers || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, impactedUsers: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: 50 utilisateurs, Équipe RH"
               />
@@ -295,8 +323,8 @@ const InventoryManagement = () => {
               <Label htmlFor="manufacturer" className="text-right">Fabricant/Marque</Label>
               <Input
                 id="manufacturer"
-                value={newAsset.manufacturer || ""}
-                onChange={(e) => setNewAsset({...newAsset, manufacturer: e.target.value})}
+                value={currentAsset.manufacturer || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, manufacturer: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Cisco, HP, Fortinet"
               />
@@ -305,8 +333,8 @@ const InventoryManagement = () => {
               <Label htmlFor="model" className="text-right">Modèle</Label>
               <Input
                 id="model"
-                value={newAsset.model || ""}
-                onChange={(e) => setNewAsset({...newAsset, model: e.target.value})}
+                value={currentAsset.model || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, model: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: ASA 5516-X"
               />
@@ -315,15 +343,15 @@ const InventoryManagement = () => {
               <Label htmlFor="firmwareVersion" className="text-right">Version firmware/OS</Label>
               <Input
                 id="firmwareVersion"
-                value={newAsset.firmwareVersion || ""}
-                onChange={(e) => setNewAsset({...newAsset, firmwareVersion: e.target.value})}
+                value={currentAsset.firmwareVersion || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, firmwareVersion: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: 9.14.2"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="role" className="text-right">Rôle</Label>
-              <Select onValueChange={(value) => setNewAsset({...newAsset, role: value as "Switch" | "Firewall" | "Routeur" | "Autre"})}>
+              <Select onValueChange={(value) => setCurrentAsset({...currentAsset, role: value as "Switch" | "Firewall" | "Routeur" | "Autre"})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner le rôle" />
                 </SelectTrigger>
@@ -339,8 +367,8 @@ const InventoryManagement = () => {
               <Label htmlFor="ipAddress" className="text-right">Adresse IP/Accès admin</Label>
               <Input
                 id="ipAddress"
-                value={newAsset.ipAddress || ""}
-                onChange={(e) => setNewAsset({...newAsset, ipAddress: e.target.value})}
+                value={currentAsset.ipAddress || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, ipAddress: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: 192.168.1.1"
               />
@@ -348,8 +376,8 @@ const InventoryManagement = () => {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="externalExposure" className="text-right">Exposition externe</Label>
               <RadioGroup
-                value={newAsset.externalExposure}
-                onValueChange={(value) => setNewAsset({...newAsset, externalExposure: value as "oui" | "non"})}
+                value={currentAsset.externalExposure}
+                onValueChange={(value) => setCurrentAsset({...currentAsset, externalExposure: value as "oui" | "non"})}
                 className="col-span-3"
               >
                 <div className="flex items-center space-x-2">
@@ -372,8 +400,8 @@ const InventoryManagement = () => {
               <Label htmlFor="url" className="text-right">URL/IP publique</Label>
               <Input
                 id="url"
-                value={newAsset.url || ""}
-                onChange={(e) => setNewAsset({...newAsset, url: e.target.value})}
+                value={currentAsset.url || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, url: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: https://app.monentreprise.com"
               />
@@ -382,8 +410,8 @@ const InventoryManagement = () => {
               <Label htmlFor="technologies" className="text-right">Technologies utilisées</Label>
               <Input
                 id="technologies"
-                value={newAsset.technologies || ""}
-                onChange={(e) => setNewAsset({...newAsset, technologies: e.target.value})}
+                value={currentAsset.technologies || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, technologies: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: PHP, Node.js, React"
               />
@@ -392,8 +420,8 @@ const InventoryManagement = () => {
               <Label htmlFor="frameworks" className="text-right">Frameworks/dépendances</Label>
               <Textarea
                 id="frameworks"
-                value={newAsset.frameworks || ""}
-                onChange={(e) => setNewAsset({...newAsset, frameworks: e.target.value})}
+                value={currentAsset.frameworks || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, frameworks: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Laravel 9.0, Express.js"
               />
@@ -401,8 +429,8 @@ const InventoryManagement = () => {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="requiresAuth" className="text-right">Authentification requise</Label>
               <RadioGroup
-                value={newAsset.requiresAuth}
-                onValueChange={(value) => setNewAsset({...newAsset, requiresAuth: value as "oui" | "non"})}
+                value={currentAsset.requiresAuth}
+                onValueChange={(value) => setCurrentAsset({...currentAsset, requiresAuth: value as "oui" | "non"})}
                 className="col-span-3"
               >
                 <div className="flex items-center space-x-2">
@@ -425,8 +453,8 @@ const InventoryManagement = () => {
               <Label htmlFor="sgbd" className="text-right">Nom du SGBD</Label>
               <Input
                 id="sgbd"
-                value={newAsset.sgbd || ""}
-                onChange={(e) => setNewAsset({...newAsset, sgbd: e.target.value})}
+                value={currentAsset.sgbd || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, sgbd: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: MySQL, PostgreSQL, Oracle"
               />
@@ -435,8 +463,8 @@ const InventoryManagement = () => {
               <Label htmlFor="version" className="text-right">Version exacte</Label>
               <Input
                 id="version"
-                value={newAsset.version || ""}
-                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                value={currentAsset.version || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, version: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: 8.0.32, 14.7"
               />
@@ -445,8 +473,8 @@ const InventoryManagement = () => {
               <Label htmlFor="usedPort" className="text-right">Port utilisé</Label>
               <Input
                 id="usedPort"
-                value={newAsset.usedPort || ""}
-                onChange={(e) => setNewAsset({...newAsset, usedPort: e.target.value})}
+                value={currentAsset.usedPort || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, usedPort: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: 3306, 5432"
               />
@@ -454,8 +482,8 @@ const InventoryManagement = () => {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="strongAuth" className="text-right">Authentification forte</Label>
               <RadioGroup
-                value={newAsset.strongAuth}
-                onValueChange={(value) => setNewAsset({...newAsset, strongAuth: value as "oui" | "non"})}
+                value={currentAsset.strongAuth}
+                onValueChange={(value) => setCurrentAsset({...currentAsset, strongAuth: value as "oui" | "non"})}
                 className="col-span-3"
               >
                 <div className="flex items-center space-x-2">
@@ -478,15 +506,15 @@ const InventoryManagement = () => {
               <Label htmlFor="hardwareName" className="text-right">Nom du matériel</Label>
               <Input
                 id="hardwareName"
-                value={newAsset.hardwareName || ""}
-                onChange={(e) => setNewAsset({...newAsset, hardwareName: e.target.value})}
+                value={currentAsset.hardwareName || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, hardwareName: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Caméra IP Bureau 1"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="deviceType" className="text-right">Type</Label>
-              <Select onValueChange={(value) => setNewAsset({...newAsset, deviceType: value as "caméra" | "imprimante" | "IoT" | "autre"})}>
+              <Select onValueChange={(value) => setCurrentAsset({...currentAsset, deviceType: value as "caméra" | "imprimante" | "IoT" | "autre"})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner le type" />
                 </SelectTrigger>
@@ -502,8 +530,8 @@ const InventoryManagement = () => {
               <Label htmlFor="brand" className="text-right">Marque/modèle</Label>
               <Input
                 id="brand"
-                value={newAsset.brand || ""}
-                onChange={(e) => setNewAsset({...newAsset, brand: e.target.value})}
+                value={currentAsset.brand || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, brand: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Hikvision DS-2CD2"
               />
@@ -512,8 +540,8 @@ const InventoryManagement = () => {
               <Label htmlFor="version" className="text-right">Version firmware</Label>
               <Input
                 id="version"
-                value={newAsset.version || ""}
-                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                value={currentAsset.version || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, version: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: V5.7.3"
               />
@@ -526,7 +554,7 @@ const InventoryManagement = () => {
           <>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="appType" className="text-right">Type</Label>
-              <Select onValueChange={(value) => setNewAsset({...newAsset, appType: value as "Web" | "Mobile" | "API" | "Script"})}>
+              <Select onValueChange={(value) => setCurrentAsset({...currentAsset, appType: value as "Web" | "Mobile" | "API" | "Script"})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner le type" />
                 </SelectTrigger>
@@ -542,8 +570,8 @@ const InventoryManagement = () => {
               <Label htmlFor="url" className="text-right">URL/domaine</Label>
               <Input
                 id="url"
-                value={newAsset.url || ""}
-                onChange={(e) => setNewAsset({...newAsset, url: e.target.value})}
+                value={currentAsset.url || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, url: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: https://portail-rh.monentreprise.com"
               />
@@ -552,8 +580,8 @@ const InventoryManagement = () => {
               <Label htmlFor="languages" className="text-right">Langages utilisés</Label>
               <Input
                 id="languages"
-                value={newAsset.languages || ""}
-                onChange={(e) => setNewAsset({...newAsset, languages: e.target.value})}
+                value={currentAsset.languages || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, languages: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Python, PHP, JavaScript"
               />
@@ -562,8 +590,8 @@ const InventoryManagement = () => {
               <Label htmlFor="frameworks" className="text-right">Framework(s)</Label>
               <Input
                 id="frameworks"
-                value={newAsset.frameworks || ""}
-                onChange={(e) => setNewAsset({...newAsset, frameworks: e.target.value})}
+                value={currentAsset.frameworks || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, frameworks: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: Django, Laravel, React"
               />
@@ -572,8 +600,8 @@ const InventoryManagement = () => {
               <Label htmlFor="dependencies" className="text-right">Dépendances tierces</Label>
               <Textarea
                 id="dependencies"
-                value={newAsset.dependencies || ""}
-                onChange={(e) => setNewAsset({...newAsset, dependencies: e.target.value})}
+                value={currentAsset.dependencies || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, dependencies: e.target.value})}
                 className="col-span-3"
                 placeholder="Fichier requirements.txt, package.json..."
               />
@@ -582,15 +610,15 @@ const InventoryManagement = () => {
               <Label htmlFor="version" className="text-right">Version</Label>
               <Input
                 id="version"
-                value={newAsset.version || ""}
-                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                value={currentAsset.version || ""}
+                onChange={(e) => setCurrentAsset({...currentAsset, version: e.target.value})}
                 className="col-span-3"
                 placeholder="ex: v1.2.0, commit abc123"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="authentication" className="text-right">Authentification/Rôles</Label>
-              <Select onValueChange={(value) => setNewAsset({...newAsset, authentication: value as "Oui" | "Non" | "OAuth" | "SSO"})}>
+              <Select onValueChange={(value) => setCurrentAsset({...currentAsset, authentication: value as "Oui" | "Non" | "OAuth" | "SSO"})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner le type d'auth" />
                 </SelectTrigger>
@@ -604,7 +632,7 @@ const InventoryManagement = () => {
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="exposure" className="text-right">Exposition</Label>
-              <Select onValueChange={(value) => setNewAsset({...newAsset, exposure: value as "Internet" | "Interne uniquement"})}>
+              <Select onValueChange={(value) => setCurrentAsset({...currentAsset, exposure: value as "Internet" | "Interne uniquement"})}>
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Sélectionner l'exposition" />
                 </SelectTrigger>
@@ -704,6 +732,20 @@ const InventoryManagement = () => {
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">Statut de l'actif</Label>
+                <Select onValueChange={(value) => setNewAsset({...newAsset, status: value as "actif" | "maintenance" | "inactif"})}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Sélectionner le statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="actif">Actif</SelectItem>
+                    <SelectItem value="maintenance">En maintenance</SelectItem>
+                    <SelectItem value="inactif">Inactif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="cpe" className="text-right">CPE (optionnel)</Label>
                 <Input
                   id="cpe"
@@ -725,6 +767,113 @@ const InventoryManagement = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog de modification */}
+        {editingAsset && (
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Modifier l'Actif</DialogTitle>
+                <DialogDescription>
+                  Modifiez les informations de l'actif sélectionné.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                {/* Champs communs */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-name" className="text-right">Nom</Label>
+                  <Input
+                    id="edit-name"
+                    value={editingAsset.name || ""}
+                    onChange={(e) => setEditingAsset({...editingAsset, name: e.target.value})}
+                    className="col-span-3"
+                    placeholder="ex: Serveur Web Production"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-type" className="text-right">Type d'actif</Label>
+                  <Select value={editingAsset.type} onValueChange={(value) => setEditingAsset({...editingAsset, type: value as Asset["type"]})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Sélectionner un type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Système d'exploitation">Système d'exploitation</SelectItem>
+                      <SelectItem value="Logiciel ou application">Logiciel ou application</SelectItem>
+                      <SelectItem value="Matériel / Équipement réseau ou sécurité">Matériel / Équipement réseau ou sécurité</SelectItem>
+                      <SelectItem value="Service web ou applicatif">Service web ou applicatif</SelectItem>
+                      <SelectItem value="Base de données">Base de données</SelectItem>
+                      <SelectItem value="Composant embarqué">Composant embarqué</SelectItem>
+                      <SelectItem value="Développement spécifique">Développement spécifique</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-environment" className="text-right">Environnement</Label>
+                  <Select value={editingAsset.environment} onValueChange={(value) => setEditingAsset({...editingAsset, environment: value as "Prod" | "Préprod" | "Dev"})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Sélectionner l'environnement" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Prod">Production</SelectItem>
+                      <SelectItem value="Préprod">Pré-production</SelectItem>
+                      <SelectItem value="Dev">Développement</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-criticality" className="text-right">Criticité</Label>
+                  <Select value={editingAsset.criticality} onValueChange={(value) => setEditingAsset({...editingAsset, criticality: value as "Faible" | "Moyenne" | "Haute"})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Sélectionner la criticité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Haute">Haute</SelectItem>
+                      <SelectItem value="Moyenne">Moyenne</SelectItem>
+                      <SelectItem value="Faible">Faible</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-status" className="text-right">Statut de l'actif</Label>
+                  <Select value={editingAsset.status} onValueChange={(value) => setEditingAsset({...editingAsset, status: value as "actif" | "maintenance" | "inactif"})}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Sélectionner le statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="actif">Actif</SelectItem>
+                      <SelectItem value="maintenance">En maintenance</SelectItem>
+                      <SelectItem value="inactif">Inactif</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="edit-cpe" className="text-right">CPE (optionnel)</Label>
+                  <Input
+                    id="edit-cpe"
+                    value={editingAsset.cpe || ""}
+                    onChange={(e) => setEditingAsset({...editingAsset, cpe: e.target.value})}
+                    className="col-span-3"
+                    placeholder="ex: cpe:2.3:a:vendor:product:version"
+                  />
+                </div>
+
+                {/* Champs spécifiques selon le type */}
+                {renderSpecificFields(editingAsset, setEditingAsset)}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button onClick={handleUpdateAsset}>Mettre à jour</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Statistiques rapides */}
@@ -791,17 +940,37 @@ const InventoryManagement = () => {
                     {asset.status}
                   </span>
                   <div className="flex space-x-1">
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditAsset(asset)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleDeleteAsset(asset.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Êtes-vous sûr de vouloir supprimer cet actif ?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Cette action est irréversible. L'actif "{asset.name}" sera définitivement supprimé de votre inventaire.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => handleDeleteAsset(asset.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               </div>
