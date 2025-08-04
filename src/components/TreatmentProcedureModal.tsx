@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, Clock, User, Calendar, AlertTriangle, Settings, PlayCircle, FileText, Paperclip, Maximize2, Minimize2 } from "lucide-react";
+import { CheckCircle, Clock, User, Calendar, AlertTriangle, Settings, PlayCircle, FileText, Paperclip, ExternalLink } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import WorkflowManager from "./WorkflowManager";
 import CustomWorkflowModal from "./CustomWorkflowModal";
@@ -34,13 +35,13 @@ interface TreatmentProcedureModalProps {
 }
 
 const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: TreatmentProcedureModalProps) => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("workflow");
   const [currentStep, setCurrentStep] = useState(1);
   const [newStatus, setNewStatus] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [comments, setComments] = useState("");
   const [actionTaken, setActionTaken] = useState("");
-  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const treatmentSteps = [
     {
@@ -171,8 +172,15 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
     setAssignedTo("");
     setComments("");
     setActionTaken("");
-    setIsFullScreen(false);
     onClose();
+  };
+
+  const handleOpenTreatmentPage = () => {
+    if (alert) {
+      const alertData = encodeURIComponent(JSON.stringify(alert));
+      navigate(`/treatment?alert=${alertData}`);
+      onClose();
+    }
   };
 
   if (!alert) return null;
@@ -196,7 +204,7 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent className={isFullScreen ? "w-full h-full max-w-none overflow-y-auto" : "w-[900px] sm:max-w-[900px] overflow-y-auto"}>
+      <SheetContent className="w-[900px] sm:max-w-[900px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -204,22 +212,11 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
               <span>Traitement de Vulnérabilité - Alerte #{alert.id}</span>
             </div>
             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsFullScreen(!isFullScreen)}
+              onClick={handleOpenTreatmentPage}
               className="flex items-center space-x-2"
             >
-              {isFullScreen ? (
-                <>
-                  <Minimize2 className="h-4 w-4" />
-                  <span>Réduire</span>
-                </>
-              ) : (
-                <>
-                  <Maximize2 className="h-4 w-4" />
-                  <span>Plein écran</span>
-                </>
-              )}
+              <ExternalLink className="h-4 w-4" />
+              <span>Ouvrir en page complète</span>
             </Button>
           </SheetTitle>
           <SheetDescription>

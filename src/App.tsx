@@ -11,6 +11,7 @@ import Profile from "./pages/Profile";
 import OrganizationManagement from "./pages/OrganizationManagement";
 import MaturityAssessment from "./pages/MaturityAssessment";
 import Vulnerabilities from "./pages/Vulnerabilities";
+import TreatmentPage from "./pages/TreatmentPage";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/organization" element={<OrganizationManagement />} />
           <Route path="/maturity" element={<MaturityAssessment />} />
           <Route path="/vulnerabilities" element={<Vulnerabilities />} />
+          <Route path="/treatment" element={<TreatmentPage />} />
           <Route path="/contact" element={<Contact />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
