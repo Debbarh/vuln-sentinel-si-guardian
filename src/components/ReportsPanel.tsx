@@ -13,6 +13,290 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Download, Calendar, TrendingUp, Shield, AlertTriangle, Clock, Settings, Trash2, Edit, Play } from "lucide-react";
 
 const ReportsPanel = () => {
+  // Fonction pour générer et télécharger le PDF
+  const generatePDFReport = () => {
+    const reportDate = new Date().toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Rapport de Sécurité - ${reportDate}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px solid #3B82F6;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .header h1 {
+            color: #1F2937;
+            margin: 0;
+            font-size: 28px;
+          }
+          .header p {
+            color: #6B7280;
+            margin: 10px 0 0 0;
+            font-size: 16px;
+          }
+          .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+          }
+          .metric-card {
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 20px;
+            background: #F9FAFB;
+          }
+          .metric-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6B7280;
+            margin-bottom: 8px;
+          }
+          .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          .metric-subtitle {
+            font-size: 12px;
+            color: #9CA3AF;
+          }
+          .section {
+            margin-bottom: 30px;
+          }
+          .section h2 {
+            color: #1F2937;
+            border-left: 4px solid #3B82F6;
+            padding-left: 15px;
+            margin-bottom: 15px;
+          }
+          .vulnerability-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+          }
+          .vulnerability-table th,
+          .vulnerability-table td {
+            border: 1px solid #E5E7EB;
+            padding: 12px;
+            text-align: left;
+          }
+          .vulnerability-table th {
+            background-color: #F3F4F6;
+            font-weight: 600;
+          }
+          .status-green { color: #10B981; }
+          .status-blue { color: #3B82F6; }
+          .status-orange { color: #F59E0B; }
+          .status-red { color: #EF4444; }
+          .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #E5E7EB;
+            text-align: center;
+            color: #6B7280;
+            font-size: 12px;
+          }
+          .asset-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+          }
+          .asset-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #F9FAFB;
+            border-radius: 4px;
+            border: 1px solid #E5E7EB;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Rapport de Sécurité et Conformité</h1>
+          <p>Généré le ${reportDate}</p>
+        </div>
+
+        <div class="section">
+          <h2>📊 Métriques Clés</h2>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-title">Taux de Conformité</div>
+              <div class="metric-value status-green">${complianceMetrics.complianceRate}%</div>
+              <div class="metric-subtitle">${complianceMetrics.compliantAssets}/${complianceMetrics.totalAssets} actifs conformes</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Temps de Résolution Moyen</div>
+              <div class="metric-value status-blue">4.2 jours</div>
+              <div class="metric-subtitle">Pour les vulnérabilités critiques</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Vulnérabilités Résolues</div>
+              <div class="metric-value status-green">89%</div>
+              <div class="metric-subtitle">Ce mois-ci</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-title">Prochain Audit</div>
+              <div class="metric-value status-orange">42 jours</div>
+              <div class="metric-subtitle">${complianceMetrics.nextAudit}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>🔍 Évolution des Vulnérabilités</h2>
+          <table class="vulnerability-table">
+            <thead>
+              <tr>
+                <th>Période</th>
+                <th>Critiques</th>
+                <th>Élevées</th>
+                <th>Moyennes</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${vulnerabilityTrends.map(trend => `
+                <tr>
+                  <td>${trend.month}</td>
+                  <td class="status-red">${trend.critiques}</td>
+                  <td class="status-orange">${trend.elevees}</td>
+                  <td class="status-blue">${trend.moyennes}</td>
+                  <td><strong>${trend.critiques + trend.elevees + trend.moyennes}</strong></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="section">
+          <h2>🛡️ Répartition des Actifs</h2>
+          <div class="asset-list">
+            ${assetTypes.map(asset => `
+              <div class="asset-item">
+                <span>${asset.name}</span>
+                <strong>${asset.value}</strong>
+              </div>
+            `).join('')}
+          </div>
+          <p><strong>Total des actifs:</strong> ${assetTypes.reduce((sum, asset) => sum + asset.value, 0)}</p>
+        </div>
+
+        <div class="section">
+          <h2>⏱️ Temps de Résolution par Sévérité</h2>
+          <table class="vulnerability-table">
+            <thead>
+              <tr>
+                <th>Niveau de Sévérité</th>
+                <th>Temps Moyen (jours)</th>
+                <th>SLA Cible</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${resolutionTime.map(item => {
+                const slaTargets = { 'Critique': 3, 'Élevé': 7, 'Moyen': 14, 'Faible': 30 };
+                const target = slaTargets[item.severity];
+                const status = item.avgDays <= target ? 'Conforme' : 'À améliorer';
+                const statusClass = item.avgDays <= target ? 'status-green' : 'status-red';
+                return `
+                  <tr>
+                    <td>${item.severity}</td>
+                    <td>${item.avgDays}</td>
+                    <td>${target} jours</td>
+                    <td class="${statusClass}">${status}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        ${scheduledReports.length > 0 ? `
+        <div class="section">
+          <h2>📅 Rapports Planifiés Actifs</h2>
+          <table class="vulnerability-table">
+            <thead>
+              <tr>
+                <th>Rapport</th>
+                <th>Fréquence</th>
+                <th>Prochaine Exécution</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${scheduledReports.filter(r => r.isActive).map(report => `
+                <tr>
+                  <td>${report.title}</td>
+                  <td>${getFrequencyLabel(report.frequency)}</td>
+                  <td>${formatNextExecution(report.nextExecution)}</td>
+                  <td class="status-green">Actif</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        ` : ''}
+
+        <div class="footer">
+          <p>Rapport généré automatiquement par le système de gestion de sécurité</p>
+          <p>Confidentiel - Usage interne uniquement</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Créer un blob avec le contenu HTML
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = window.URL.createObjectURL(blob);
+    
+    // Créer un lien de téléchargement
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `rapport-securite-${new Date().toISOString().split('T')[0]}.html`;
+    
+    // Déclencher le téléchargement
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Nettoyer l'URL
+    window.URL.revokeObjectURL(url);
+
+    // Note: Pour un vrai PDF, vous pourriez utiliser window.print() 
+    // après avoir ouvert le contenu dans une nouvelle fenêtre
+    setTimeout(() => {
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        setTimeout(() => {
+          printWindow.print();
+          printWindow.close();
+        }, 100);
+      }
+    }, 100);
+  };
   // États pour la gestion des planifications
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [scheduledReports, setScheduledReports] = useState([
@@ -403,7 +687,7 @@ const ReportsPanel = () => {
               </div>
             </DialogContent>
           </Dialog>
-          <Button>
+          <Button onClick={generatePDFReport}>
             <Download className="h-4 w-4 mr-2" />
             Exporter PDF
           </Button>
