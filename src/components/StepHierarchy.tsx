@@ -114,11 +114,15 @@ const StepHierarchy: React.FC<StepHierarchyProps> = ({
     const hasSubSteps = step.subSteps && step.subSteps.length > 0;
     const isExpanded = expandedSteps.has(step.id);
     const progress = getStepProgress(step);
-    const indentClass = level > 0 ? 'ml-' + (level * 6) : '';
     const isEditing = editingStepId === step.id;
+    
+    // Indentation en fonction du niveau de hiérarchie
+    const getIndentStyle = (level: number) => {
+      return level > 0 ? { paddingLeft: `${level * 24}px` } : {};
+    };
 
     return (
-      <div key={step.id} className={`${indentClass} mb-4`}>
+      <div key={step.id} className="mb-4" style={getIndentStyle(level)}>
         <Card className={getStepStatusColor(step, index)}>
           <CardHeader>
             <div className="flex items-center justify-between">
