@@ -20,8 +20,21 @@ import {
   FileCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useEffect, useRef } from "react";
 
 const Home = () => {
+  const carouselRef = useRef<any>(null);
+
+  // Timer automatique de 8 secondes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (carouselRef.current?.api) {
+        carouselRef.current.api.scrollNext();
+      }
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, []);
   const features = [
     {
       icon: Shield,
@@ -136,7 +149,7 @@ const Home = () => {
       {/* Hero Section - Carousel Full Width */}
       <section className="pt-0 pb-0 min-h-screen flex items-center">
         <div className="w-full">
-          <Carousel className="w-full h-screen" opts={{ loop: true, align: "center" }}>
+          <Carousel ref={carouselRef} className="w-full h-screen" opts={{ loop: true, align: "center" }}>
             <CarouselContent className="-ml-0">
               {/* Module VulnGuard */}
               <CarouselItem className="pl-0">
@@ -274,12 +287,8 @@ const Home = () => {
                 </div>
               </CarouselItem>
             </CarouselContent>
-            
-            {/* Navigation moderne plein écran */}
-            <CarouselPrevious className="left-8 h-16 w-16 bg-white/80 border-0 shadow-2xl hover:bg-white hover:shadow-3xl transition-all duration-300 backdrop-blur-sm" />
-            <CarouselNext className="right-8 h-16 w-16 bg-white/80 border-0 shadow-2xl hover:bg-white hover:shadow-3xl transition-all duration-300 backdrop-blur-sm" />
 
-            {/* Indicateurs de slide */}
+            {/* Indicateurs de slide dynamiques */}
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4">
               <div className="h-3 w-12 bg-white/80 rounded-full shadow-lg backdrop-blur-sm"></div>
               <div className="h-3 w-3 bg-white/40 rounded-full shadow-lg backdrop-blur-sm"></div>
