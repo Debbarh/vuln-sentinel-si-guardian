@@ -117,20 +117,38 @@ const ManualProcedureModal = ({
     });
   };
 
-  const addAttachment = (stepId: string, fileName: string) => {
+  const addAttachment = (stepId: string, fileName: string, fileType: string) => {
     const step = procedureSteps.find(s => s.id === stepId);
     if (step) {
       updateStep(stepId, { 
-        attachments: [...step.attachments, fileName] 
+        attachments: [...step.attachments, { name: fileName, type: fileType }] 
       });
     }
   };
 
-  const removeAttachment = (stepId: string, fileName: string) => {
+  const removeAttachment = (stepId: string, attachmentName: string) => {
     const step = procedureSteps.find(s => s.id === stepId);
     if (step) {
       updateStep(stepId, { 
-        attachments: step.attachments.filter(name => name !== fileName) 
+        attachments: step.attachments.filter(att => att.name !== attachmentName) 
+      });
+    }
+  };
+
+  const addResponsible = (stepId: string, responsible: string) => {
+    const step = procedureSteps.find(s => s.id === stepId);
+    if (step && !step.responsibles.includes(responsible)) {
+      updateStep(stepId, { 
+        responsibles: [...step.responsibles, responsible] 
+      });
+    }
+  };
+
+  const removeResponsible = (stepId: string, responsible: string) => {
+    const step = procedureSteps.find(s => s.id === stepId);
+    if (step) {
+      updateStep(stepId, { 
+        responsibles: step.responsibles.filter(resp => resp !== responsible) 
       });
     }
   };
@@ -246,40 +264,58 @@ const ManualProcedureModal = ({
                 <CardContent className="space-y-4">
                   <p className="text-gray-600">{step.description}</p>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Responsable</label>
-                      <Select
-                        value={step.responsible}
-                        onValueChange={(value) => updateStep(step.id, { responsible: value })}
-                        disabled={step.completed}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Équipe Sécurité">Équipe Sécurité</SelectItem>
-                          <SelectItem value="Chef de projet sécurité">Chef de projet sécurité</SelectItem>
-                          <SelectItem value="Équipe Infrastructure">Équipe Infrastructure</SelectItem>
-                          <SelectItem value="Admin Base de données">Admin Base de données</SelectItem>
-                          <SelectItem value="Équipe Réseau">Équipe Réseau</SelectItem>
-                          <SelectItem value="RSSI">RSSI</SelectItem>
-                          <SelectItem value="Équipe DevOps">Équipe DevOps</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Durée estimée (heures)</label>
-                      <Input
-                        type="number"
-                        value={step.estimatedDuration}
-                        onChange={(e) => updateStep(step.id, { estimatedDuration: parseInt(e.target.value) || 1 })}
-                        disabled={step.completed}
-                        min="1"
-                      />
-                    </div>
-                  </div>
+                   <div className="grid grid-cols-1 gap-4">
+                     <div>
+                       <label className="text-sm font-medium mb-2 block">Responsables</label>
+                       <div className="space-y-2">
+                         {step.responsibles.map((responsible, idx) => (
+                           <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                             <span className="text-sm flex items-center">
+                               <User className="h-4 w-4 mr-2" />
+                               {responsible}
+                             </span>
+                             {!step.completed && step.responsibles.length > 1 && (
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 onClick={() => removeResponsible(step.id, responsible)}
+                               >
+                                 <Trash2 className="h-4 w-4 text-red-500" />
+                               </Button>
+                             )}
+                           </div>
+                         ))}
+                         
+                         {!step.completed && (
+                           <Select onValueChange={(value) => addResponsible(step.id, value)}>
+                             <SelectTrigger>
+                               <SelectValue placeholder="Ajouter un responsable" />
+                             </SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="Équipe Sécurité">Équipe Sécurité</SelectItem>
+                               <SelectItem value="Chef de projet sécurité">Chef de projet sécurité</SelectItem>
+                               <SelectItem value="Équipe Infrastructure">Équipe Infrastructure</SelectItem>
+                               <SelectItem value="Admin Base de données">Admin Base de données</SelectItem>
+                               <SelectItem value="Équipe Réseau">Équipe Réseau</SelectItem>
+                               <SelectItem value="RSSI">RSSI</SelectItem>
+                               <SelectItem value="Équipe DevOps">Équipe DevOps</SelectItem>
+                             </SelectContent>
+                           </Select>
+                         )}
+                       </div>
+                     </div>
+                     
+                     <div>
+                       <label className="text-sm font-medium mb-2 block">Durée estimée (heures)</label>
+                       <Input
+                         type="number"
+                         value={step.estimatedDuration}
+                         onChange={(e) => updateStep(step.id, { estimatedDuration: parseInt(e.target.value) || 1 })}
+                         disabled={step.completed}
+                         min="1"
+                       />
+                     </div>
+                   </div>
 
                   {/* Section disponible seulement pour les étapes en cours ou terminées */}
                   {(index <= currentStepIndex || step.completed) && (
@@ -297,42 +333,48 @@ const ManualProcedureModal = ({
 
                       <div>
                         <label className="text-sm font-medium mb-2 block">Pièces jointes</label>
-                        <div className="space-y-2">
-                          {step.attachments.map((attachment, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-white border rounded">
-                              <span className="text-sm flex items-center">
-                                <Paperclip className="h-4 w-4 mr-2 text-gray-500" />
-                                {attachment}
-                              </span>
-                              {!step.completed && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => removeAttachment(step.id, attachment)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              )}
-                            </div>
-                          ))}
-                          
-                          {!step.completed && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                const fileName = prompt("Nom du fichier ou document:");
-                                if (fileName && fileName.trim()) {
-                                  addAttachment(step.id, fileName.trim());
-                                }
-                              }}
-                              className="w-full"
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Ajouter une pièce jointe
-                            </Button>
-                          )}
-                        </div>
+                         <div className="space-y-2">
+                           {step.attachments.map((attachment, idx) => (
+                             <div key={idx} className="flex items-center justify-between p-3 bg-white border rounded">
+                               <span className="text-sm flex items-center">
+                                 <Paperclip className="h-4 w-4 mr-2 text-gray-500" />
+                                 <span>{attachment.name}</span>
+                                 <Badge variant="outline" className="ml-2">{attachment.type}</Badge>
+                               </span>
+                               {!step.completed && (
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => removeAttachment(step.id, attachment.name)}
+                                 >
+                                   <Trash2 className="h-4 w-4 text-red-500" />
+                                 </Button>
+                               )}
+                             </div>
+                           ))}
+                           
+                           {!step.completed && (
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => {
+                                 const fileName = prompt("Nom du fichier:");
+                                 const fileType = prompt("Type de fichier (PDF, Image, Word, PowerPoint):");
+                                 
+                                 if (fileName && fileName.trim() && fileType && 
+                                     ["PDF", "Image", "Word", "PowerPoint"].includes(fileType)) {
+                                   addAttachment(step.id, fileName.trim(), fileType);
+                                 } else if (fileName && fileType) {
+                                   alert("Type de fichier non autorisé. Utilisez: PDF, Image, Word, PowerPoint");
+                                 }
+                               }}
+                               className="w-full"
+                             >
+                               <Plus className="h-4 w-4 mr-2" />
+                               Ajouter une pièce jointe
+                             </Button>
+                           )}
+                         </div>
                       </div>
                     </div>
                   )}
