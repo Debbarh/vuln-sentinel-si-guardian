@@ -7,10 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Settings, Eye, Edit, Trash2 } from 'lucide-react';
 import { DEFAULT_FRAMEWORKS, ReferenceFramework } from '@/types/frameworks';
+import { FrameworkForm } from './FrameworkForm';
+import { FrameworkDetails } from './FrameworkDetails';
+import { toast } from 'sonner';
 
 export function FrameworkManagement() {
   const [frameworks, setFrameworks] = useState<ReferenceFramework[]>(DEFAULT_FRAMEWORKS);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [selectedFramework, setSelectedFramework] = useState<ReferenceFramework | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [currentView, setCurrentView] = useState<'list' | 'details'>('list');
 
   const filteredFrameworks = frameworks.filter(framework =>
     framework.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -26,6 +33,69 @@ export function FrameworkManagement() {
     }
   };
 
+  const handleAddFramework = () => {
+    setSelectedFramework(null);
+    setShowForm(true);
+  };
+
+  const handleEditFramework = (framework: ReferenceFramework) => {
+    setSelectedFramework(framework);
+    setShowForm(true);
+  };
+
+  const handleViewDetails = (framework: ReferenceFramework) => {
+    setSelectedFramework(framework);
+    setCurrentView('details');
+  };
+
+  const handleDeleteFramework = (frameworkId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce référentiel ?')) {
+      setFrameworks(prev => prev.filter(f => f.id !== frameworkId));
+      toast.success('Référentiel supprimé avec succès');
+    }
+  };
+
+  const handleFormSubmit = (frameworkData: Partial<ReferenceFramework>) => {
+    if (selectedFramework) {
+      // Modification
+      setFrameworks(prev => prev.map(f => 
+        f.id === selectedFramework.id ? { ...f, ...frameworkData } : f
+      ));
+    } else {
+      // Création
+      const newFramework: ReferenceFramework = {
+        id: frameworkData.id || '',
+        name: frameworkData.name || '',
+        version: frameworkData.version || '',
+        description: frameworkData.description || '',
+        type: frameworkData.type || 'ISO27001',
+        createdAt: frameworkData.createdAt || new Date().toISOString(),
+        updatedAt: frameworkData.updatedAt || new Date().toISOString(),
+      };
+      setFrameworks(prev => [...prev, newFramework]);
+    }
+    setShowForm(false);
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedFramework(null);
+  };
+
+  if (currentView === 'details' && selectedFramework) {
+    return (
+      <FrameworkDetails
+        framework={selectedFramework}
+        onBack={handleBackToList}
+        onUpdate={(framework) => {
+          setFrameworks(prev => prev.map(f => 
+            f.id === framework.id ? framework : f
+          ));
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -35,7 +105,7 @@ export function FrameworkManagement() {
             Gérez les référentiels de sécurité et leurs critères d'évaluation
           </p>
         </div>
-        <Button>
+        <Button onClick={handleAddFramework}>
           <Plus className="h-4 w-4 mr-2" />
           Ajouter un Référentiel
         </Button>
@@ -84,16 +154,21 @@ export function FrameworkManagement() {
                   <TableCell className="max-w-xs truncate">{framework.description}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(framework)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditFramework(framework)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" onClick={() => handleViewDetails(framework)}>
                         <Settings className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-destructive"
+                        onClick={() => handleDeleteFramework(framework.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -104,6 +179,14 @@ export function FrameworkManagement() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Formulaire de création/modification */}
+      <FrameworkForm
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        framework={selectedFramework}
+        onSubmit={handleFormSubmit}
+      />
     </div>
   );
 }
