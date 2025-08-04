@@ -206,7 +206,7 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
     <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent className="w-[900px] sm:max-w-[900px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center justify-between">
+          <SheetTitle className="flex items-center justify-between pr-6">
             <div className="flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />
               <span>Traitement de Vulnérabilité - Alerte #{alert.id}</span>
@@ -215,7 +215,7 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
               onClick={handleOpenTreatmentPage}
               size="sm"
               variant="outline"
-              className="p-2"
+              className="p-2 h-6 w-6"
             >
               <ExternalLink className="h-4 w-4" />
             </Button>
