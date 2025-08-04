@@ -185,16 +185,12 @@ const Home = () => {
                       avec des workflows intelligents et une intégration MaCERT native.
                     </p>
                     
-                    <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-                      <Link to="/register">
-                        <Button size="lg" className="text-xl px-12 py-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
-                          Accéder au module
-                          <ArrowRight className="ml-3 h-6 w-6" />
+                    <div className="flex justify-center mb-16">
+                      <Link to="/contact">
+                        <Button size="lg" variant="outline" className="text-xl px-12 py-8 border-2 border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white transition-all duration-500 shadow-xl transform hover:-translate-y-2">
+                          Demander une démo
                         </Button>
                       </Link>
-                      <Button size="lg" variant="outline" className="text-xl px-12 py-8 border-2 border-blue-600 text-blue-700 hover:bg-blue-600 hover:text-white transition-all duration-500 shadow-xl transform hover:-translate-y-2">
-                        Demander une démo
-                      </Button>
                     </div>
 
                     {/* Stats pour VulnGuard */}
@@ -253,16 +249,12 @@ const Home = () => {
                       des plans d'action personnalisés et un suivi de progression vers la certification.
                     </p>
                     
-                    <div className="flex flex-col sm:flex-row gap-6 justify-center mb-16">
-                      <Link to="/maturity">
-                        <Button size="lg" className="text-xl px-12 py-8 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2">
-                          Commencer l'évaluation
-                          <ArrowRight className="ml-3 h-6 w-6" />
+                    <div className="flex justify-center mb-16">
+                      <Link to="/contact">
+                        <Button size="lg" variant="outline" className="text-xl px-12 py-8 border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all duration-500 shadow-xl transform hover:-translate-y-2">
+                          Demander une démo
                         </Button>
                       </Link>
-                      <Button size="lg" variant="outline" className="text-xl px-12 py-8 border-2 border-emerald-600 text-emerald-700 hover:bg-emerald-600 hover:text-white transition-all duration-500 shadow-xl transform hover:-translate-y-2">
-                        Voir l'audit
-                      </Button>
                     </div>
 
                     {/* Stats pour ISO 27001 */}
