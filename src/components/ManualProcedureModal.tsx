@@ -117,13 +117,47 @@ const ManualProcedureModal = ({
     });
   };
 
-  const addAttachment = (stepId: string, fileName: string, fileType: string) => {
+  const handleFileUpload = (stepId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validation du type de fichier
+    const allowedTypes = {
+      'application/pdf': 'PDF',
+      'image/jpeg': 'Image',
+      'image/jpg': 'Image',
+      'image/png': 'Image',
+      'image/gif': 'Image',
+      'image/webp': 'Image',
+      'application/msword': 'Word',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
+      'application/vnd.ms-powerpoint': 'PowerPoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': 'PowerPoint'
+    };
+
+    const fileType = allowedTypes[file.type as keyof typeof allowedTypes];
+    if (!fileType) {
+      toast({
+        title: "Type de fichier non autorisé",
+        description: "Seuls les fichiers PDF, Image, Word et PowerPoint sont acceptés",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const step = procedureSteps.find(s => s.id === stepId);
     if (step) {
       updateStep(stepId, { 
-        attachments: [...step.attachments, { name: fileName, type: fileType }] 
+        attachments: [...step.attachments, { name: file.name, type: fileType }] 
+      });
+      toast({
+        title: "Fichier ajouté",
+        description: `Le fichier "${file.name}" a été ajouté avec succès`,
       });
     }
+
+    // Reset input pour permettre d'ajouter le même fichier à nouveau
+    event.target.value = '';
   };
 
   const removeAttachment = (stepId: string, attachmentName: string) => {
@@ -353,27 +387,26 @@ const ManualProcedureModal = ({
                              </div>
                            ))}
                            
-                           {!step.completed && (
-                             <Button
-                               variant="outline"
-                               size="sm"
-                               onClick={() => {
-                                 const fileName = prompt("Nom du fichier:");
-                                 const fileType = prompt("Type de fichier (PDF, Image, Word, PowerPoint):");
-                                 
-                                 if (fileName && fileName.trim() && fileType && 
-                                     ["PDF", "Image", "Word", "PowerPoint"].includes(fileType)) {
-                                   addAttachment(step.id, fileName.trim(), fileType);
-                                 } else if (fileName && fileType) {
-                                   alert("Type de fichier non autorisé. Utilisez: PDF, Image, Word, PowerPoint");
-                                 }
-                               }}
-                               className="w-full"
-                             >
-                               <Plus className="h-4 w-4 mr-2" />
-                               Ajouter une pièce jointe
-                             </Button>
-                           )}
+                            {!step.completed && (
+                              <div>
+                                <input
+                                  type="file"
+                                  id={`file-input-${step.id}`}
+                                  className="hidden"
+                                  accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.ppt,.pptx"
+                                  onChange={(e) => handleFileUpload(step.id, e)}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => document.getElementById(`file-input-${step.id}`)?.click()}
+                                  className="w-full"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Ajouter une pièce jointe
+                                </Button>
+                              </div>
+                            )}
                          </div>
                       </div>
                     </div>
