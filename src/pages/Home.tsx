@@ -402,7 +402,7 @@ const Home = () => {
           </p>
           <div className="flex justify-center">
             <Link to="/contact">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-6 text-white border-white hover:bg-white hover:text-blue-600">
+              <Button size="lg" className="text-lg px-8 py-6 bg-white text-blue-600 hover:bg-gray-100 border-2 border-white">
                 Parler à un expert
               </Button>
             </Link>
