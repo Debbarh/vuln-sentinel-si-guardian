@@ -146,18 +146,19 @@ const Home = () => {
           
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             VulnGuard centralise la surveillance, l'analyse et le traitement de vos vulnérabilités 
-            avec des workflows intelligents et une intégration MaCERT native.
+            avec des workflows intelligents et une intégration MaCERT native. Evaluez et pilotez 
+            votre maturité ISO 27001 avec des audits automatisés et des plans d'action personnalisés.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link to="/register">
               <Button size="lg" className="text-lg px-8 py-6">
-                Essai gratuit 30 jours
+                Commencer maintenant
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
             <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-              Voir la démo
+              Demander une démo
             </Button>
           </div>
 
