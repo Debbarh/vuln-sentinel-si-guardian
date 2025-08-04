@@ -36,6 +36,7 @@ const ManualProcedureModal = ({
     {
       id: "step-1",
       title: "Évaluation initiale",
+      name: "Évaluation initiale",
       description: "Analyser la vulnérabilité et son impact sur les systèmes",
       responsibles: ["Équipe Sécurité"],
       estimatedDuration: 2,
@@ -44,10 +45,16 @@ const ManualProcedureModal = ({
       attachments: [],
       order: 1,
       level: 0,
+      tasks: [],
+      approvalRequired: false,
+      notifyUsers: [],
+      rssiFollowUp: [],
+      status: "pending",
       subSteps: [
         {
           id: "step-1-1",
           title: "Vérifier l'authenticité de la vulnérabilité",
+          name: "Vérifier l'authenticité",
           description: "Confirmer que la vulnérabilité est réelle et affecte nos systèmes",
           responsibles: ["Analyste Sécurité"],
           estimatedDuration: 1,
@@ -57,11 +64,17 @@ const ManualProcedureModal = ({
           order: 1,
           parentId: "step-1",
           level: 1,
-          isSubStep: true
+          isSubStep: true,
+          tasks: [],
+          approvalRequired: false,
+          notifyUsers: [],
+          rssiFollowUp: [],
+          status: "pending"
         },
         {
           id: "step-1-2", 
           title: "Évaluer l'impact sur les systèmes",
+          name: "Évaluer l'impact",
           description: "Analyser quels systèmes sont affectés et l'ampleur de l'impact",
           responsibles: ["Équipe Infrastructure"],
           estimatedDuration: 1,
@@ -71,13 +84,19 @@ const ManualProcedureModal = ({
           order: 2,
           parentId: "step-1",
           level: 1,
-          isSubStep: true
+          isSubStep: true,
+          tasks: [],
+          approvalRequired: false,
+          notifyUsers: [],
+          rssiFollowUp: [],
+          status: "pending"
         }
       ]
     },
     {
       id: "step-2",
       title: "Classification et priorisation", 
+      name: "Classification et priorisation",
       description: "Définir le niveau de priorité et les ressources nécessaires",
       responsibles: ["Chef de projet sécurité"],
       estimatedDuration: 1,
@@ -85,11 +104,17 @@ const ManualProcedureModal = ({
       notes: "",
       attachments: [],
       order: 2,
-      level: 0
+      level: 0,
+      tasks: [],
+      approvalRequired: false,
+      notifyUsers: [],
+      rssiFollowUp: [],
+      status: "pending"
     },
     {
       id: "step-3",
       title: "Plan d'action",
+      name: "Plan d'action",
       description: "Élaborer la stratégie de remédiation détaillée",
       responsibles: ["Équipe Infrastructure"],
       estimatedDuration: 3,
@@ -98,10 +123,16 @@ const ManualProcedureModal = ({
       attachments: [],
       order: 3,
       level: 0,
+      tasks: [],
+      approvalRequired: false,
+      notifyUsers: [],
+      rssiFollowUp: [],
+      status: "pending",
       subSteps: [
         {
           id: "step-3-1",
           title: "Identifier les correctifs disponibles",
+          name: "Identifier les correctifs",
           description: "Rechercher et valider les correctifs ou mises à jour disponibles",
           responsibles: ["Équipe Infrastructure"],
           estimatedDuration: 1,
@@ -111,11 +142,39 @@ const ManualProcedureModal = ({
           order: 1,
           parentId: "step-3",
           level: 1,
-          isSubStep: true
+          isSubStep: true,
+          tasks: [],
+          approvalRequired: false,
+          notifyUsers: [],
+          rssiFollowUp: [],
+          status: "pending",
+          subSteps: [
+            {
+              id: "step-3-1-1",
+              title: "Recherche dans les bases CVE",
+              name: "Recherche CVE",
+              description: "Consulter les bases de données de vulnérabilités",
+              responsibles: ["Analyste Sécurité"],
+              estimatedDuration: 0.5,
+              completed: false,
+              notes: "",
+              attachments: [],
+              order: 1,
+              parentId: "step-3-1",
+              level: 2,
+              isSubStep: true,
+              tasks: [],
+              approvalRequired: false,
+              notifyUsers: [],
+              rssiFollowUp: [],
+              status: "pending"
+            }
+          ]
         },
         {
           id: "step-3-2",
           title: "Préparer un plan de rollback",
+          name: "Plan de rollback",
           description: "Définir une procédure de retour en arrière en cas de problème",
           responsibles: ["Équipe Infrastructure"],
           estimatedDuration: 1,
@@ -125,27 +184,19 @@ const ManualProcedureModal = ({
           order: 2,
           parentId: "step-3",
           level: 1,
-          isSubStep: true
-        },
-        {
-          id: "step-3-3",
-          title: "Coordonner avec les équipes",
-          description: "Informer et coordonner avec toutes les équipes concernées",
-          responsibles: ["Chef de projet sécurité"],
-          estimatedDuration: 1,
-          completed: false,
-          notes: "",
-          attachments: [],
-          order: 3,
-          parentId: "step-3",
-          level: 1,
-          isSubStep: true
+          isSubStep: true,
+          tasks: [],
+          approvalRequired: false,
+          notifyUsers: [],
+          rssiFollowUp: [],
+          status: "pending"
         }
       ]
     },
     {
       id: "step-4", 
       title: "Implémentation",
+      name: "Implémentation",
       description: "Appliquer les mesures correctives sur les systèmes",
       responsibles: ["Équipe Infrastructure"],
       estimatedDuration: 4,
@@ -153,11 +204,17 @@ const ManualProcedureModal = ({
       notes: "",
       attachments: [],
       order: 4,
-      level: 0
+      level: 0,
+      tasks: [],
+      approvalRequired: false,
+      notifyUsers: [],
+      rssiFollowUp: [],
+      status: "pending"
     },
     {
       id: "step-5",
       title: "Validation et clôture",
+      name: "Validation et clôture",
       description: "Vérifier l'efficacité et finaliser le traitement", 
       responsibles: ["Équipe Sécurité"],
       estimatedDuration: 2,
@@ -165,7 +222,12 @@ const ManualProcedureModal = ({
       notes: "",
       attachments: [],
       order: 5,
-      level: 0
+      level: 0,
+      tasks: [],
+      approvalRequired: false,
+      notifyUsers: [],
+      rssiFollowUp: [],
+      status: "pending"
     }
   ]);
 
@@ -270,6 +332,7 @@ const ManualProcedureModal = ({
     const newSubStep: ProcedureStep = {
       id: `${parentId}-sub-${Date.now()}`,
       title: "Nouvelle sous-étape",
+      name: "Nouvelle sous-étape",
       description: "Description de la sous-étape",
       responsibles: ["Équipe à définir"],
       estimatedDuration: 1,
@@ -279,7 +342,12 @@ const ManualProcedureModal = ({
       order: 1,
       parentId,
       level: 1,
-      isSubStep: true
+      isSubStep: true,
+      tasks: [],
+      approvalRequired: false,
+      notifyUsers: [],
+      rssiFollowUp: [],
+      status: "pending"
     };
 
     setProcedureSteps(prevSteps => 
@@ -291,9 +359,10 @@ const ManualProcedureModal = ({
     return steps.map(step => {
       if (step.id === parentId) {
         const subSteps = step.subSteps || [];
+        const parentLevel = step.level || 0;
         return {
           ...step,
-          subSteps: [...subSteps, { ...newSubStep, order: subSteps.length + 1 }]
+          subSteps: [...subSteps, { ...newSubStep, order: subSteps.length + 1, level: parentLevel + 1 }]
         };
       }
       if (step.subSteps) {

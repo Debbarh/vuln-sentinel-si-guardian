@@ -15,7 +15,8 @@ import {
   CheckCircle, 
   ChevronDown, 
   ChevronRight,
-  Indent
+  Indent,
+  Edit2
 } from "lucide-react";
 import { WorkflowStep, ProcedureStep } from "@/types/workflow";
 
@@ -47,6 +48,8 @@ const StepHierarchy: React.FC<StepHierarchyProps> = ({
   isReadonly = false
 }) => {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string>("");
 
   const toggleExpanded = (stepId: string) => {
     const newExpanded = new Set(expandedSteps);
@@ -56,6 +59,24 @@ const StepHierarchy: React.FC<StepHierarchyProps> = ({
       newExpanded.add(stepId);
     }
     setExpandedSteps(newExpanded);
+  };
+
+  const startEditing = (step: WorkflowStep | ProcedureStep) => {
+    setEditingStepId(step.id);
+    setEditingTitle((step as ProcedureStep).title || (step as WorkflowStep).name || "");
+  };
+
+  const saveTitle = (stepId: string) => {
+    if (editingTitle.trim()) {
+      onUpdateStep(stepId, { title: editingTitle.trim(), name: editingTitle.trim() });
+    }
+    setEditingStepId(null);
+    setEditingTitle("");
+  };
+
+  const cancelEditing = () => {
+    setEditingStepId(null);
+    setEditingTitle("");
   };
 
   const getStepStatus = (step: WorkflowStep | ProcedureStep, index: number) => {
@@ -93,7 +114,8 @@ const StepHierarchy: React.FC<StepHierarchyProps> = ({
     const hasSubSteps = step.subSteps && step.subSteps.length > 0;
     const isExpanded = expandedSteps.has(step.id);
     const progress = getStepProgress(step);
-    const indentClass = level > 0 ? `ml-${level * 8}` : '';
+    const indentClass = level > 0 ? 'ml-' + (level * 6) : '';
+    const isEditing = editingStepId === step.id;
 
     return (
       <div key={step.id} className={`${indentClass} mb-4`}>
@@ -124,7 +146,36 @@ const StepHierarchy: React.FC<StepHierarchyProps> = ({
                   <div className="h-6 w-6 border-2 border-gray-300 rounded-full" />
                 )}
                 <div>
-                  <h4 className="font-semibold text-lg">{(step as ProcedureStep).title || (step as WorkflowStep).name}</h4>
+                  {isEditing ? (
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') saveTitle(step.id);
+                          if (e.key === 'Escape') cancelEditing();
+                        }}
+                        className="text-lg font-semibold"
+                        autoFocus
+                      />
+                      <Button size="sm" onClick={() => saveTitle(step.id)}>✓</Button>
+                      <Button size="sm" variant="outline" onClick={cancelEditing}>✕</Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-semibold text-lg">{(step as ProcedureStep).title || (step as WorkflowStep).name}</h4>
+                      {!isReadonly && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEditing(step)}
+                          className="p-1 h-6 w-6"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center space-x-2 mt-1">
                     <Badge variant="outline">
                       {getStepStatus(step, index)}
@@ -134,11 +185,16 @@ const StepHierarchy: React.FC<StepHierarchyProps> = ({
                         {progress.completed}/{progress.total} sous-étapes
                       </Badge>
                     )}
+                    {level > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        Niveau {level}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
               <div className="flex space-x-2">
-                {!isReadonly && level === 0 && (
+                {!isReadonly && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -289,9 +345,9 @@ const StepHierarchy: React.FC<StepHierarchyProps> = ({
           </CardContent>
         </Card>
 
-        {/* Affichage des sous-étapes si étendues */}
+        {/* Affichage récursif des sous-étapes */}
         {hasSubSteps && isExpanded && (
-          <div className="mt-2">
+          <div className="mt-2 space-y-2">
             {step.subSteps!.map((subStep, subIndex) => 
               renderStepCard(subStep, subIndex, level + 1)
             )}
