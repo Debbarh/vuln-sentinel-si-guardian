@@ -7,6 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Plus, Play, BarChart3, Archive, Edit, Trash2 } from 'lucide-react';
 import { Assessment } from '@/types/frameworks';
+import { AssessmentForm } from './AssessmentForm';
+import { AssessmentCompletion } from './AssessmentCompletion';
+import { toast } from 'sonner';
 
 export function AssessmentManagement() {
   const [assessments, setAssessments] = useState<Assessment[]>([
@@ -40,6 +43,9 @@ export function AssessmentManagement() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [showForm, setShowForm] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null);
+  const [currentView, setCurrentView] = useState<'list' | 'completion'>('list');
 
   const filteredAssessments = assessments.filter(assessment => {
     const matchesSearch = assessment.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -67,6 +73,85 @@ export function AssessmentManagement() {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
+  const handleCreateAssessment = () => {
+    setSelectedAssessment(null);
+    setShowForm(true);
+  };
+
+  const handleEditAssessment = (assessment: Assessment) => {
+    setSelectedAssessment(assessment);
+    setShowForm(true);
+  };
+
+  const handleStartAssessment = (assessment: Assessment) => {
+    setSelectedAssessment(assessment);
+    setCurrentView('completion');
+  };
+
+  const handleViewResults = (assessment: Assessment) => {
+    // TODO: Navigate to results view
+    toast.info('Vue des résultats à implémenter');
+  };
+
+  const handleArchiveAssessment = (assessmentId: string) => {
+    setAssessments(prev => prev.map(a => 
+      a.id === assessmentId ? { ...a, status: 'archived' as const } : a
+    ));
+    toast.success('Évaluation archivée');
+  };
+
+  const handleDeleteAssessment = (assessmentId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette évaluation ?')) {
+      setAssessments(prev => prev.filter(a => a.id !== assessmentId));
+      toast.success('Évaluation supprimée');
+    }
+  };
+
+  const handleFormSubmit = (assessmentData: Partial<Assessment>) => {
+    if (selectedAssessment) {
+      // Modification
+      setAssessments(prev => prev.map(a => 
+        a.id === selectedAssessment.id ? { ...a, ...assessmentData } : a
+      ));
+    } else {
+      // Création
+      const newAssessment: Assessment = {
+        id: assessmentData.id || '',
+        name: assessmentData.name || '',
+        description: assessmentData.description,
+        frameworkIds: assessmentData.frameworkIds || [],
+        scope: assessmentData.scope || '',
+        evaluators: assessmentData.evaluators || [],
+        dueDate: assessmentData.dueDate,
+        status: assessmentData.status || 'draft',
+        createdAt: assessmentData.createdAt || new Date().toISOString(),
+        updatedAt: assessmentData.updatedAt || new Date().toISOString(),
+        createdBy: assessmentData.createdBy || 'current-user',
+      };
+      setAssessments(prev => [...prev, newAssessment]);
+    }
+    setShowForm(false);
+  };
+
+  const handleBackToList = () => {
+    setCurrentView('list');
+    setSelectedAssessment(null);
+  };
+
+  if (currentView === 'completion' && selectedAssessment) {
+    return (
+      <AssessmentCompletion
+        assessment={selectedAssessment}
+        onBack={handleBackToList}
+        onUpdate={(assessment) => {
+          setAssessments(prev => prev.map(a => 
+            a.id === assessment.id ? assessment : a
+          ));
+        }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -76,7 +161,7 @@ export function AssessmentManagement() {
             Créez et gérez vos évaluations de maturité sécurité
           </p>
         </div>
-        <Button>
+        <Button onClick={handleCreateAssessment}>
           <Plus className="h-4 w-4 mr-2" />
           Créer une Nouvelle Évaluation
         </Button>
@@ -154,23 +239,49 @@ export function AssessmentManagement() {
                   <TableCell>{getStatusBadge(assessment.status)}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
-                      {assessment.status === 'in_progress' && (
-                        <Button variant="ghost" size="sm">
+                      {(assessment.status === 'draft' || assessment.status === 'in_progress') && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleStartAssessment(assessment)}
+                          title="Reprendre l'évaluation"
+                        >
                           <Play className="h-4 w-4" />
                         </Button>
                       )}
                       {assessment.status === 'completed' && (
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewResults(assessment)}
+                          title="Voir les résultats"
+                        >
                           <BarChart3 className="h-4 w-4" />
                         </Button>
                       )}
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditAssessment(assessment)}
+                        title="Modifier"
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleArchiveAssessment(assessment.id)}
+                        title="Archiver"
+                      >
                         <Archive className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-destructive">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-destructive"
+                        onClick={() => handleDeleteAssessment(assessment.id)}
+                        title="Supprimer"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -181,6 +292,14 @@ export function AssessmentManagement() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Formulaire de création/modification */}
+      <AssessmentForm
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        assessment={selectedAssessment}
+        onSubmit={handleFormSubmit}
+      />
     </div>
   );
 }
