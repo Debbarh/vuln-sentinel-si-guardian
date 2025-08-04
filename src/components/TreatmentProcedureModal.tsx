@@ -203,8 +203,8 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={() => {}}>
-      <SheetContent className="w-[900px] sm:max-w-[900px] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent className="w-[900px] sm:max-w-[900px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -213,10 +213,11 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
             </div>
             <Button
               onClick={handleOpenTreatmentPage}
-              className="flex items-center space-x-2"
+              size="sm"
+              variant="outline"
+              className="p-2"
             >
               <ExternalLink className="h-4 w-4" />
-              <span>Ouvrir en page complète</span>
             </Button>
           </SheetTitle>
           <SheetDescription>
