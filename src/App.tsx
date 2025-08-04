@@ -10,6 +10,8 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import OrganizationManagement from "./pages/OrganizationManagement";
 import MaturityAssessment from "./pages/MaturityAssessment";
+import Vulnerabilities from "./pages/Vulnerabilities";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/organization" element={<OrganizationManagement />} />
           <Route path="/maturity" element={<MaturityAssessment />} />
+          <Route path="/vulnerabilities" element={<Vulnerabilities />} />
+          <Route path="/contact" element={<Contact />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
