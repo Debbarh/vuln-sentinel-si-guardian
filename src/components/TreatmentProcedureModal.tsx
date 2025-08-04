@@ -203,8 +203,8 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={handleClose}>
-      <SheetContent className="w-[900px] sm:max-w-[900px] overflow-y-auto">
+    <Sheet open={isOpen} onOpenChange={() => {}}>
+      <SheetContent className="w-[900px] sm:max-w-[900px] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
         <SheetHeader>
           <SheetTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -386,11 +386,6 @@ const TreatmentProcedureModal = ({ alert, isOpen, onClose, onStatusUpdate }: Tre
             </TabsContent>
           </Tabs>
 
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={handleClose}>
-              Fermer
-            </Button>
-          </div>
         </div>
       </SheetContent>
 
