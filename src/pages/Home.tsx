@@ -136,11 +136,8 @@ const Home = () => {
               <span className="text-2xl font-bold text-gray-900">VulnGuard</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link to="/login">
-                <Button variant="ghost">Se connecter</Button>
-              </Link>
-              <Link to="/register">
-                <Button>Commencer</Button>
+              <Link to="/contact">
+                <Button>Demander une démo</Button>
               </Link>
             </div>
           </div>
