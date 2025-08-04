@@ -245,6 +245,18 @@ const ManualProcedureModal = ({
     return allSteps;
   };
 
+  // Fonction pour rechercher une étape de manière récursive
+  const findStepRecursive = (steps: ProcedureStep[], stepId: string): ProcedureStep | null => {
+    for (const step of steps) {
+      if (step.id === stepId) return step;
+      if (step.subSteps) {
+        const found = findStepRecursive(step.subSteps, stepId);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
   const updateStep = (stepId: string, updates: Partial<ProcedureStep>) => {
     setProcedureSteps(prevSteps => 
       updateStepInHierarchy(prevSteps, stepId, updates)
@@ -425,7 +437,8 @@ const ManualProcedureModal = ({
       return;
     }
 
-    const step = procedureSteps.find(s => s.id === stepId);
+    // Recherche récursive de l'étape
+    const step = findStepRecursive(procedureSteps, stepId);
     if (step) {
       updateStep(stepId, { 
         attachments: [...step.attachments, { name: file.name, type: fileType }] 
@@ -441,7 +454,7 @@ const ManualProcedureModal = ({
   };
 
   const removeAttachment = (stepId: string, attachmentName: string) => {
-    const step = procedureSteps.find(s => s.id === stepId);
+    const step = findStepRecursive(procedureSteps, stepId);
     if (step) {
       updateStep(stepId, { 
         attachments: step.attachments.filter(att => att.name !== attachmentName) 
@@ -450,7 +463,7 @@ const ManualProcedureModal = ({
   };
 
   const addResponsible = (stepId: string, responsible: string) => {
-    const step = procedureSteps.find(s => s.id === stepId);
+    const step = findStepRecursive(procedureSteps, stepId);
     if (step && !step.responsibles.includes(responsible)) {
       updateStep(stepId, { 
         responsibles: [...step.responsibles, responsible] 
@@ -459,7 +472,7 @@ const ManualProcedureModal = ({
   };
 
   const removeResponsible = (stepId: string, responsible: string) => {
-    const step = procedureSteps.find(s => s.id === stepId);
+    const step = findStepRecursive(procedureSteps, stepId);
     if (step) {
       updateStep(stepId, { 
         responsibles: step.responsibles.filter(resp => resp !== responsible) 
