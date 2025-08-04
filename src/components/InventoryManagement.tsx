@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Server, Database, Globe, Router, Smartphone, Edit, Trash2, Monitor, Shield, Code } from "lucide-react";
+import { Plus, Server, Database, Globe, Router, Smartphone, Edit, Trash2, Monitor, Shield, Code, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Asset {
@@ -122,6 +122,13 @@ const InventoryManagement = () => {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  // États pour les filtres
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [criticalityFilter, setCriticalityFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [environmentFilter, setEnvironmentFilter] = useState("all");
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -650,6 +657,22 @@ const InventoryManagement = () => {
     }
   };
 
+  // Fonction de filtrage des actifs
+  const filteredAssets = assets.filter(asset => {
+    const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (asset.manufacturer && asset.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (asset.vendor && asset.vendor.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (asset.sgbd && asset.sgbd.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (asset.brand && asset.brand.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesType = typeFilter === "all" || asset.type === typeFilter;
+    const matchesCriticality = criticalityFilter === "all" || asset.criticality === criticalityFilter;
+    const matchesStatus = statusFilter === "all" || asset.status === statusFilter;
+    const matchesEnvironment = environmentFilter === "all" || asset.environment === environmentFilter;
+    
+    return matchesSearch && matchesType && matchesCriticality && matchesStatus && matchesEnvironment;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -876,14 +899,131 @@ const InventoryManagement = () => {
         )}
       </div>
 
+      {/* Filtres et recherche */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Filter className="h-5 w-5" />
+            <span>Filtres et Recherche</span>
+          </CardTitle>
+          <CardDescription>
+            Utilisez les filtres ci-dessous pour affiner votre recherche d'actifs
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Barre de recherche */}
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Rechercher un actif par nom, fabricant, éditeur..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Filtres par catégorie */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Type d'actif</Label>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les types</SelectItem>
+                    <SelectItem value="Système d'exploitation">Système d'exploitation</SelectItem>
+                    <SelectItem value="Logiciel ou application">Logiciel ou application</SelectItem>
+                    <SelectItem value="Matériel / Équipement réseau ou sécurité">Matériel réseau/sécurité</SelectItem>
+                    <SelectItem value="Service web ou applicatif">Service web</SelectItem>
+                    <SelectItem value="Base de données">Base de données</SelectItem>
+                    <SelectItem value="Composant embarqué">Composant embarqué</SelectItem>
+                    <SelectItem value="Développement spécifique">Développement spécifique</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Criticité</Label>
+                <Select value={criticalityFilter} onValueChange={setCriticalityFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Toutes criticités" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes criticités</SelectItem>
+                    <SelectItem value="Haute">Haute</SelectItem>
+                    <SelectItem value="Moyenne">Moyenne</SelectItem>
+                    <SelectItem value="Faible">Faible</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Statut</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous statuts</SelectItem>
+                    <SelectItem value="actif">Actif</SelectItem>
+                    <SelectItem value="maintenance">En maintenance</SelectItem>
+                    <SelectItem value="inactif">Inactif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Environnement</Label>
+                <Select value={environmentFilter} onValueChange={setEnvironmentFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous environnements" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous environnements</SelectItem>
+                    <SelectItem value="Prod">Production</SelectItem>
+                    <SelectItem value="Préprod">Pré-production</SelectItem>
+                    <SelectItem value="Dev">Développement</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Bouton de réinitialisation des filtres */}
+            <div className="flex justify-between items-center pt-2">
+              <span className="text-sm text-gray-600">
+                {filteredAssets.length} actif(s) trouvé(s) sur {assets.length} total
+              </span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setTypeFilter("all");
+                  setCriticalityFilter("all");
+                  setStatusFilter("all");
+                  setEnvironmentFilter("all");
+                }}
+              >
+                Réinitialiser les filtres
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Actifs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{assets.length}</div>
+            <div className="text-2xl font-bold">{filteredAssets.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {assets.length} au total
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -892,8 +1032,11 @@ const InventoryManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {assets.filter(a => a.criticality === "Haute").length}
+              {filteredAssets.filter(a => a.criticality === "Haute").length}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Dans la sélection actuelle
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -902,8 +1045,11 @@ const InventoryManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {assets.filter(a => a.status === "actif").length}
+              {filteredAssets.filter(a => a.status === "actif").length}
             </div>
+            <p className="text-xs text-muted-foreground">
+              Dans la sélection actuelle
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -917,8 +1063,9 @@ const InventoryManagement = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {assets.map((asset) => (
+          {filteredAssets.length > 0 ? (
+            <div className="space-y-3">
+              {filteredAssets.map((asset) => (
               <div key={asset.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-lg">
@@ -974,8 +1121,35 @@ const InventoryManagement = () => {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Aucun actif trouvé
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm || typeFilter !== "all" || criticalityFilter !== "all" || statusFilter !== "all" || environmentFilter !== "all"
+                  ? "Aucun actif ne correspond à vos critères de recherche."
+                  : "Votre inventaire est vide. Commencez par ajouter un actif."}
+              </p>
+              {(searchTerm || typeFilter !== "all" || criticalityFilter !== "all" || statusFilter !== "all" || environmentFilter !== "all") && (
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setTypeFilter("all");
+                    setCriticalityFilter("all");
+                    setStatusFilter("all");
+                    setEnvironmentFilter("all");
+                  }}
+                >
+                  Réinitialiser les filtres
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
