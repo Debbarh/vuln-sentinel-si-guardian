@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,17 +6,71 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Server, Database, Globe, Router, Smartphone, Edit, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Plus, Server, Database, Globe, Router, Smartphone, Edit, Trash2, Monitor, Shield, Code } from "lucide-react";
 
 interface Asset {
   id: number;
   name: string;
-  type: string;
-  manufacturer: string;
-  product: string;
-  version: string;
-  criticality: "critique" | "majeur" | "mineur";
+  type: "Système d'exploitation" | "Logiciel ou application" | "Matériel / Équipement réseau ou sécurité" | "Service web ou applicatif" | "Base de données" | "Composant embarqué" | "Développement spécifique";
+  criticality: "Faible" | "Moyenne" | "Haute";
   status: "actif" | "maintenance" | "inactif";
+  environment?: "Prod" | "Préprod" | "Dev";
+  
+  // Champs communs
+  version?: string;
+  manufacturer?: string;
+  cpe?: string;
+  
+  // Système d'exploitation
+  architecture?: "32 bits" | "64 bits";
+  language?: string;
+  associatedServer?: string;
+  
+  // Logiciel/Application
+  softwareType?: "Bureau" | "Serveur" | "Plugin" | "Mobile";
+  hostSystem?: string;
+  vendor?: string;
+  impactedUsers?: string;
+  
+  // Matériel
+  model?: string;
+  firmwareVersion?: string;
+  role?: "Switch" | "Firewall" | "Routeur" | "Autre";
+  ipAddress?: string;
+  externalExposure?: "oui" | "non";
+  installationDate?: string;
+  
+  // Service web
+  url?: string;
+  technologies?: string;
+  frameworks?: string;
+  requiresAuth?: "oui" | "non";
+  linkedServer?: string;
+  owaspScan?: "oui" | "non";
+  
+  // Base de données
+  sgbd?: string;
+  usedPort?: string;
+  strongAuth?: "oui" | "non";
+  
+  // Composant embarqué
+  hardwareName?: string;
+  deviceType?: "caméra" | "imprimante" | "IoT" | "autre";
+  brand?: string;
+  networkExposure?: "oui" | "non";
+  adminAccess?: "oui" | "non";
+  
+  // Développement spécifique
+  appType?: "Web" | "Mobile" | "API" | "Script";
+  languages?: string;
+  dependencies?: string;
+  authentication?: "Oui" | "Non" | "OAuth" | "SSO";
+  securityScan?: "oui" | "non";
+  knownVulnerabilities?: string;
+  hostingServer?: string;
+  exposure?: "Internet" | "Interne uniquement";
 }
 
 const InventoryManagement = () => {
@@ -25,72 +78,64 @@ const InventoryManagement = () => {
     {
       id: 1,
       name: "Serveur Web Production",
-      type: "Serveur",
+      type: "Système d'exploitation",
       manufacturer: "Microsoft",
-      product: "Windows Server",
       version: "2022",
-      criticality: "critique",
-      status: "actif"
+      criticality: "Haute",
+      status: "actif",
+      environment: "Prod"
     },
     {
       id: 2,
       name: "Base de données RH",
       type: "Base de données",
-      manufacturer: "Oracle",
-      product: "Oracle Database",
+      sgbd: "Oracle Database",
       version: "19c",
-      criticality: "critique",
-      status: "actif"
+      criticality: "Haute",
+      status: "actif",
+      environment: "Prod"
     },
     {
       id: 3,
       name: "Firewall Principal",
-      type: "Sécurité",
+      type: "Matériel / Équipement réseau ou sécurité",
       manufacturer: "Cisco",
-      product: "ASA",
-      version: "9.14",
-      criticality: "critique",
-      status: "actif"
-    },
-    {
-      id: 4,
-      name: "Serveur Test",
-      type: "Serveur",
-      manufacturer: "Ubuntu",
-      product: "Ubuntu Server",
-      version: "22.04",
-      criticality: "mineur",
-      status: "actif"
+      model: "ASA",
+      firmwareVersion: "9.14",
+      criticality: "Haute",
+      status: "actif",
+      role: "Firewall"
     }
   ]);
 
   const [newAsset, setNewAsset] = useState<Partial<Asset>>({
     name: "",
-    type: "",
-    manufacturer: "",
-    product: "",
-    version: "",
-    criticality: "mineur",
-    status: "actif"
+    type: undefined,
+    criticality: "Faible",
+    status: "actif",
+    environment: "Dev"
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const getTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "serveur": return <Server className="h-4 w-4" />;
-      case "base de données": return <Database className="h-4 w-4" />;
-      case "réseau": return <Router className="h-4 w-4" />;
-      case "sécurité": return <Router className="h-4 w-4" />;
-      default: return <Globe className="h-4 w-4" />;
+    switch (type) {
+      case "Système d'exploitation": return <Monitor className="h-4 w-4" />;
+      case "Logiciel ou application": return <Code className="h-4 w-4" />;
+      case "Matériel / Équipement réseau ou sécurité": return <Shield className="h-4 w-4" />;
+      case "Service web ou applicatif": return <Globe className="h-4 w-4" />;
+      case "Base de données": return <Database className="h-4 w-4" />;
+      case "Composant embarqué": return <Router className="h-4 w-4" />;
+      case "Développement spécifique": return <Code className="h-4 w-4" />;
+      default: return <Server className="h-4 w-4" />;
     }
   };
 
   const getCriticalityColor = (criticality: string) => {
     switch (criticality) {
-      case "critique": return "destructive";
-      case "majeur": return "secondary";
-      case "mineur": return "outline";
+      case "Haute": return "destructive";
+      case "Moyenne": return "secondary";
+      case "Faible": return "outline";
       default: return "default";
     }
   };
@@ -105,27 +150,23 @@ const InventoryManagement = () => {
   };
 
   const handleAddAsset = () => {
-    if (newAsset.name && newAsset.type && newAsset.manufacturer && newAsset.product) {
+    if (newAsset.name && newAsset.type) {
       const asset: Asset = {
-        id: Math.max(...assets.map(a => a.id)) + 1,
+        id: Math.max(...assets.map(a => a.id), 0) + 1,
         name: newAsset.name!,
         type: newAsset.type!,
-        manufacturer: newAsset.manufacturer!,
-        product: newAsset.product!,
-        version: newAsset.version || "",
-        criticality: newAsset.criticality as "critique" | "majeur" | "mineur",
-        status: newAsset.status as "actif" | "maintenance" | "inactif"
+        criticality: newAsset.criticality!,
+        status: newAsset.status!,
+        ...newAsset
       };
       
       setAssets([...assets, asset]);
       setNewAsset({
         name: "",
-        type: "",
-        manufacturer: "",
-        product: "",
-        version: "",
-        criticality: "mineur",
-        status: "actif"
+        type: undefined,
+        criticality: "Faible",
+        status: "actif",
+        environment: "Dev"
       });
       setIsDialogOpen(false);
     }
@@ -133,6 +174,452 @@ const InventoryManagement = () => {
 
   const handleDeleteAsset = (id: number) => {
     setAssets(assets.filter(asset => asset.id !== id));
+  };
+
+  const renderSpecificFields = () => {
+    if (!newAsset.type) return null;
+
+    switch (newAsset.type) {
+      case "Système d'exploitation":
+        return (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="version" className="text-right">Version</Label>
+              <Input
+                id="version"
+                value={newAsset.version || ""}
+                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: 22.04 LTS, 2019"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="architecture" className="text-right">Architecture</Label>
+              <Select onValueChange={(value) => setNewAsset({...newAsset, architecture: value as "32 bits" | "64 bits"})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner l'architecture" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="32 bits">32 bits</SelectItem>
+                  <SelectItem value="64 bits">64 bits</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="language" className="text-right">Langue</Label>
+              <Input
+                id="language"
+                value={newAsset.language || ""}
+                onChange={(e) => setNewAsset({...newAsset, language: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Français, Anglais"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="associatedServer" className="text-right">Serveur associé</Label>
+              <Input
+                id="associatedServer"
+                value={newAsset.associatedServer || ""}
+                onChange={(e) => setNewAsset({...newAsset, associatedServer: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: SRV-PROD-01"
+              />
+            </div>
+          </>
+        );
+
+      case "Logiciel ou application":
+        return (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="version" className="text-right">Version</Label>
+              <Input
+                id="version"
+                value={newAsset.version || ""}
+                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: 1.2.3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="softwareType" className="text-right">Type</Label>
+              <Select onValueChange={(value) => setNewAsset({...newAsset, softwareType: value as "Bureau" | "Serveur" | "Plugin" | "Mobile"})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner le type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Bureau">Bureau</SelectItem>
+                  <SelectItem value="Serveur">Serveur</SelectItem>
+                  <SelectItem value="Plugin">Plugin</SelectItem>
+                  <SelectItem value="Mobile">Mobile</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="vendor" className="text-right">Fournisseur/Éditeur</Label>
+              <Input
+                id="vendor"
+                value={newAsset.vendor || ""}
+                onChange={(e) => setNewAsset({...newAsset, vendor: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Microsoft, Adobe"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="hostSystem" className="text-right">Système hôte</Label>
+              <Input
+                id="hostSystem"
+                value={newAsset.hostSystem || ""}
+                onChange={(e) => setNewAsset({...newAsset, hostSystem: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Windows 11, Ubuntu 22.04"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="impactedUsers" className="text-right">Utilisateurs impactés</Label>
+              <Input
+                id="impactedUsers"
+                value={newAsset.impactedUsers || ""}
+                onChange={(e) => setNewAsset({...newAsset, impactedUsers: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: 50 utilisateurs, Équipe RH"
+              />
+            </div>
+          </>
+        );
+
+      case "Matériel / Équipement réseau ou sécurité":
+        return (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="manufacturer" className="text-right">Fabricant/Marque</Label>
+              <Input
+                id="manufacturer"
+                value={newAsset.manufacturer || ""}
+                onChange={(e) => setNewAsset({...newAsset, manufacturer: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Cisco, HP, Fortinet"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="model" className="text-right">Modèle</Label>
+              <Input
+                id="model"
+                value={newAsset.model || ""}
+                onChange={(e) => setNewAsset({...newAsset, model: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: ASA 5516-X"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="firmwareVersion" className="text-right">Version firmware/OS</Label>
+              <Input
+                id="firmwareVersion"
+                value={newAsset.firmwareVersion || ""}
+                onChange={(e) => setNewAsset({...newAsset, firmwareVersion: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: 9.14.2"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="role" className="text-right">Rôle</Label>
+              <Select onValueChange={(value) => setNewAsset({...newAsset, role: value as "Switch" | "Firewall" | "Routeur" | "Autre"})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner le rôle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Switch">Switch</SelectItem>
+                  <SelectItem value="Firewall">Firewall</SelectItem>
+                  <SelectItem value="Routeur">Routeur</SelectItem>
+                  <SelectItem value="Autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="ipAddress" className="text-right">Adresse IP/Accès admin</Label>
+              <Input
+                id="ipAddress"
+                value={newAsset.ipAddress || ""}
+                onChange={(e) => setNewAsset({...newAsset, ipAddress: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: 192.168.1.1"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="externalExposure" className="text-right">Exposition externe</Label>
+              <RadioGroup
+                value={newAsset.externalExposure}
+                onValueChange={(value) => setNewAsset({...newAsset, externalExposure: value as "oui" | "non"})}
+                className="col-span-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="oui" id="ext-oui" />
+                  <Label htmlFor="ext-oui">Oui</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="non" id="ext-non" />
+                  <Label htmlFor="ext-non">Non</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </>
+        );
+
+      case "Service web ou applicatif":
+        return (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="url" className="text-right">URL/IP publique</Label>
+              <Input
+                id="url"
+                value={newAsset.url || ""}
+                onChange={(e) => setNewAsset({...newAsset, url: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: https://app.monentreprise.com"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="technologies" className="text-right">Technologies utilisées</Label>
+              <Input
+                id="technologies"
+                value={newAsset.technologies || ""}
+                onChange={(e) => setNewAsset({...newAsset, technologies: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: PHP, Node.js, React"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="frameworks" className="text-right">Frameworks/dépendances</Label>
+              <Textarea
+                id="frameworks"
+                value={newAsset.frameworks || ""}
+                onChange={(e) => setNewAsset({...newAsset, frameworks: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Laravel 9.0, Express.js"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="requiresAuth" className="text-right">Authentification requise</Label>
+              <RadioGroup
+                value={newAsset.requiresAuth}
+                onValueChange={(value) => setNewAsset({...newAsset, requiresAuth: value as "oui" | "non"})}
+                className="col-span-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="oui" id="auth-oui" />
+                  <Label htmlFor="auth-oui">Oui</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="non" id="auth-non" />
+                  <Label htmlFor="auth-non">Non</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </>
+        );
+
+      case "Base de données":
+        return (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="sgbd" className="text-right">Nom du SGBD</Label>
+              <Input
+                id="sgbd"
+                value={newAsset.sgbd || ""}
+                onChange={(e) => setNewAsset({...newAsset, sgbd: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: MySQL, PostgreSQL, Oracle"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="version" className="text-right">Version exacte</Label>
+              <Input
+                id="version"
+                value={newAsset.version || ""}
+                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: 8.0.32, 14.7"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="usedPort" className="text-right">Port utilisé</Label>
+              <Input
+                id="usedPort"
+                value={newAsset.usedPort || ""}
+                onChange={(e) => setNewAsset({...newAsset, usedPort: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: 3306, 5432"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="strongAuth" className="text-right">Authentification forte</Label>
+              <RadioGroup
+                value={newAsset.strongAuth}
+                onValueChange={(value) => setNewAsset({...newAsset, strongAuth: value as "oui" | "non"})}
+                className="col-span-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="oui" id="strong-oui" />
+                  <Label htmlFor="strong-oui">Oui</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="non" id="strong-non" />
+                  <Label htmlFor="strong-non">Non</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </>
+        );
+
+      case "Composant embarqué":
+        return (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="hardwareName" className="text-right">Nom du matériel</Label>
+              <Input
+                id="hardwareName"
+                value={newAsset.hardwareName || ""}
+                onChange={(e) => setNewAsset({...newAsset, hardwareName: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Caméra IP Bureau 1"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deviceType" className="text-right">Type</Label>
+              <Select onValueChange={(value) => setNewAsset({...newAsset, deviceType: value as "caméra" | "imprimante" | "IoT" | "autre"})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner le type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="caméra">Caméra</SelectItem>
+                  <SelectItem value="imprimante">Imprimante</SelectItem>
+                  <SelectItem value="IoT">IoT</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="brand" className="text-right">Marque/modèle</Label>
+              <Input
+                id="brand"
+                value={newAsset.brand || ""}
+                onChange={(e) => setNewAsset({...newAsset, brand: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Hikvision DS-2CD2"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="version" className="text-right">Version firmware</Label>
+              <Input
+                id="version"
+                value={newAsset.version || ""}
+                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: V5.7.3"
+              />
+            </div>
+          </>
+        );
+
+      case "Développement spécifique":
+        return (
+          <>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="appType" className="text-right">Type</Label>
+              <Select onValueChange={(value) => setNewAsset({...newAsset, appType: value as "Web" | "Mobile" | "API" | "Script"})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner le type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Web">Web</SelectItem>
+                  <SelectItem value="Mobile">Mobile</SelectItem>
+                  <SelectItem value="API">API</SelectItem>
+                  <SelectItem value="Script">Script</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="url" className="text-right">URL/domaine</Label>
+              <Input
+                id="url"
+                value={newAsset.url || ""}
+                onChange={(e) => setNewAsset({...newAsset, url: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: https://portail-rh.monentreprise.com"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="languages" className="text-right">Langages utilisés</Label>
+              <Input
+                id="languages"
+                value={newAsset.languages || ""}
+                onChange={(e) => setNewAsset({...newAsset, languages: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Python, PHP, JavaScript"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="frameworks" className="text-right">Framework(s)</Label>
+              <Input
+                id="frameworks"
+                value={newAsset.frameworks || ""}
+                onChange={(e) => setNewAsset({...newAsset, frameworks: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: Django, Laravel, React"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="dependencies" className="text-right">Dépendances tierces</Label>
+              <Textarea
+                id="dependencies"
+                value={newAsset.dependencies || ""}
+                onChange={(e) => setNewAsset({...newAsset, dependencies: e.target.value})}
+                className="col-span-3"
+                placeholder="Fichier requirements.txt, package.json..."
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="version" className="text-right">Version</Label>
+              <Input
+                id="version"
+                value={newAsset.version || ""}
+                onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
+                className="col-span-3"
+                placeholder="ex: v1.2.0, commit abc123"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="authentication" className="text-right">Authentification/Rôles</Label>
+              <Select onValueChange={(value) => setNewAsset({...newAsset, authentication: value as "Oui" | "Non" | "OAuth" | "SSO"})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner le type d'auth" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Oui">Oui</SelectItem>
+                  <SelectItem value="Non">Non</SelectItem>
+                  <SelectItem value="OAuth">OAuth</SelectItem>
+                  <SelectItem value="SSO">SSO</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="exposure" className="text-right">Exposition</Label>
+              <Select onValueChange={(value) => setNewAsset({...newAsset, exposure: value as "Internet" | "Interne uniquement"})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Sélectionner l'exposition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Internet">Internet</SelectItem>
+                  <SelectItem value="Interne uniquement">Interne uniquement</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        );
+
+      default:
+        return null;
+    }
   };
 
   return (
@@ -150,7 +637,7 @@ const InventoryManagement = () => {
               Ajouter un Actif
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Ajouter un Nouvel Actif</DialogTitle>
               <DialogDescription>
@@ -158,75 +645,77 @@ const InventoryManagement = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              {/* Champs communs */}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">Nom</Label>
                 <Input
                   id="name"
-                  value={newAsset.name}
+                  value={newAsset.name || ""}
                   onChange={(e) => setNewAsset({...newAsset, name: e.target.value})}
                   className="col-span-3"
                   placeholder="ex: Serveur Web Production"
                 />
               </div>
+              
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right">Type</Label>
-                <Select onValueChange={(value) => setNewAsset({...newAsset, type: value})}>
+                <Label htmlFor="type" className="text-right">Type d'actif</Label>
+                <Select onValueChange={(value) => setNewAsset({...newAsset, type: value as Asset["type"]})}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Sélectionner un type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Serveur">Serveur</SelectItem>
+                    <SelectItem value="Système d'exploitation">Système d'exploitation</SelectItem>
+                    <SelectItem value="Logiciel ou application">Logiciel ou application</SelectItem>
+                    <SelectItem value="Matériel / Équipement réseau ou sécurité">Matériel / Équipement réseau ou sécurité</SelectItem>
+                    <SelectItem value="Service web ou applicatif">Service web ou applicatif</SelectItem>
                     <SelectItem value="Base de données">Base de données</SelectItem>
-                    <SelectItem value="Application">Application</SelectItem>
-                    <SelectItem value="Réseau">Équipement réseau</SelectItem>
-                    <SelectItem value="Sécurité">Équipement sécurité</SelectItem>
-                    <SelectItem value="Poste de travail">Poste de travail</SelectItem>
+                    <SelectItem value="Composant embarqué">Composant embarqué</SelectItem>
+                    <SelectItem value="Développement spécifique">Développement spécifique</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="manufacturer" className="text-right">Fabricant</Label>
-                <Input
-                  id="manufacturer"
-                  value={newAsset.manufacturer}
-                  onChange={(e) => setNewAsset({...newAsset, manufacturer: e.target.value})}
-                  className="col-span-3"
-                  placeholder="ex: Microsoft, Oracle, Cisco"
-                />
+                <Label htmlFor="environment" className="text-right">Environnement</Label>
+                <Select onValueChange={(value) => setNewAsset({...newAsset, environment: value as "Prod" | "Préprod" | "Dev"})}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Sélectionner l'environnement" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Prod">Production</SelectItem>
+                    <SelectItem value="Préprod">Pré-production</SelectItem>
+                    <SelectItem value="Dev">Développement</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="product" className="text-right">Produit</Label>
-                <Input
-                  id="product"
-                  value={newAsset.product}
-                  onChange={(e) => setNewAsset({...newAsset, product: e.target.value})}
-                  className="col-span-3"
-                  placeholder="ex: Windows Server, Oracle DB"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="version" className="text-right">Version</Label>
-                <Input
-                  id="version"
-                  value={newAsset.version}
-                  onChange={(e) => setNewAsset({...newAsset, version: e.target.value})}
-                  className="col-span-3"
-                  placeholder="ex: 2022, 19c, 1.21"
-                />
-              </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="criticality" className="text-right">Criticité</Label>
-                <Select onValueChange={(value) => setNewAsset({...newAsset, criticality: value as "critique" | "majeur" | "mineur"})}>
+                <Select onValueChange={(value) => setNewAsset({...newAsset, criticality: value as "Faible" | "Moyenne" | "Haute"})}>
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Sélectionner la criticité" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="critique">Critique</SelectItem>
-                    <SelectItem value="majeur">Majeur</SelectItem>
-                    <SelectItem value="mineur">Mineur</SelectItem>
+                    <SelectItem value="Haute">Haute</SelectItem>
+                    <SelectItem value="Moyenne">Moyenne</SelectItem>
+                    <SelectItem value="Faible">Faible</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="cpe" className="text-right">CPE (optionnel)</Label>
+                <Input
+                  id="cpe"
+                  value={newAsset.cpe || ""}
+                  onChange={(e) => setNewAsset({...newAsset, cpe: e.target.value})}
+                  className="col-span-3"
+                  placeholder="ex: cpe:2.3:a:vendor:product:version"
+                />
+              </div>
+
+              {/* Champs spécifiques selon le type */}
+              {renderSpecificFields()}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -254,7 +743,7 @@ const InventoryManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {assets.filter(a => a.criticality === "critique").length}
+              {assets.filter(a => a.criticality === "Haute").length}
             </div>
           </CardContent>
         </Card>
@@ -289,9 +778,9 @@ const InventoryManagement = () => {
                   <div>
                     <h3 className="font-semibold">{asset.name}</h3>
                     <p className="text-sm text-gray-600">
-                      {asset.manufacturer} {asset.product} {asset.version && `v${asset.version}`}
+                      {asset.manufacturer || asset.vendor || asset.sgbd || asset.brand} {asset.version && `v${asset.version}`}
                     </p>
-                    <p className="text-xs text-gray-500">{asset.type}</p>
+                    <p className="text-xs text-gray-500">{asset.type} • {asset.environment}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
