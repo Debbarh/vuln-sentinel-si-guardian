@@ -13,7 +13,10 @@ import {
   ArrowRight,
   Star,
   Building,
-  Cloud
+  Cloud,
+  Award,
+  TrendingUp,
+  FileCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -48,25 +51,45 @@ const Home = () => {
       icon: Lock,
       title: "Conformité RGPD",
       description: "Solution certifiée conforme aux exigences de sécurité européennes"
+    },
+    {
+      icon: Award,
+      title: "Évaluation ISO 27001",
+      description: "Audit automatisé de maturité et plans d'action pour la certification"
+    },
+    {
+      icon: TrendingUp,
+      title: "Suivi de Progression",
+      description: "Tableaux de bord et métriques pour piloter votre niveau de sécurité"
+    },
+    {
+      icon: FileCheck,
+      title: "Rapports Conformité",
+      description: "Documentation automatique pour audits et certifications"
     }
   ];
 
-  const deploymentOptions = [
+  const maturityFeatures = [
     {
-      type: "SaaS",
-      icon: Cloud,
-      title: "Cloud Sécurisé",
-      description: "Déploiement rapide, maintenance automatique",
-      features: ["Mise en place en 24h", "Mises à jour automatiques", "Support 24/7"],
-      price: "À partir de 99€/mois"
+      icon: Award,
+      title: "Évaluation Initiale",
+      description: "Audit complet de votre maturité ISO 27001 avec diagnostic précis",
+      features: ["140+ contrôles analysés", "Score de maturité détaillé", "Identification des écarts"],
+      highlight: "Inclus"
     },
     {
-      type: "On-Premise",
-      icon: Building,
-      title: "Infrastructure Dédiée",
-      description: "Contrôle total, données hébergées en interne",
-      features: ["Contrôle complet", "Personnalisation avancée", "Formation incluse"],
-      price: "Sur devis"
+      icon: TrendingUp,
+      title: "Plans d'Action",
+      description: "Workflows personnalisés pour atteindre vos objectifs de certification",
+      features: ["Actions prioritaires", "Responsables assignés", "Suivi temporel"],
+      highlight: "Automatisé"
+    },
+    {
+      icon: FileCheck,
+      title: "Documentation",
+      description: "Génération automatique des preuves et rapports pour audits",
+      features: ["Preuves de conformité", "Rapports d'audit", "Suivi d'amélioration"],
+      highlight: "Certifié"
     }
   ];
 
@@ -172,7 +195,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
                 <CardHeader>
@@ -194,53 +217,78 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Deployment Options */}
+      {/* ISO 27001 Maturity Section */}
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Choisissez votre mode de déploiement
+              Évaluez et améliorez votre maturité ISO 27001
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              SaaS ou On-Premise, VulnGuard s'adapte à vos besoins et contraintes
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Obtenez une évaluation complète de votre niveau de conformité ISO 27001 et suivez 
+              votre progression vers la certification avec des plans d'action personnalisés.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {deploymentOptions.map((option, index) => (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {maturityFeatures.map((feature, index) => (
               <Card key={index} className="relative overflow-hidden border-2 hover:border-blue-300 transition-all duration-300">
+                <div className="absolute top-4 right-4">
+                  <Badge className="bg-green-100 text-green-800">{feature.highlight}</Badge>
+                </div>
                 <CardHeader className="text-center pb-2">
                   <div className="flex justify-center mb-4">
                     <div className="p-4 bg-blue-100 rounded-full">
-                      <option.icon className="h-8 w-8 text-blue-600" />
+                      <feature.icon className="h-8 w-8 text-blue-600" />
                     </div>
                   </div>
-                  <div className="mb-2">
-                    <Badge variant="outline" className="mb-2">{option.type}</Badge>
-                  </div>
-                  <CardTitle className="text-2xl">{option.title}</CardTitle>
+                  <CardTitle className="text-2xl">{feature.title}</CardTitle>
                   <CardDescription className="text-lg">
-                    {option.description}
+                    {feature.description}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3 mb-6">
-                    {option.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center space-x-2">
+                    {feature.features.map((item, itemIndex) => (
+                      <li key={itemIndex} className="flex items-center space-x-2">
                         <CheckCircle className="h-5 w-5 text-green-600" />
-                        <span>{feature}</span>
+                        <span>{item}</span>
                       </li>
                     ))}
                   </ul>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-4">{option.price}</div>
-                    <Button className="w-full" variant={index === 0 ? "default" : "outline"}>
-                      {index === 0 ? "Commencer l'essai" : "Demander un devis"}
-                    </Button>
+                    <Link to="/maturity">
+                      <Button className="w-full" variant={index === 1 ? "default" : "outline"}>
+                        {index === 0 ? "Commencer l'évaluation" : index === 1 ? "Créer un plan" : "Générer rapport"}
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
             ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <div className="bg-white rounded-lg p-8 shadow-lg max-w-4xl mx-auto">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Processus d'évaluation en 3 étapes</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">1</div>
+                  <h4 className="font-semibold mb-2">Audit Initial</h4>
+                  <p className="text-gray-600 text-sm">Évaluation automatisée de vos 140+ contrôles ISO 27001</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">2</div>
+                  <h4 className="font-semibold mb-2">Plan d'Action</h4>
+                  <p className="text-gray-600 text-sm">Génération de workflows personnalisés par priorité</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 text-lg font-bold">3</div>
+                  <h4 className="font-semibold mb-2">Suivi Continu</h4>
+                  <p className="text-gray-600 text-sm">Monitoring de progression et préparation certification</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
