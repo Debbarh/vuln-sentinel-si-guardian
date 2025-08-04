@@ -412,16 +412,12 @@ const Home = () => {
             Rejoignez les centaines d'organisations qui font confiance à VulnGuard 
             pour leur gestion des vulnérabilités.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register">
-              <Button size="lg" variant="secondary" className="text-lg px-8 py-6">
-                Commencer gratuitement
-                <ArrowRight className="ml-2 h-5 w-5" />
+          <div className="flex justify-center">
+            <Link to="/contact">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-6 text-white border-white hover:bg-white hover:text-blue-600">
+                Parler à un expert
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6 text-white border-white hover:bg-white hover:text-blue-600">
-              Parler à un expert
-            </Button>
           </div>
         </div>
       </section>
