@@ -39,6 +39,14 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
     { id: "maturity", label: "Maturité ISO 27001", icon: Settings },
   ];
 
+  const handleTabClick = (tabId: string) => {
+    if (tabId === "maturity") {
+      navigate("/maturity");
+    } else {
+      onTabChange(tabId);
+    }
+  };
+
   const handleLogout = () => {
     // Logique de déconnexion (pour l'instant simple redirection)
     navigate("/login");
@@ -69,7 +77,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
                   <Button
                     key={item.id}
                     variant={activeTab === item.id ? "default" : "ghost"}
-                    onClick={() => onTabChange(item.id)}
+                    onClick={() => handleTabClick(item.id)}
                     className="flex items-center space-x-2"
                   >
                     <IconComponent className="h-4 w-4" />
@@ -149,7 +157,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
                       key={item.id}
                       variant={activeTab === item.id ? "default" : "ghost"}
                       onClick={() => {
-                        onTabChange(item.id);
+                        handleTabClick(item.id);
                         setIsMobileMenuOpen(false);
                       }}
                       className="flex items-center justify-start space-x-2 w-full"
