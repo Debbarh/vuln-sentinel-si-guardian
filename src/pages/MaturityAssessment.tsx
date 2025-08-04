@@ -6,6 +6,7 @@ import { Settings, Users, BarChart3, FileText, Target } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { FrameworkManagement } from "@/components/FrameworkManagement";
 import { AssessmentManagement } from "@/components/AssessmentManagement";
+import { ResultsDashboard } from "@/components/ResultsDashboard";
 import { toast } from "sonner";
 
 const MaturityAssessment = () => {
@@ -203,7 +204,7 @@ const MaturityAssessment = () => {
           </TabsContent>
           
           <TabsContent value="results" className="space-y-6">
-            {renderResultsDashboard()}
+            <ResultsDashboard onBack={() => setActiveTab("assessments")} />
           </TabsContent>
           
           <TabsContent value="actions" className="space-y-6">
