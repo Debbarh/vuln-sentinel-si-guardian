@@ -20,7 +20,7 @@ interface WorkflowStep {
   required: boolean;
   completed: boolean;
   notes: string;
-  attachments: string[];
+  attachments: Array<{ name: string; type: string }>; // Changé pour inclure le type
   order: number;
 }
 
@@ -170,22 +170,61 @@ const CustomWorkflowModal = ({
     });
   };
 
-  const addAttachment = (stepId: string, fileName: string) => {
+  const addAttachment = (stepId: string, fileName: string, fileType: string) => {
     const step = workflowSteps.find(s => s.id === stepId);
     if (step) {
       updateStep(stepId, { 
-        attachments: [...step.attachments, fileName] 
+        attachments: [...step.attachments, { name: fileName, type: fileType }] 
       });
     }
   };
 
-  const removeAttachment = (stepId: string, fileName: string) => {
+  const removeAttachment = (stepId: string, attachmentName: string) => {
     const step = workflowSteps.find(s => s.id === stepId);
     if (step) {
       updateStep(stepId, { 
-        attachments: step.attachments.filter(name => name !== fileName) 
+        attachments: step.attachments.filter(att => att.name !== attachmentName) 
       });
     }
+  };
+
+  const handleFileUpload = (stepId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const allowedTypes = {
+      'pdf': 'PDF',
+      'doc': 'Word',
+      'docx': 'Word', 
+      'ppt': 'PowerPoint',
+      'pptx': 'PowerPoint',
+      'jpg': 'Image',
+      'jpeg': 'Image',
+      'png': 'Image',
+      'gif': 'Image',
+      'bmp': 'Image'
+    };
+
+    const fileType = fileExtension ? allowedTypes[fileExtension as keyof typeof allowedTypes] : null;
+    
+    if (!fileType) {
+      toast({
+        title: "Type de fichier non autorisé",
+        description: "Seuls les fichiers PDF, Word, PowerPoint et Images sont acceptés",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    addAttachment(stepId, file.name, fileType);
+    toast({
+      title: "Fichier ajouté",
+      description: `${file.name} a été ajouté avec succès`,
+    });
+
+    // Reset input
+    event.target.value = '';
   };
 
   const saveWorkflow = () => {
@@ -361,28 +400,35 @@ const CustomWorkflowModal = ({
                           <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                             <span className="text-sm flex items-center">
                               <Paperclip className="h-4 w-4 mr-2" />
-                              {attachment}
+                              <span>{attachment.name}</span>
+                              <Badge variant="outline" className="ml-2">{attachment.type}</Badge>
                             </span>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => removeAttachment(step.id, attachment)}
+                              onClick={() => removeAttachment(step.id, attachment.name)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           </div>
                         ))}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const fileName = prompt("Nom du fichier:");
-                            if (fileName) addAttachment(step.id, fileName);
-                          }}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Ajouter un fichier
-                        </Button>
+                        <div>
+                          <input
+                            type="file"
+                            id={`file-${step.id}`}
+                            className="hidden"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp"
+                            onChange={(e) => handleFileUpload(step.id, e)}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => document.getElementById(`file-${step.id}`)?.click()}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Ajouter un fichier
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -469,14 +515,15 @@ const CustomWorkflowModal = ({
                         {step.attachments.length > 0 && (
                           <div>
                             <label className="text-sm font-medium mb-2 block">Pièces jointes</label>
-                            <div className="space-y-1">
-                              {step.attachments.map((attachment, idx) => (
-                                <div key={idx} className="flex items-center text-sm">
-                                  <Paperclip className="h-4 w-4 mr-2" />
-                                  {attachment}
-                                </div>
-                              ))}
-                            </div>
+                             <div className="space-y-1">
+                               {step.attachments.map((attachment, idx) => (
+                                 <div key={idx} className="flex items-center text-sm">
+                                   <Paperclip className="h-4 w-4 mr-2" />
+                                   <span>{attachment.name}</span>
+                                   <Badge variant="outline" className="ml-2">{attachment.type}</Badge>
+                                 </div>
+                               ))}
+                             </div>
                           </div>
                         )}
                       </div>
