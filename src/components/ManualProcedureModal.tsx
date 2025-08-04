@@ -10,16 +10,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Trash2, User, FileText, Paperclip, Clock, CheckCircle, Save } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-interface ProcedureStep {
-  id: string;
-  title: string;
-  description: string;
-  responsibles: string[]; // Changé pour permettre plusieurs responsables
-  estimatedDuration: number;
-  completed: boolean;
-  notes: string;
-  attachments: Array<{ name: string; type: string }>; // Ajout du type pour contrôle
-  order: number;
+import { WorkflowStep } from "@/types/workflow";
+import StepHierarchy from "./StepHierarchy";
+
+interface ProcedureStep extends WorkflowStep {
+  // Utilise la même interface que WorkflowStep pour la compatibilité
 }
 
 interface ManualProcedureModalProps {
@@ -47,7 +42,38 @@ const ManualProcedureModal = ({
       completed: false,
       notes: "",
       attachments: [],
-      order: 1
+      order: 1,
+      level: 0,
+      subSteps: [
+        {
+          id: "step-1-1",
+          title: "Vérifier l'authenticité de la vulnérabilité",
+          description: "Confirmer que la vulnérabilité est réelle et affecte nos systèmes",
+          responsibles: ["Analyste Sécurité"],
+          estimatedDuration: 1,
+          completed: false,
+          notes: "",
+          attachments: [],
+          order: 1,
+          parentId: "step-1",
+          level: 1,
+          isSubStep: true
+        },
+        {
+          id: "step-1-2", 
+          title: "Évaluer l'impact sur les systèmes",
+          description: "Analyser quels systèmes sont affectés et l'ampleur de l'impact",
+          responsibles: ["Équipe Infrastructure"],
+          estimatedDuration: 1,
+          completed: false,
+          notes: "",
+          attachments: [],
+          order: 2,
+          parentId: "step-1",
+          level: 1,
+          isSubStep: true
+        }
+      ]
     },
     {
       id: "step-2",
@@ -58,7 +84,8 @@ const ManualProcedureModal = ({
       completed: false,
       notes: "",
       attachments: [],
-      order: 2
+      order: 2,
+      level: 0
     },
     {
       id: "step-3",
@@ -69,7 +96,52 @@ const ManualProcedureModal = ({
       completed: false,
       notes: "",
       attachments: [],
-      order: 3
+      order: 3,
+      level: 0,
+      subSteps: [
+        {
+          id: "step-3-1",
+          title: "Identifier les correctifs disponibles",
+          description: "Rechercher et valider les correctifs ou mises à jour disponibles",
+          responsibles: ["Équipe Infrastructure"],
+          estimatedDuration: 1,
+          completed: false,
+          notes: "",
+          attachments: [],
+          order: 1,
+          parentId: "step-3",
+          level: 1,
+          isSubStep: true
+        },
+        {
+          id: "step-3-2",
+          title: "Préparer un plan de rollback",
+          description: "Définir une procédure de retour en arrière en cas de problème",
+          responsibles: ["Équipe Infrastructure"],
+          estimatedDuration: 1,
+          completed: false,
+          notes: "",
+          attachments: [],
+          order: 2,
+          parentId: "step-3",
+          level: 1,
+          isSubStep: true
+        },
+        {
+          id: "step-3-3",
+          title: "Coordonner avec les équipes",
+          description: "Informer et coordonner avec toutes les équipes concernées",
+          responsibles: ["Chef de projet sécurité"],
+          estimatedDuration: 1,
+          completed: false,
+          notes: "",
+          attachments: [],
+          order: 3,
+          parentId: "step-3",
+          level: 1,
+          isSubStep: true
+        }
+      ]
     },
     {
       id: "step-4", 
@@ -80,7 +152,8 @@ const ManualProcedureModal = ({
       completed: false,
       notes: "",
       attachments: [],
-      order: 4
+      order: 4,
+      level: 0
     },
     {
       id: "step-5",
@@ -91,31 +164,169 @@ const ManualProcedureModal = ({
       completed: false,
       notes: "",
       attachments: [],
-      order: 5
+      order: 5,
+      level: 0
     }
   ]);
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
+  // Fonction pour aplatir la hiérarchie pour le calcul d'index
+  const getAllSteps = (steps: ProcedureStep[]): ProcedureStep[] => {
+    const allSteps: ProcedureStep[] = [];
+    steps.forEach(step => {
+      allSteps.push(step);
+      if (step.subSteps) {
+        allSteps.push(...step.subSteps);
+      }
+    });
+    return allSteps;
+  };
+
   const updateStep = (stepId: string, updates: Partial<ProcedureStep>) => {
-    setProcedureSteps(procedureSteps.map(step => 
-      step.id === stepId ? { ...step, ...updates } : step
-    ));
+    setProcedureSteps(prevSteps => 
+      updateStepInHierarchy(prevSteps, stepId, updates)
+    );
+  };
+
+  const updateStepInHierarchy = (steps: ProcedureStep[], stepId: string, updates: Partial<ProcedureStep>): ProcedureStep[] => {
+    return steps.map(step => {
+      if (step.id === stepId) {
+        return { ...step, ...updates };
+      }
+      if (step.subSteps) {
+        return {
+          ...step,
+          subSteps: updateStepInHierarchy(step.subSteps, stepId, updates)
+        };
+      }
+      return step;
+    });
   };
 
   const completeStep = (stepId: string) => {
-    const stepIndex = procedureSteps.findIndex(step => step.id === stepId);
+    const allSteps = getAllSteps(procedureSteps);
+    const stepIndex = allSteps.findIndex(step => step.id === stepId);
+    const step = allSteps[stepIndex];
+    
+    // Vérifier si toutes les sous-étapes sont complétées avant de compléter l'étape parent
+    if (step && step.subSteps && step.subSteps.length > 0) {
+      const allSubStepsCompleted = step.subSteps.every(subStep => subStep.completed);
+      if (!allSubStepsCompleted) {
+        toast({
+          title: "Étape incomplète",
+          description: "Toutes les sous-étapes doivent être terminées avant de clôturer cette étape",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     updateStep(stepId, { completed: true });
     
-    if (stepIndex === currentStepIndex && stepIndex < procedureSteps.length - 1) {
+    // Avancer à l'étape suivante seulement pour les étapes principales
+    if (step && !step.isSubStep && stepIndex === currentStepIndex && stepIndex < allSteps.length - 1) {
       setCurrentStepIndex(stepIndex + 1);
     }
     
     toast({
       title: "Étape complétée",
-      description: `L'étape "${procedureSteps[stepIndex].title}" a été marquée comme terminée`,
+      description: `L'étape "${step?.title}" a été marquée comme terminée`,
+    });
+
+    // Vérifier si l'étape parent peut être complétée automatiquement
+    if (step?.isSubStep && step.parentId) {
+      checkParentCompletion(step.parentId);
+    }
+  };
+
+  const checkParentCompletion = (parentId: string) => {
+    const findStepInHierarchy = (steps: ProcedureStep[], id: string): ProcedureStep | null => {
+      for (const step of steps) {
+        if (step.id === id) return step;
+        if (step.subSteps) {
+          const found = findStepInHierarchy(step.subSteps, id);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const parentStep = findStepInHierarchy(procedureSteps, parentId);
+    if (parentStep && parentStep.subSteps) {
+      const allSubStepsCompleted = parentStep.subSteps.every(subStep => subStep.completed);
+      if (allSubStepsCompleted && !parentStep.completed) {
+        setTimeout(() => {
+          toast({
+            title: "Étape parent complétable",
+            description: `Toutes les sous-étapes de "${parentStep.title}" sont terminées. Vous pouvez maintenant la clôturer.`,
+          });
+        }, 500);
+      }
+    }
+  };
+
+  const addSubStep = (parentId: string) => {
+    const newSubStep: ProcedureStep = {
+      id: `${parentId}-sub-${Date.now()}`,
+      title: "Nouvelle sous-étape",
+      description: "Description de la sous-étape",
+      responsibles: ["Équipe à définir"],
+      estimatedDuration: 1,
+      completed: false,
+      notes: "",
+      attachments: [],
+      order: 1,
+      parentId,
+      level: 1,
+      isSubStep: true
+    };
+
+    setProcedureSteps(prevSteps => 
+      addSubStepToHierarchy(prevSteps, parentId, newSubStep)
+    );
+  };
+
+  const addSubStepToHierarchy = (steps: ProcedureStep[], parentId: string, newSubStep: ProcedureStep): ProcedureStep[] => {
+    return steps.map(step => {
+      if (step.id === parentId) {
+        const subSteps = step.subSteps || [];
+        return {
+          ...step,
+          subSteps: [...subSteps, { ...newSubStep, order: subSteps.length + 1 }]
+        };
+      }
+      if (step.subSteps) {
+        return {
+          ...step,
+          subSteps: addSubStepToHierarchy(step.subSteps, parentId, newSubStep)
+        };
+      }
+      return step;
     });
   };
+
+  const removeStep = (stepId: string) => {
+    setProcedureSteps(prevSteps => 
+      removeStepFromHierarchy(prevSteps, stepId)
+    );
+  };
+
+  const removeStepFromHierarchy = (steps: ProcedureStep[], stepId: string): ProcedureStep[] => {
+    return steps.reduce((acc: ProcedureStep[], step) => {
+      if (step.id === stepId) {
+        return acc; // Ne pas inclure cette étape
+      }
+      if (step.subSteps) {
+        return [...acc, {
+          ...step,
+          subSteps: removeStepFromHierarchy(step.subSteps, stepId)
+        }];
+      }
+      return [...acc, step];
+    }, []);
+  };
+
 
   const handleFileUpload = (stepId: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -188,10 +399,11 @@ const ManualProcedureModal = ({
   };
 
   const finalizeProcedure = () => {
-    if (!procedureSteps.every(step => step.completed)) {
+    const allSteps = getAllSteps(procedureSteps);
+    if (!allSteps.every(step => step.completed)) {
       toast({
         title: "Procédure incomplète",
-        description: "Veuillez terminer toutes les étapes avant de finaliser",
+        description: "Veuillez terminer toutes les étapes et sous-étapes avant de finaliser",
         variant: "destructive"
       });
       return;
@@ -206,9 +418,22 @@ const ManualProcedureModal = ({
   };
 
   const handleClose = () => {
-    setProcedureSteps(prev => prev.map(step => ({ ...step, completed: false, notes: "", attachments: [] })));
+    setProcedureSteps(prev => prev.map(step => resetStepHierarchy(step)));
     setCurrentStepIndex(0);
     onClose();
+  };
+
+  const resetStepHierarchy = (step: ProcedureStep): ProcedureStep => {
+    const resetStep = { 
+      ...step, 
+      completed: false, 
+      notes: "", 
+      attachments: [] 
+    };
+    if (step.subSteps) {
+      resetStep.subSteps = step.subSteps.map(resetStepHierarchy);
+    }
+    return resetStep;
   };
 
   const getStepStatus = (step: ProcedureStep, index: number) => {
@@ -225,8 +450,9 @@ const ManualProcedureModal = ({
     return "border-gray-200";
   };
 
-  const completedSteps = procedureSteps.filter(step => step.completed).length;
-  const progressPercentage = (completedSteps / procedureSteps.length) * 100;
+  const completedSteps = getAllSteps(procedureSteps).filter(step => step.completed).length;
+  const totalSteps = getAllSteps(procedureSteps).length;
+  const progressPercentage = (completedSteps / totalSteps) * 100;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -245,7 +471,7 @@ const ManualProcedureModal = ({
               <CardTitle className="flex items-center justify-between">
                 <span>Progression de la procédure</span>
                 <Badge variant="outline">
-                  {completedSteps} / {procedureSteps.length} étapes terminées
+                  {completedSteps} / {totalSteps} étapes terminées
                 </Badge>
               </CardTitle>
             </CardHeader>
@@ -262,172 +488,32 @@ const ManualProcedureModal = ({
             </CardContent>
           </Card>
 
-          {/* Liste des étapes */}
-          <div className="space-y-4">
-            {procedureSteps.map((step, index) => (
-              <Card key={step.id} className={getStepStatusColor(step, index)}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {step.completed ? (
-                        <CheckCircle className="h-6 w-6 text-green-500" />
-                      ) : index === currentStepIndex ? (
-                        <Clock className="h-6 w-6 text-blue-500" />
-                      ) : (
-                        <div className="h-6 w-6 border-2 border-gray-300 rounded-full" />
-                      )}
-                      <div>
-                        <h4 className="font-semibold text-lg">{step.title}</h4>
-                        <Badge variant="outline" className="mt-1">
-                          {getStepStatus(step, index)}
-                        </Badge>
-                      </div>
-                    </div>
-                    {!step.completed && index <= currentStepIndex && (
-                      <Button
-                        onClick={() => completeStep(step.id)}
-                        size="sm"
-                        className="ml-4"
-                      >
-                        Marquer comme terminé
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <p className="text-gray-600">{step.description}</p>
-                  
-                   <div className="grid grid-cols-1 gap-4">
-                     <div>
-                       <label className="text-sm font-medium mb-2 block">Responsables</label>
-                       <div className="space-y-2">
-                         {step.responsibles.map((responsible, idx) => (
-                           <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                             <span className="text-sm flex items-center">
-                               <User className="h-4 w-4 mr-2" />
-                               {responsible}
-                             </span>
-                             {!step.completed && step.responsibles.length > 1 && (
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 onClick={() => removeResponsible(step.id, responsible)}
-                               >
-                                 <Trash2 className="h-4 w-4 text-red-500" />
-                               </Button>
-                             )}
-                           </div>
-                         ))}
-                         
-                         {!step.completed && (
-                           <Select onValueChange={(value) => addResponsible(step.id, value)}>
-                             <SelectTrigger>
-                               <SelectValue placeholder="Ajouter un responsable" />
-                             </SelectTrigger>
-                             <SelectContent>
-                               <SelectItem value="Équipe Sécurité">Équipe Sécurité</SelectItem>
-                               <SelectItem value="Chef de projet sécurité">Chef de projet sécurité</SelectItem>
-                               <SelectItem value="Équipe Infrastructure">Équipe Infrastructure</SelectItem>
-                               <SelectItem value="Admin Base de données">Admin Base de données</SelectItem>
-                               <SelectItem value="Équipe Réseau">Équipe Réseau</SelectItem>
-                               <SelectItem value="RSSI">RSSI</SelectItem>
-                               <SelectItem value="Équipe DevOps">Équipe DevOps</SelectItem>
-                             </SelectContent>
-                           </Select>
-                         )}
-                       </div>
-                     </div>
-                     
-                     <div>
-                       <label className="text-sm font-medium mb-2 block">Durée estimée (heures)</label>
-                       <Input
-                         type="number"
-                         value={step.estimatedDuration}
-                         onChange={(e) => updateStep(step.id, { estimatedDuration: parseInt(e.target.value) || 1 })}
-                         disabled={step.completed}
-                         min="1"
-                       />
-                     </div>
-                   </div>
-
-                  {/* Section disponible seulement pour les étapes en cours ou terminées */}
-                  {(index <= currentStepIndex || step.completed) && (
-                    <div className="space-y-4 pt-4 border-t">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Notes d'exécution</label>
-                        <Textarea
-                          value={step.notes}
-                          onChange={(e) => updateStep(step.id, { notes: e.target.value })}
-                          placeholder="Documenter les actions entreprises, les résultats obtenus..."
-                          rows={3}
-                          disabled={step.completed}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Pièces jointes</label>
-                         <div className="space-y-2">
-                           {step.attachments.map((attachment, idx) => (
-                             <div key={idx} className="flex items-center justify-between p-3 bg-white border rounded">
-                               <span className="text-sm flex items-center">
-                                 <Paperclip className="h-4 w-4 mr-2 text-gray-500" />
-                                 <span>{attachment.name}</span>
-                                 <Badge variant="outline" className="ml-2">{attachment.type}</Badge>
-                               </span>
-                               {!step.completed && (
-                                 <Button
-                                   variant="ghost"
-                                   size="sm"
-                                   onClick={() => removeAttachment(step.id, attachment.name)}
-                                 >
-                                   <Trash2 className="h-4 w-4 text-red-500" />
-                                 </Button>
-                               )}
-                             </div>
-                           ))}
-                           
-                            {!step.completed && (
-                              <div>
-                                <input
-                                  type="file"
-                                  id={`file-input-${step.id}`}
-                                  className="hidden"
-                                  accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.doc,.docx,.ppt,.pptx"
-                                  onChange={(e) => handleFileUpload(step.id, e)}
-                                />
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => document.getElementById(`file-input-${step.id}`)?.click()}
-                                  className="w-full"
-                                >
-                                  <Plus className="h-4 w-4 mr-2" />
-                                  Ajouter une pièce jointe
-                                </Button>
-                              </div>
-                            )}
-                         </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {/* Hiérarchie des étapes */}
+          <StepHierarchy
+            steps={procedureSteps}
+            onUpdateStep={updateStep}
+            onCompleteStep={completeStep}
+            onAddSubStep={addSubStep}
+            onRemoveStep={removeStep}
+            onFileUpload={handleFileUpload}
+            onRemoveAttachment={removeAttachment}
+            onAddResponsible={addResponsible}
+            onRemoveResponsible={removeResponsible}
+            currentStepIndex={currentStepIndex}
+          />
 
           {/* Actions finales */}
           <Card>
             <CardContent className="pt-6">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-gray-600">
-                  {completedSteps === procedureSteps.length ? (
+                  {completedSteps === totalSteps ? (
                     <span className="text-green-600 font-medium">
                       ✓ Toutes les étapes sont terminées. Vous pouvez finaliser la procédure.
                     </span>
                   ) : (
                     <span>
-                      Étapes restantes: {procedureSteps.length - completedSteps}
+                      Étapes restantes: {totalSteps - completedSteps}
                     </span>
                   )}
                 </div>
@@ -437,7 +523,7 @@ const ManualProcedureModal = ({
                     Fermer
                   </Button>
                   
-                  {completedSteps === procedureSteps.length && (
+                  {completedSteps === totalSteps && (
                     <Button onClick={finalizeProcedure}>
                       <Save className="h-4 w-4 mr-2" />
                       Finaliser la procédure

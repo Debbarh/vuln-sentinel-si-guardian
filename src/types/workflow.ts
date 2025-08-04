@@ -25,6 +25,44 @@ export interface WorkflowStep {
   status: "pending" | "in_progress" | "completed" | "blocked";
   startedAt?: string;
   completedAt?: string;
+  // Nouveaux champs pour la hiérarchie
+  title?: string; // Alias pour name pour compatibilité
+  responsibles?: string[]; // Pour la compatibilité avec les procédures manuelles
+  estimatedDuration?: number;
+  completed?: boolean; // Alias pour status === "completed"
+  notes?: string;
+  attachments?: Array<{ name: string; type: string }>;
+  order?: number;
+  parentId?: string; // Pour la hiérarchie
+  subSteps?: WorkflowStep[]; // Sous-étapes
+  isSubStep?: boolean; // Indique si c'est une sous-étape
+  level?: number; // Niveau dans la hiérarchie (0 = racine, 1 = sous-étape, etc.)
+}
+
+export interface ProcedureStep {
+  id: string;
+  title: string;
+  description: string;
+  responsibles: string[];
+  estimatedDuration: number;
+  completed: boolean;
+  notes: string;
+  attachments: Array<{ name: string; type: string }>;
+  order: number;
+  level: number;
+  parentId?: string;
+  subSteps?: ProcedureStep[];
+  isSubStep?: boolean;
+  // Champs optionnels pour compatibilité avec WorkflowStep
+  name?: string;
+  tasks?: WorkflowTask[];
+  approvalRequired?: boolean;
+  approver?: string;
+  notifyUsers?: string[];
+  rssiFollowUp?: string[];
+  status?: "pending" | "in_progress" | "completed" | "blocked";
+  startedAt?: string;
+  completedAt?: string;
 }
 
 export interface Workflow {
