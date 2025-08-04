@@ -7,6 +7,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { FrameworkManagement } from "@/components/FrameworkManagement";
 import { AssessmentManagement } from "@/components/AssessmentManagement";
 import { ResultsDashboard } from "@/components/ResultsDashboard";
+import { ActionPlanManagement } from "@/components/ActionPlanManagement";
 import { toast } from "sonner";
 
 const MaturityAssessment = () => {
@@ -208,7 +209,7 @@ const MaturityAssessment = () => {
           </TabsContent>
           
           <TabsContent value="actions" className="space-y-6">
-            {renderActionPlans()}
+            <ActionPlanManagement onBack={() => setActiveTab("results")} />
           </TabsContent>
           
           <TabsContent value="reports" className="space-y-6">
