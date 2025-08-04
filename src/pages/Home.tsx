@@ -20,21 +20,21 @@ import {
   FileCheck
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const Home = () => {
-  const carouselRef = useRef<any>(null);
+  const [api, setApi] = useState<any>();
 
-  // Timer automatique de 8 secondes
+  // Timer automatique de 5 secondes
   useEffect(() => {
+    if (!api) return;
+    
     const interval = setInterval(() => {
-      if (carouselRef.current?.api) {
-        carouselRef.current.api.scrollNext();
-      }
-    }, 8000);
+      api.scrollNext();
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [api]);
   const features = [
     {
       icon: Shield,
@@ -149,7 +149,7 @@ const Home = () => {
       {/* Hero Section - Carousel Full Width */}
       <section className="pt-0 pb-0 min-h-screen flex items-center">
         <div className="w-full">
-          <Carousel ref={carouselRef} className="w-full h-screen" opts={{ loop: true, align: "center" }}>
+          <Carousel setApi={setApi} className="w-full h-screen" opts={{ loop: true, align: "center" }}>
             <CarouselContent className="-ml-0">
               {/* Module VulnGuard */}
               <CarouselItem className="pl-0">
