@@ -301,6 +301,7 @@ const ReportsPanel = () => {
   };
   // États pour la gestion des planifications
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [editingScheduleId, setEditingScheduleId] = useState(null);
   const [scheduledReports, setScheduledReports] = useState([
     {
       id: "1",
@@ -400,6 +401,73 @@ const ReportsPanel = () => {
       includeRawData: false,
       notes: ""
     });
+    setEditingScheduleId(null);
+    setIsScheduleDialogOpen(false);
+  };
+
+  const handleEditSchedule = (schedule) => {
+    setEditingScheduleId(schedule.id);
+    setCurrentSchedule({
+      title: schedule.title,
+      type: schedule.type,
+      frequency: schedule.frequency,
+      recipients: schedule.recipients,
+      time: new Date(schedule.nextExecution).toTimeString().slice(0, 5),
+      dayOfWeek: "",
+      dayOfMonth: "1",
+      format: schedule.format,
+      includeCharts: true,
+      includeRawData: false,
+      notes: ""
+    });
+    setIsScheduleDialogOpen(true);
+  };
+
+  const handleUpdateSchedule = () => {
+    const updatedSchedule = {
+      title: currentSchedule.title,
+      type: currentSchedule.type,
+      frequency: currentSchedule.frequency,
+      recipients: currentSchedule.recipients.filter(email => email.trim() !== ""),
+      nextExecution: calculateNextExecution(currentSchedule),
+      format: currentSchedule.format
+    };
+    
+    setScheduledReports(scheduledReports.map(schedule => 
+      schedule.id === editingScheduleId ? { ...schedule, ...updatedSchedule } : schedule
+    ));
+    setCurrentSchedule({
+      title: "",
+      type: "",
+      frequency: "",
+      recipients: [""],
+      time: "09:00",
+      dayOfWeek: "",
+      dayOfMonth: "1", 
+      format: "pdf",
+      includeCharts: true,
+      includeRawData: false,
+      notes: ""
+    });
+    setEditingScheduleId(null);
+    setIsScheduleDialogOpen(false);
+  };
+
+  const handleDialogClose = () => {
+    setCurrentSchedule({
+      title: "",
+      type: "",
+      frequency: "",
+      recipients: [""],
+      time: "09:00",
+      dayOfWeek: "",
+      dayOfMonth: "1", 
+      format: "pdf",
+      includeCharts: true,
+      includeRawData: false,
+      notes: ""
+    });
+    setEditingScheduleId(null);
     setIsScheduleDialogOpen(false);
   };
 
@@ -526,9 +594,11 @@ const ReportsPanel = () => {
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Planifier un Rapport Automatique</DialogTitle>
+                <DialogTitle>
+                  {editingScheduleId ? "Modifier la Planification" : "Planifier un Rapport Automatique"}
+                </DialogTitle>
                 <DialogDescription>
-                  Configurez la génération et l'envoi automatique de rapports
+                  {editingScheduleId ? "Modifiez les paramètres de génération et d'envoi du rapport" : "Configurez la génération et l'envoi automatique de rapports"}
                 </DialogDescription>
               </DialogHeader>
               
@@ -690,11 +760,14 @@ const ReportsPanel = () => {
                 </div>
 
                 <div className="flex justify-end space-x-2 pt-4">
-                  <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
+                  <Button variant="outline" onClick={handleDialogClose}>
                     Annuler
                   </Button>
-                  <Button onClick={handleCreateSchedule} disabled={!currentSchedule.title || !currentSchedule.type || !currentSchedule.frequency}>
-                    Créer la planification
+                  <Button 
+                    onClick={editingScheduleId ? handleUpdateSchedule : handleCreateSchedule} 
+                    disabled={!currentSchedule.title || !currentSchedule.type || !currentSchedule.frequency}
+                  >
+                    {editingScheduleId ? "Sauvegarder les modifications" : "Créer la planification"}
                   </Button>
                 </div>
               </div>
@@ -887,6 +960,16 @@ const ReportsPanel = () => {
                         className="text-blue-600 hover:text-blue-700"
                       >
                         Voir le rapport
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditSchedule(schedule)}
+                        className="text-purple-600 hover:text-purple-700"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Modifier
                       </Button>
                       
                       <Button
