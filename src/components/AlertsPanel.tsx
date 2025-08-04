@@ -588,6 +588,22 @@ const AlertsPanel = () => {
                   </div>
                 </div>
               )}
+              
+              {/* Bouton de traitement dans les détails */}
+              {selectedAlertForDetails.status !== "resolu" && (
+                <div className="flex justify-center pt-4 border-t">
+                  <Button 
+                    onClick={() => {
+                      setIsDetailsOpen(false);
+                      handleTreatAlert(selectedAlertForDetails);
+                    }}
+                    className="flex items-center space-x-2"
+                  >
+                    <Target className="h-4 w-4" />
+                    <span>Traiter cette vulnérabilité</span>
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
