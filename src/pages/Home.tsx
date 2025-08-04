@@ -194,11 +194,7 @@ const Home = () => {
                     </div>
 
                     {/* Stats pour VulnGuard */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-                      <div className="text-center group hover:scale-110 transition-transform duration-300">
-                        <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">500+</div>
-                        <div className="text-gray-700 font-medium">Organisations</div>
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                       <div className="text-center group hover:scale-110 transition-transform duration-300">
                         <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">50K+</div>
                         <div className="text-gray-700 font-medium">Vulnérabilités traitées</div>
