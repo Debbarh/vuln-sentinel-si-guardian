@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { 
   Shield, 
   AlertTriangle, 
@@ -35,6 +35,7 @@ const Home = () => {
 
     return () => clearInterval(interval);
   }, [api]);
+
   const features = [
     {
       icon: Shield,
@@ -43,7 +44,7 @@ const Home = () => {
     },
     {
       icon: AlertTriangle,
-      title: "Alertes Intelligentes",
+      title: "Alertes Intelligentes", 
       description: "Système d'alertes prioritaires avec classification automatique des risques"
     },
     {
