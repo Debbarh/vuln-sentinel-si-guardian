@@ -34,43 +34,103 @@ import {
 } from 'recharts';
 import { Assessment } from '@/types/frameworks';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
+import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
 import { toast } from 'sonner';
 
 interface ResultsDashboardProps {
   onBack: () => void;
 }
 
-// Calculer les résultats basés sur les vraies données ISO 27001:2022
-const calculateResultsFromISO27001 = () => {
-  const categoryStats = ISO27001_CONTROLS.map(category => {
-    const totalControls = category.controls.length;
-    const implementedControls = category.controls.filter(c => c.maturityLevel >= 2).length;
-    const avgMaturity = category.controls.reduce((sum, c) => sum + c.maturityLevel, 0) / totalControls;
-    
-    return {
-      id: category.id,
-      name: category.name,
-      totalControls,
-      implementedControls,
-      avgMaturity: Math.round(avgMaturity * 10) / 10,
-      complianceRate: Math.round((implementedControls / totalControls) * 100)
-    };
-  });
+// Calculer les résultats basés sur les vraies données des référentiels
+const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'ISO27001') => {
+  if (frameworkType === 'ISO27001') {
+    const categoryStats = ISO27001_CONTROLS.map(category => {
+      const totalControls = category.controls.length;
+      const implementedControls = category.controls.filter(c => c.maturityLevel >= 2).length;
+      const avgMaturity = category.controls.reduce((sum, c) => sum + c.maturityLevel, 0) / totalControls;
+      
+      return {
+        id: category.id,
+        name: category.name,
+        totalControls,
+        implementedControls,
+        avgMaturity: Math.round(avgMaturity * 10) / 10,
+        complianceRate: Math.round((implementedControls / totalControls) * 100)
+      };
+    });
 
-  const overallMaturity = categoryStats.reduce((sum, cat) => sum + cat.avgMaturity, 0) / categoryStats.length;
-  const overallCompliance = categoryStats.reduce((sum, cat) => sum + cat.complianceRate, 0) / categoryStats.length;
-  const totalGaps = ISO27001_CONTROLS.reduce((sum, cat) => 
-    sum + cat.controls.filter(c => c.maturityLevel < 2).length, 0
-  );
+    const overallMaturity = categoryStats.reduce((sum, cat) => sum + cat.avgMaturity, 0) / categoryStats.length;
+    const overallCompliance = categoryStats.reduce((sum, cat) => sum + cat.complianceRate, 0) / categoryStats.length;
+    const totalGaps = ISO27001_CONTROLS.reduce((sum, cat) => 
+      sum + cat.controls.filter(c => c.maturityLevel < 2).length, 0
+    );
+
+    return {
+      overallScore: Math.round(overallMaturity * 10) / 10,
+      overallLevel: getMaturityLevel(overallMaturity),
+      totalGaps,
+      completedActions: 18,
+      totalActions: 32,
+      complianceRate: Math.round(overallCompliance),
+      categoryStats,
+      radarData: categoryStats.map(cat => ({
+        subject: `${cat.name.replace('Contrôles ', '')} (${cat.totalControls})`,
+        current: cat.avgMaturity,
+        target: Math.min(cat.avgMaturity + 0.5, 4),
+        fullMark: 4
+      }))
+    };
+  }
+
+  if (frameworkType === 'NIST') {
+    const functionStats = NIST_CSF_FUNCTIONS.map(nistFunction => {
+      const allSubCategories = nistFunction.categories.flatMap(cat => cat.subCategories);
+      const totalSubCategories = allSubCategories.length;
+      const implementedSubCategories = allSubCategories.filter(sub => sub.maturityLevel >= 2).length;
+      const avgMaturity = allSubCategories.reduce((sum, sub) => sum + sub.maturityLevel, 0) / totalSubCategories;
+      
+      return {
+        id: nistFunction.id,
+        name: nistFunction.name,
+        totalSubCategories,
+        implementedSubCategories,
+        avgMaturity: Math.round(avgMaturity * 10) / 10,
+        complianceRate: Math.round((implementedSubCategories / totalSubCategories) * 100)
+      };
+    });
+
+    const overallMaturity = functionStats.reduce((sum, func) => sum + func.avgMaturity, 0) / functionStats.length;
+    const overallCompliance = functionStats.reduce((sum, func) => sum + func.complianceRate, 0) / functionStats.length;
+    const totalGaps = NIST_CSF_FUNCTIONS.reduce((sum, func) => 
+      sum + func.categories.flatMap(cat => cat.subCategories.filter(sub => sub.maturityLevel < 2)).length, 0
+    );
+
+    return {
+      overallScore: Math.round(overallMaturity * 10) / 10,
+      overallLevel: getNISTTierLevel(overallMaturity),
+      totalGaps,
+      completedActions: 15,
+      totalActions: 28,
+      complianceRate: Math.round(overallCompliance),
+      functionStats,
+      radarData: functionStats.map(func => ({
+        subject: `${func.name.replace(' - ', ' ')} (${func.totalSubCategories})`,
+        current: func.avgMaturity,
+        target: Math.min(func.avgMaturity + 0.5, 4),
+        fullMark: 4
+      }))
+    };
+  }
 
   return {
-    overallScore: Math.round(overallMaturity * 10) / 10,
-    overallLevel: getMaturityLevel(overallMaturity),
-    totalGaps,
-    completedActions: 18, // Exemple
-    totalActions: 32, // Exemple
-    complianceRate: Math.round(overallCompliance),
-    categoryStats
+    overallScore: 0,
+    overallLevel: 'Initial',
+    totalGaps: 0,
+    completedActions: 0,
+    totalActions: 0,
+    complianceRate: 0,
+    categoryStats: [],
+    radarData: []
   };
 };
 
@@ -82,15 +142,16 @@ const getMaturityLevel = (score: number): string => {
   return 'Optimisé';
 };
 
-const CALCULATED_RESULTS = calculateResultsFromISO27001();
+const getNISTTierLevel = (score: number): string => {
+  if (score < 1.5) return 'Partiel';
+  if (score < 2.5) return 'Informé par les Risques';
+  if (score < 3.5) return 'Répétable';
+  return 'Adaptatif';
+};
 
-// Données radar basées sur les vraies catégories avec les vrais scores
-const RADAR_DATA = CALCULATED_RESULTS.categoryStats.map(cat => ({
-  subject: `${cat.name.replace('Contrôles ', '')} (${cat.totalControls})`,
-  current: cat.avgMaturity,
-  target: Math.min(cat.avgMaturity + 0.5, 4),
-  fullMark: 4
-}));
+// Par défaut on affiche ISO27001, mais on peut switcher
+const CALCULATED_RESULTS = calculateResultsFromFrameworks('ISO27001');
+const NIST_RESULTS = calculateResultsFromFrameworks('NIST');
 
 // Données de barres avec les vrais contrôles et leurs scores actuels
 const generateBarData = () => {
@@ -145,10 +206,14 @@ const GAPS_DATA = generateGapsData();
 
 export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
   const [selectedAssessment, setSelectedAssessment] = useState('assessment-1');
+  const [selectedFramework, setSelectedFramework] = useState<'ISO27001' | 'NIST'>('ISO27001');
   const [activeTab, setActiveTab] = useState('overview');
 
+  // Calculer les résultats selon le framework sélectionné
+  const currentResults = selectedFramework === 'ISO27001' ? CALCULATED_RESULTS : NIST_RESULTS;
+
   const handleExportReport = () => {
-    toast.success('Génération du rapport PDF en cours...');
+    toast.success(`Génération du rapport ${selectedFramework} PDF en cours...`);
   };
 
   const renderOverview = () => (
@@ -161,9 +226,9 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{CALCULATED_RESULTS.overallScore}/4</div>
+            <div className="text-2xl font-bold">{currentResults.overallScore}/4</div>
             <p className="text-xs text-muted-foreground">
-              Niveau {CALCULATED_RESULTS.overallLevel}
+              Niveau {currentResults.overallLevel}
             </p>
           </CardContent>
         </Card>
@@ -174,7 +239,7 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
             <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{CALCULATED_RESULTS.totalGaps}</div>
+            <div className="text-2xl font-bold">{currentResults.totalGaps}</div>
             <p className="text-xs text-muted-foreground">À traiter</p>
           </CardContent>
         </Card>
@@ -186,10 +251,10 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {CALCULATED_RESULTS.completedActions}/{CALCULATED_RESULTS.totalActions}
+              {currentResults.completedActions}/{currentResults.totalActions}
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((CALCULATED_RESULTS.completedActions / CALCULATED_RESULTS.totalActions) * 100)}% complété
+              {Math.round((currentResults.completedActions / currentResults.totalActions) * 100)}% complété
             </p>
           </CardContent>
         </Card>
@@ -200,7 +265,7 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
             <TrendingUp className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{CALCULATED_RESULTS.complianceRate}%</div>
+            <div className="text-2xl font-bold">{currentResults.complianceRate}%</div>
             <p className="text-xs text-muted-foreground">Global</p>
           </CardContent>
         </Card>
@@ -210,12 +275,12 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Maturité par Domaine</CardTitle>
-            <CardDescription>Vue radar des scores par catégorie</CardDescription>
+            <CardTitle>Maturité par {selectedFramework === 'ISO27001' ? 'Catégorie' : 'Fonction'}</CardTitle>
+            <CardDescription>Vue radar des scores par {selectedFramework === 'ISO27001' ? 'catégorie ISO 27001' : 'fonction NIST'}</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={RADAR_DATA}>
+              <RadarChart data={currentResults.radarData}>
                 <PolarGrid />
                 <PolarAngleAxis dataKey="subject" />
                 <PolarRadiusAxis angle={30} domain={[0, 4]} />
@@ -317,6 +382,15 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          <Select value={selectedFramework} onValueChange={(value: 'ISO27001' | 'NIST') => setSelectedFramework(value)}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ISO27001">ISO 27001:2022</SelectItem>
+              <SelectItem value="NIST">NIST CSF 2.0</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={selectedAssessment} onValueChange={setSelectedAssessment}>
             <SelectTrigger className="w-64">
               <SelectValue />

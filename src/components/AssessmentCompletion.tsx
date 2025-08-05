@@ -24,6 +24,7 @@ import { Assessment, Criterion, Question, AssessmentResponse } from '@/types/fra
 import { DEFAULT_FRAMEWORKS } from '@/types/frameworks';
 import { getUserDisplayName, SAMPLE_USERS } from '@/types/users';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
+import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
 import { toast } from 'sonner';
 
 interface AssessmentCompletionProps {
@@ -32,8 +33,8 @@ interface AssessmentCompletionProps {
   onUpdate: (assessment: Assessment) => void;
 }
 
-// Génération des critères et questions à partir des contrôles ISO 27001
-const generateCriteriaFromISO27001 = (frameworkId: string): { criteria: Criterion[], questions: Question[] } => {
+// Génération des critères et questions à partir des contrôles ISO 27001 et NIST CSF
+const generateCriteriaFromFramework = (frameworkId: string): { criteria: Criterion[], questions: Question[] } => {
   const criteria: Criterion[] = [];
   const questions: Question[] = [];
   
@@ -83,22 +84,85 @@ const generateCriteriaFromISO27001 = (frameworkId: string): { criteria: Criterio
           required: true,
           order: 1,
         });
+      });
+    });
+  }
+  
+  if (frameworkId === 'nist-csf-2') {
+    NIST_CSF_FUNCTIONS.forEach((nistFunction, functionIndex) => {
+      // Ajouter la fonction principale (niveau 1)
+      criteria.push({
+        id: nistFunction.id,
+        frameworkId,
+        code: nistFunction.id,
+        name: nistFunction.name,
+        description: nistFunction.description,
+        level: 1,
+        order: functionIndex + 1,
+      });
+      
+      // Ajouter les catégories (niveau 2)
+      nistFunction.categories.forEach((category, categoryIndex) => {
+        criteria.push({
+          id: category.id,
+          frameworkId,
+          code: category.code,
+          name: category.name,
+          description: category.description,
+          parentId: nistFunction.id,
+          level: 2,
+          order: categoryIndex + 1,
+        });
         
-        // Question sur l'efficacité
-        questions.push({
-          id: `${baseQuestionId}-effectiveness`,
-          criterionId: control.id,
-          text: `L'efficacité de ce contrôle est-elle mesurée et évaluée régulièrement ?`,
-          description: 'Évaluer si des métriques et indicateurs sont en place pour mesurer l\'efficacité',
-          type: 'radio',
-          options: [
-            { id: `${baseQuestionId}-eff1`, value: 'no', label: 'Aucune mesure en place', order: 1 },
-            { id: `${baseQuestionId}-eff2`, value: 'basic', label: 'Mesures basiques occasionnelles', order: 2 },
-            { id: `${baseQuestionId}-eff3`, value: 'regular', label: 'Mesures régulières avec reporting', order: 3 },
-            { id: `${baseQuestionId}-eff4`, value: 'advanced', label: 'Mesures avancées avec amélioration continue', order: 4 },
-          ],
-          required: false,
-          order: 2,
+        // Ajouter les sous-catégories (niveau 3)
+        category.subCategories.forEach((subCategory, subIndex) => {
+          criteria.push({
+            id: subCategory.id,
+            frameworkId,
+            code: subCategory.code,
+            name: subCategory.title,
+            description: subCategory.description,
+            parentId: category.id,
+            level: 3,
+            order: subIndex + 1,
+          });
+          
+          // Générer des questions d'évaluation NIST pour chaque sous-catégorie
+          const baseQuestionId = `q-${subCategory.id}`;
+          
+          // Question sur le niveau NIST (Partial, Risk Informed, Repeatable, Adaptive)
+          questions.push({
+            id: `${baseQuestionId}-tier`,
+            criterionId: subCategory.id,
+            text: `Quel est le niveau de maturité pour "${subCategory.title}" ?`,
+            description: subCategory.description,
+            type: 'radio',
+            options: [
+              { id: `${baseQuestionId}-partial`, value: '1', label: 'Partiel - Pratiques informelles et réactives', maturityLevel: 1, order: 1 },
+              { id: `${baseQuestionId}-risk`, value: '2', label: 'Informé par les Risques - Politiques approuvées', maturityLevel: 2, order: 2 },
+              { id: `${baseQuestionId}-repeat`, value: '3', label: 'Répétable - Pratiques formalisées', maturityLevel: 3, order: 3 },
+              { id: `${baseQuestionId}-adapt`, value: '4', label: 'Adaptatif - Pratiques continues et intégrées', maturityLevel: 4, order: 4 },
+            ],
+            required: true,
+            order: 1,
+          });
+          
+          // Question sur l'implémentation actuelle
+          questions.push({
+            id: `${baseQuestionId}-implementation`,
+            criterionId: subCategory.id,
+            text: `Cette sous-catégorie est-elle actuellement implémentée dans votre organisation ?`,
+            description: 'Évaluer le niveau d\'implémentation actuel',
+            type: 'radio',
+            options: [
+              { id: `${baseQuestionId}-impl-no`, value: 'no', label: 'Non implémenté', order: 1 },
+              { id: `${baseQuestionId}-impl-partial`, value: 'partial', label: 'Partiellement implémenté', order: 2 },
+              { id: `${baseQuestionId}-impl-yes`, value: 'yes', label: 'Complètement implémenté', order: 3 },
+              { id: `${baseQuestionId}-impl-na`, value: 'na', label: 'Non applicable', order: 4 },
+            ],
+            required: true,
+            order: 2,
+          });
         });
       });
     });
@@ -117,7 +181,7 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
   const currentFramework = frameworks[currentFrameworkIndex];
   
   // Générer les critères et questions dynamiquement
-  const { criteria, questions } = generateCriteriaFromISO27001(currentFramework?.id || '');
+  const { criteria, questions } = generateCriteriaFromFramework(currentFramework?.id || '');
   const topLevelCriteria = criteria.filter(c => !c.parentId).sort((a, b) => a.order - b.order);
   
   // Calculer les statistiques de progression
