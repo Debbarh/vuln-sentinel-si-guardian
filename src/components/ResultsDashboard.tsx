@@ -40,79 +40,108 @@ interface ResultsDashboardProps {
   onBack: () => void;
 }
 
-// Données basées sur les vraies catégories ISO 27001:2022
-const SAMPLE_RESULTS = {
-  overallScore: 2.8,
-  overallLevel: 'Défini',
-  totalGaps: 28,
-  completedActions: 18,
-  totalActions: 32,
-  complianceRate: 72,
+// Calculer les résultats basés sur les vraies données ISO 27001:2022
+const calculateResultsFromISO27001 = () => {
+  const categoryStats = ISO27001_CONTROLS.map(category => {
+    const totalControls = category.controls.length;
+    const implementedControls = category.controls.filter(c => c.maturityLevel >= 2).length;
+    const avgMaturity = category.controls.reduce((sum, c) => sum + c.maturityLevel, 0) / totalControls;
+    
+    return {
+      id: category.id,
+      name: category.name,
+      totalControls,
+      implementedControls,
+      avgMaturity: Math.round(avgMaturity * 10) / 10,
+      complianceRate: Math.round((implementedControls / totalControls) * 100)
+    };
+  });
+
+  const overallMaturity = categoryStats.reduce((sum, cat) => sum + cat.avgMaturity, 0) / categoryStats.length;
+  const overallCompliance = categoryStats.reduce((sum, cat) => sum + cat.complianceRate, 0) / categoryStats.length;
+  const totalGaps = ISO27001_CONTROLS.reduce((sum, cat) => 
+    sum + cat.controls.filter(c => c.maturityLevel < 2).length, 0
+  );
+
+  return {
+    overallScore: Math.round(overallMaturity * 10) / 10,
+    overallLevel: getMaturityLevel(overallMaturity),
+    totalGaps,
+    completedActions: 18, // Exemple
+    totalActions: 32, // Exemple
+    complianceRate: Math.round(overallCompliance),
+    categoryStats
+  };
 };
 
-// Données radar basées sur les 4 catégories ISO 27001:2022
-const RADAR_DATA = [
-  { subject: 'Contrôles Organisationnels (37)', A: 2.9, B: 3.2, fullMark: 4 },
-  { subject: 'Contrôles Humains (8)', A: 3.1, B: 3.3, fullMark: 4 },
-  { subject: 'Contrôles Physiques (14)', A: 2.8, B: 3.0, fullMark: 4 },
-  { subject: 'Contrôles Technologiques (34)', A: 2.6, B: 3.1, fullMark: 4 },
-];
+const getMaturityLevel = (score: number): string => {
+  if (score < 1) return 'Initial';
+  if (score < 2) return 'Reproductible';
+  if (score < 3) return 'Défini';
+  if (score < 4) return 'Géré';
+  return 'Optimisé';
+};
 
-// Données de barres avec quelques contrôles représentatifs de chaque catégorie
-const BAR_DATA = [
-  // Contrôles Organisationnels
-  { name: '5.1 Politiques SI', score: 3.2, target: 3.5, category: 'Organisationnel' },
-  { name: '5.15 Contrôle d\'accès', score: 2.9, target: 3.2, category: 'Organisationnel' },
-  { name: '5.24 Gestion incidents', score: 2.5, target: 3.0, category: 'Organisationnel' },
-  
-  // Contrôles Humains
-  { name: '6.3 Sensibilisation', score: 3.1, target: 3.3, category: 'Humain' },
-  { name: '6.7 Travail à distance', score: 2.8, target: 3.2, category: 'Humain' },
-  
-  // Contrôles Physiques
-  { name: '7.1 Périmètre sécurisé', score: 3.0, target: 3.2, category: 'Physique' },
-  { name: '7.8 Protection équipements', score: 2.7, target: 3.0, category: 'Physique' },
-  
-  // Contrôles Technologiques
-  { name: '8.7 Protection malware', score: 3.5, target: 3.5, category: 'Technologique' },
-  { name: '8.24 Cryptographie', score: 2.1, target: 3.0, category: 'Technologique' },
-  { name: '8.8 Vulnérabilités', score: 2.4, target: 3.2, category: 'Technologique' },
-];
+const CALCULATED_RESULTS = calculateResultsFromISO27001();
 
-const GAPS_DATA = [
-  {
-    reference: 'ISO 27001:2022',
-    criterion: '5.9',
-    subCriterion: 'Inventaire des informations et autres actifs associés',
-    score: 1.2,
-    level: 'Initial',
-    recommendation: 'Mettre en place un inventaire automatisé des actifs informationnels'
-  },
-  {
-    reference: 'ISO 27001:2022', 
-    criterion: '8.24',
-    subCriterion: 'Utilisation de la cryptographie',
-    score: 1.8,
-    level: 'Reproductible',
-    recommendation: 'Définir une politique cryptographique formelle et l\'implémenter'
-  },
-  {
-    reference: 'ISO 27001:2022',
-    criterion: '8.11',
-    subCriterion: 'Masquage des données',
-    score: 1.5,
-    level: 'Initial',
-    recommendation: 'Implémenter des techniques de masquage pour les données sensibles'
-  },
-  {
-    reference: 'ISO 27001:2022',
-    criterion: '5.21',
-    subCriterion: 'Gestion de la chaîne d\'approvisionnement TIC',
-    score: 1.9,
-    level: 'Reproductible',
-    recommendation: 'Évaluer et gérer les risques liés aux fournisseurs TIC'
-  },
-];
+// Données radar basées sur les vraies catégories avec les vrais scores
+const RADAR_DATA = CALCULATED_RESULTS.categoryStats.map(cat => ({
+  subject: `${cat.name.replace('Contrôles ', '')} (${cat.totalControls})`,
+  current: cat.avgMaturity,
+  target: Math.min(cat.avgMaturity + 0.5, 4),
+  fullMark: 4
+}));
+
+// Données de barres avec les vrais contrôles et leurs scores actuels
+const generateBarData = () => {
+  const barData: any[] = [];
+  
+  ISO27001_CONTROLS.forEach(category => {
+    // Prendre les 3 premiers contrôles de chaque catégorie comme exemples
+    category.controls.slice(0, 3).forEach(control => {
+      barData.push({
+        name: `${control.code} ${control.title.substring(0, 20)}...`,
+        score: control.maturityLevel,
+        target: Math.min(control.maturityLevel + 1, 4),
+        category: category.name.replace('Contrôles ', '')
+      });
+    });
+  });
+  
+  return barData;
+};
+
+const BAR_DATA = generateBarData();
+
+// Lacunes basées sur les vrais contrôles avec maturityLevel < 2
+const generateGapsData = () => {
+  const gaps: any[] = [];
+  
+  ISO27001_CONTROLS.forEach(category => {
+    category.controls
+      .filter(control => control.maturityLevel < 2)
+      .slice(0, 10) // Limiter à 10 lacunes pour l'affichage
+      .forEach(control => {
+        gaps.push({
+          reference: 'ISO 27001:2022',
+          criterion: control.code,
+          subCriterion: control.title,
+          score: control.maturityLevel,
+          level: getMaturityLevel(control.maturityLevel),
+          recommendation: control.gaps.length > 0 ? control.gaps[0] : 'Améliorer l\'implémentation de ce contrôle',
+          priority: control.priority
+        });
+      });
+  });
+  
+  return gaps.sort((a, b) => {
+    const priorityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+    return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - 
+           (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
+  });
+};
+
+const GAPS_DATA = generateGapsData();
 
 export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
   const [selectedAssessment, setSelectedAssessment] = useState('assessment-1');
@@ -132,9 +161,9 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{SAMPLE_RESULTS.overallScore}/4</div>
+            <div className="text-2xl font-bold">{CALCULATED_RESULTS.overallScore}/4</div>
             <p className="text-xs text-muted-foreground">
-              Niveau {SAMPLE_RESULTS.overallLevel}
+              Niveau {CALCULATED_RESULTS.overallLevel}
             </p>
           </CardContent>
         </Card>
@@ -145,7 +174,7 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
             <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{SAMPLE_RESULTS.totalGaps}</div>
+            <div className="text-2xl font-bold">{CALCULATED_RESULTS.totalGaps}</div>
             <p className="text-xs text-muted-foreground">À traiter</p>
           </CardContent>
         </Card>
@@ -157,10 +186,10 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {SAMPLE_RESULTS.completedActions}/{SAMPLE_RESULTS.totalActions}
+              {CALCULATED_RESULTS.completedActions}/{CALCULATED_RESULTS.totalActions}
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((SAMPLE_RESULTS.completedActions / SAMPLE_RESULTS.totalActions) * 100)}% complété
+              {Math.round((CALCULATED_RESULTS.completedActions / CALCULATED_RESULTS.totalActions) * 100)}% complété
             </p>
           </CardContent>
         </Card>
@@ -171,7 +200,7 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
             <TrendingUp className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{SAMPLE_RESULTS.complianceRate}%</div>
+            <div className="text-2xl font-bold">{CALCULATED_RESULTS.complianceRate}%</div>
             <p className="text-xs text-muted-foreground">Global</p>
           </CardContent>
         </Card>
@@ -190,8 +219,8 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
                 <PolarGrid />
                 <PolarAngleAxis dataKey="subject" />
                 <PolarRadiusAxis angle={30} domain={[0, 4]} />
-                <Radar name="Actuel" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                <Radar name="Cible" dataKey="B" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
+                <Radar name="Actuel" dataKey="current" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                <Radar name="Cible" dataKey="target" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
                 <Legend />
               </RadarChart>
             </ResponsiveContainer>
@@ -248,11 +277,20 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
                   <Badge variant="outline">{gap.reference}</Badge>
                 </TableCell>
                 <TableCell className="font-medium">{gap.criterion}</TableCell>
-                <TableCell>{gap.subCriterion}</TableCell>
+                <TableCell className="max-w-xs truncate">{gap.subCriterion}</TableCell>
                 <TableCell>
-                  <Badge variant="destructive">{gap.score}/4</Badge>
+                  <Badge variant={gap.score === 0 ? "destructive" : "secondary"}>
+                    {gap.score}/4
+                  </Badge>
                 </TableCell>
-                <TableCell>{gap.level}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={
+                    gap.level === 'Initial' ? 'text-red-600' : 
+                    gap.level === 'Reproductible' ? 'text-orange-600' : 'text-blue-600'
+                  }>
+                    {gap.level}
+                  </Badge>
+                </TableCell>
                 <TableCell className="max-w-xs">{gap.recommendation}</TableCell>
               </TableRow>
             ))}
