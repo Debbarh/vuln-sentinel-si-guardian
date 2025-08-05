@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,10 +19,12 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
-  Crown
+  Crown,
+  ArrowLeft
 } from "lucide-react";
 
 const OrganizationManagement = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
@@ -107,6 +110,14 @@ const OrganizationManagement = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Retour au Dashboard
+              </Button>
               <div className="p-3 bg-blue-600 rounded-lg">
                 <Building className="h-8 w-8 text-white" />
               </div>
