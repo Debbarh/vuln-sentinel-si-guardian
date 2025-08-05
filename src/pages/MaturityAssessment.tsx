@@ -10,6 +10,7 @@ import { ResultsDashboard } from "@/components/ResultsDashboard";
 import { ActionPlanManagement } from "@/components/ActionPlanManagement";
 import { FrameworkComparison } from "@/components/FrameworkComparison";
 import { NISTProfileManager } from "@/components/NISTProfileManager";
+import { ReportManagement } from "@/components/ReportManagement";
 import { toast } from "sonner";
 
 const MaturityAssessment = () => {
@@ -237,7 +238,7 @@ const MaturityAssessment = () => {
           </TabsContent>
           
           <TabsContent value="reports" className="space-y-6">
-            {renderReports()}
+            <ReportManagement onBack={() => setActiveTab("results")} />
           </TabsContent>
         </Tabs>
       </div>
