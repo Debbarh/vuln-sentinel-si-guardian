@@ -19,12 +19,14 @@ import {
   Calendar,
   ArrowLeft,
   Edit,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
 import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 import { ActionPlanForm } from './ActionPlanForm';
+import { EvidenceManagement, type Evidence } from './EvidenceManagement';
 import { toast } from 'sonner';
 
 const SUPPORTED_FRAMEWORKS = ['iso27001', 'nist-csf-2', 'cisa-ztmm'] as const;
@@ -48,6 +50,7 @@ interface ActionPlan {
   completionPercentage: number;
   dependencies: string[];
   businessImpact: 'low' | 'medium' | 'high' | 'critical';
+  evidences?: Evidence[];
 }
 
 // Génération des plans d'action basés sur les référentiels
@@ -164,6 +167,9 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<ActionPlan | null>(null);
+  const [selectedPlanForEvidence, setSelectedPlanForEvidence] = useState<ActionPlan | null>(null);
+  const [evidences, setEvidences] = useState<Record<string, Evidence[]>>({});
+  const [userRole] = useState<'department' | 'rssi'>('department'); // Simuler le rôle utilisateur
 
   // Régénérer les plans quand le référentiel change
   React.useEffect(() => {
@@ -225,6 +231,39 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
   const handleEditPlan = (plan: ActionPlan) => {
     setSelectedPlan(plan);
     setShowForm(true);
+  };
+
+  const handleEvidenceSubmit = (evidence: Omit<Evidence, 'id' | 'submittedAt'>) => {
+    const newEvidence: Evidence = {
+      ...evidence,
+      id: `evidence-${Date.now()}`,
+      submittedAt: new Date().toISOString()
+    };
+    
+    setEvidences(prev => ({
+      ...prev,
+      [evidence.actionPlanId]: [...(prev[evidence.actionPlanId] || []), newEvidence]
+    }));
+  };
+
+  const handleEvidenceValidation = (evidenceId: string, status: 'approved' | 'rejected', remarks?: string) => {
+    setEvidences(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(actionPlanId => {
+        updated[actionPlanId] = updated[actionPlanId].map(evidence =>
+          evidence.id === evidenceId
+            ? {
+                ...evidence,
+                status,
+                rssiRemarks: remarks,
+                validatedBy: 'RSSI Principal',
+                validatedAt: new Date().toISOString()
+              }
+            : evidence
+        );
+      });
+      return updated;
+    });
   };
 
   const handleFormSubmit = (planData: Partial<ActionPlan>) => {
@@ -427,9 +466,18 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => handleEditPlan(plan)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleEditPlan(plan)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setSelectedPlanForEvidence(plan)}
+                      >
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -513,6 +561,35 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
         plan={selectedPlan}
         frameworkType={selectedFramework}
       />
+
+      {/* Gestion des preuves */}
+      {selectedPlanForEvidence && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-background border rounded-lg shadow-lg max-w-6xl w-full max-h-[90vh] overflow-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Gestion des Preuves</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedPlanForEvidence(null)}
+              >
+                ×
+              </Button>
+            </div>
+            <div className="p-4">
+              <EvidenceManagement
+                actionPlanId={selectedPlanForEvidence.id}
+                actionPlanTitle={selectedPlanForEvidence.title}
+                evidences={evidences[selectedPlanForEvidence.id] || []}
+                onEvidenceSubmit={handleEvidenceSubmit}
+                onEvidenceValidation={handleEvidenceValidation}
+                userRole={userRole}
+                currentUser="Utilisateur Actuel"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
