@@ -26,7 +26,8 @@ import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
 import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 import { ActionPlanForm } from './ActionPlanForm';
-import { EvidenceManagement, type Evidence } from './EvidenceManagement';
+import { EvidenceVersionManagement } from './EvidenceVersionManagement';
+import { Evidence, EvidenceSubmission } from '@/types/evidence';
 import { toast } from 'sonner';
 
 const SUPPORTED_FRAMEWORKS = ['iso27001', 'nist-csf-2', 'cisa-ztmm'] as const;
@@ -233,38 +234,129 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
     setShowForm(true);
   };
 
-  const handleEvidenceSubmit = (evidence: Omit<Evidence, 'id' | 'submittedAt'>) => {
+  const handleEvidenceSubmit = (evidenceSubmission: EvidenceSubmission) => {
     const newEvidence: Evidence = {
-      ...evidence,
       id: `evidence-${Date.now()}`,
-      submittedAt: new Date().toISOString()
+      actionPlanId: selectedPlanForEvidence?.id || '',
+      title: evidenceSubmission.title,
+      description: evidenceSubmission.description,
+      submittedBy: currentUser,
+      submittedAt: new Date().toISOString(),
+      department: evidenceSubmission.department,
+      evidenceType: evidenceSubmission.evidenceType,
+      currentVersion: 1,
+      totalVersions: 1,
+      latestStatus: 'pending',
+      maturityContribution: evidenceSubmission.maturityContribution,
+      versions: [{
+        id: `version-${Date.now()}`,
+        evidenceId: `evidence-${Date.now()}`,
+        version: 1,
+        title: evidenceSubmission.title,
+        description: evidenceSubmission.description,
+        fileUrl: evidenceSubmission.fileUrl,
+        fileName: evidenceSubmission.fileName,
+        submittedBy: currentUser,
+        submittedAt: new Date().toISOString(),
+        department: evidenceSubmission.department,
+        status: 'pending',
+        evidenceType: evidenceSubmission.evidenceType,
+        maturityContribution: evidenceSubmission.maturityContribution,
+        changeLog: evidenceSubmission.changeLog || 'Version initiale',
+        isLatest: true
+      }]
     };
     
     setEvidences(prev => ({
       ...prev,
-      [evidence.actionPlanId]: [...(prev[evidence.actionPlanId] || []), newEvidence]
+      [newEvidence.actionPlanId]: [...(prev[newEvidence.actionPlanId] || []), newEvidence]
     }));
   };
 
-  const handleEvidenceValidation = (evidenceId: string, status: 'approved' | 'rejected', remarks?: string) => {
+  const handleNewVersionSubmit = (evidenceId: string, versionSubmission: EvidenceSubmission) => {
     setEvidences(prev => {
       const updated = { ...prev };
       Object.keys(updated).forEach(actionPlanId => {
-        updated[actionPlanId] = updated[actionPlanId].map(evidence =>
-          evidence.id === evidenceId
-            ? {
-                ...evidence,
-                status,
-                rssiRemarks: remarks,
-                validatedBy: 'RSSI Principal',
-                validatedAt: new Date().toISOString()
-              }
-            : evidence
-        );
+        updated[actionPlanId] = updated[actionPlanId].map(evidence => {
+          if (evidence.id === evidenceId) {
+            const newVersionNumber = evidence.totalVersions + 1;
+            const newVersion = {
+              id: `version-${Date.now()}`,
+              evidenceId: evidence.id,
+              version: newVersionNumber,
+              title: versionSubmission.title,
+              description: versionSubmission.description,
+              fileUrl: versionSubmission.fileUrl,
+              fileName: versionSubmission.fileName,
+              submittedBy: currentUser,
+              submittedAt: new Date().toISOString(),
+              department: versionSubmission.department,
+              status: 'pending' as const,
+              evidenceType: versionSubmission.evidenceType,
+              maturityContribution: versionSubmission.maturityContribution,
+              changeLog: versionSubmission.changeLog || '',
+              previousVersionId: evidence.versions.find(v => v.isLatest)?.id,
+              isLatest: true
+            };
+
+            // Marquer l'ancienne version comme non-actuelle
+            const updatedVersions = evidence.versions.map(v => ({ ...v, isLatest: false }));
+            
+            return {
+              ...evidence,
+              title: versionSubmission.title,
+              description: versionSubmission.description,
+              evidenceType: versionSubmission.evidenceType,
+              maturityContribution: versionSubmission.maturityContribution,
+              currentVersion: newVersionNumber,
+              totalVersions: newVersionNumber,
+              latestStatus: 'pending',
+              versions: [...updatedVersions, newVersion]
+            };
+          }
+          return evidence;
+        });
       });
       return updated;
     });
   };
+
+  const handleEvidenceValidation = (evidenceId: string, versionId: string, status: 'approved' | 'rejected', remarks?: string) => {
+    setEvidences(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(actionPlanId => {
+        updated[actionPlanId] = updated[actionPlanId].map(evidence => {
+          if (evidence.id === evidenceId) {
+            const updatedVersions = evidence.versions.map(version =>
+              version.id === versionId
+                ? {
+                    ...version,
+                    status,
+                    rssiRemarks: remarks,
+                    validatedBy: 'RSSI Principal',
+                    validatedAt: new Date().toISOString()
+                  }
+                : version
+            );
+
+            // Mettre à jour le statut global si c'est la version actuelle
+            const updatedVersion = updatedVersions.find(v => v.id === versionId);
+            const newLatestStatus = updatedVersion?.isLatest ? status : evidence.latestStatus;
+
+            return {
+              ...evidence,
+              latestStatus: newLatestStatus,
+              versions: updatedVersions
+            };
+          }
+          return evidence;
+        });
+      });
+      return updated;
+    });
+  };
+
+  const currentUser = 'Utilisateur Actuel';
 
   const handleFormSubmit = (planData: Partial<ActionPlan>) => {
     if (selectedPlan) {
@@ -577,14 +669,15 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
               </Button>
             </div>
             <div className="p-4">
-              <EvidenceManagement
+              <EvidenceVersionManagement
                 actionPlanId={selectedPlanForEvidence.id}
                 actionPlanTitle={selectedPlanForEvidence.title}
                 evidences={evidences[selectedPlanForEvidence.id] || []}
                 onEvidenceSubmit={handleEvidenceSubmit}
+                onNewVersionSubmit={handleNewVersionSubmit}
                 onEvidenceValidation={handleEvidenceValidation}
                 userRole={userRole}
-                currentUser="Utilisateur Actuel"
+                currentUser={currentUser}
               />
             </div>
           </div>
