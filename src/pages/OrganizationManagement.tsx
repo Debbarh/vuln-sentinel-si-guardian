@@ -776,7 +776,8 @@ const OrganizationManagement = () => {
           </div>
         )}
       </div>
-    );
+    </div>
+  );
 };
 
 export default OrganizationManagement;
