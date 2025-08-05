@@ -31,6 +31,7 @@ const OrganizationManagement = () => {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [showRoleForm, setShowRoleForm] = useState(false);
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
 
   // Données de démonstration
   const organizationInfo = {
@@ -657,7 +658,10 @@ const OrganizationManagement = () => {
                         Organisez les départements de votre entreprise
                       </CardDescription>
                     </div>
-                    <Button onClick={() => setShowDepartmentForm(true)}>
+                    <Button onClick={() => {
+                      setSelectedDepartment(null);
+                      setShowDepartmentForm(true);
+                    }}>
                       <UserPlus className="h-4 w-4 mr-2" />
                       Créer un département
                     </Button>
@@ -693,7 +697,14 @@ const OrganizationManagement = () => {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" variant="outline">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedDepartment(dept);
+                                  setShowDepartmentForm(true);
+                                }}
+                              >
                                 <Edit className="h-4 w-4 mr-1" />
                                 Modifier
                               </Button>
@@ -937,11 +948,16 @@ const OrganizationManagement = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-xl font-semibold">Créer un nouveau département</h2>
+                <h2 className="text-xl font-semibold">
+                  {selectedDepartment ? 'Modifier le département' : 'Créer un nouveau département'}
+                </h2>
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => setShowDepartmentForm(false)}
+                  onClick={() => {
+                    setShowDepartmentForm(false);
+                    setSelectedDepartment(null);
+                  }}
                 >
                   ×
                 </Button>
@@ -951,7 +967,11 @@ const OrganizationManagement = () => {
                 <form className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="deptName">Nom du département</Label>
-                    <Input id="deptName" placeholder="Ex: Ressources Humaines" />
+                    <Input 
+                      id="deptName" 
+                      placeholder="Ex: Ressources Humaines"
+                      defaultValue={selectedDepartment?.name || ''}
+                    />
                   </div>
                   
                   <div className="space-y-2">
@@ -960,6 +980,7 @@ const OrganizationManagement = () => {
                       id="deptDescription" 
                       placeholder="Décrivez les responsabilités de ce département..."
                       rows={3}
+                      defaultValue={selectedDepartment?.description || ''}
                     />
                   </div>
                   
@@ -967,7 +988,8 @@ const OrganizationManagement = () => {
                     <Label htmlFor="deptManager">Manager du département</Label>
                     <Input 
                       id="deptManager" 
-                      placeholder="Nom du manager (ex: Jean Dupont)" 
+                      placeholder="Nom du manager (ex: Jean Dupont)"
+                      defaultValue={selectedDepartment?.manager || ''}
                     />
                     <p className="text-sm text-muted-foreground">
                       Le manager peut être un utilisateur de l'organisation ou une personne externe
@@ -976,7 +998,7 @@ const OrganizationManagement = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor="deptStatus">Statut</Label>
-                    <Select defaultValue="active">
+                    <Select defaultValue={selectedDepartment?.status || "active"}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -991,12 +1013,15 @@ const OrganizationManagement = () => {
                     <Button 
                       type="button" 
                       variant="outline"
-                      onClick={() => setShowDepartmentForm(false)}
+                      onClick={() => {
+                        setShowDepartmentForm(false);
+                        setSelectedDepartment(null);
+                      }}
                     >
                       Annuler
                     </Button>
                     <Button type="submit">
-                      Créer le département
+                      {selectedDepartment ? 'Modifier le département' : 'Créer le département'}
                     </Button>
                   </div>
                 </form>
