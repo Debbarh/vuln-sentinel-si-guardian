@@ -2,241 +2,203 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Calendar, 
-  User, 
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  ArrowLeft
+  Target, 
+  AlertTriangle, 
+  CheckCircle2, 
+  Clock, 
+  User,
+  Plus,
+  Filter,
+  Download,
+  TrendingUp,
+  Calendar,
+  ArrowLeft,
+  Edit,
+  BarChart3
 } from 'lucide-react';
-import { ActionPlan } from '@/types/frameworks';
-import { ActionPlanForm } from './ActionPlanForm';
+import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
+import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
 import { toast } from 'sonner';
 
-interface ActionPlanManagementProps {
-  onBack: () => void;
+interface ActionPlan {
+  id: string;
+  title: string;
+  description: string;
+  frameworkType: 'ISO27001' | 'NIST';
+  frameworkRef: string; // Ex: "A.5.1" pour ISO ou "GV.OC-01" pour NIST
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: 'not_started' | 'in_progress' | 'completed' | 'blocked';
+  assignee: string;
+  dueDate: string;
+  estimatedEffort: string;
+  category: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  completionPercentage: number;
+  dependencies: string[];
+  businessImpact: 'low' | 'medium' | 'high' | 'critical';
 }
 
-// Données exemple de plans d'action
-const SAMPLE_ACTION_PLANS: ActionPlan[] = [
-  {
-    id: 'action-1',
-    assessmentId: 'assessment-1',
-    criterionId: 'A.8.1',
-    title: 'Mise en place d\'un inventaire automatisé des actifs',
-    description: 'Déployer un outil automatisé pour maintenir l\'inventaire des actifs IT à jour en temps réel',
-    responsible: 'user2',
-    dueDate: '2024-04-15',
-    priority: 'high',
-    status: 'in_progress',
-    comments: 'Évaluation des solutions en cours',
-    createdAt: '2024-02-01T10:00:00Z',
-    updatedAt: '2024-02-15T14:30:00Z',
-  },
-  {
-    id: 'action-2',
-    assessmentId: 'assessment-1',
-    criterionId: 'A.10.1',
-    title: 'Définition de la politique cryptographique',
-    description: 'Rédiger et faire approuver une politique cryptographique formelle pour l\'organisation',
-    responsible: 'user1',
-    dueDate: '2024-03-30',
-    priority: 'critical',
-    status: 'todo',
-    comments: '',
-    createdAt: '2024-02-01T10:00:00Z',
-    updatedAt: '2024-02-01T10:00:00Z',
-  },
-  {
-    id: 'action-3',
-    assessmentId: 'assessment-1',
-    criterionId: 'A.5.1',
-    title: 'Formation du personnel sur les politiques de sécurité',
-    description: 'Organiser des sessions de formation pour sensibiliser le personnel aux nouvelles politiques',
-    responsible: 'user3',
-    dueDate: '2024-03-15',
-    priority: 'medium',
-    status: 'completed',
-    comments: 'Formation terminée avec 95% de participation',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-03-10T16:00:00Z',
-  },
-];
+// Génération des plans d'action basés sur les référentiels
+const generateActionPlansFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'ISO27001'): ActionPlan[] => {
+  const plans: ActionPlan[] = [];
+
+  if (frameworkType === 'ISO27001') {
+    ISO27001_CONTROLS.forEach(category => {
+      category.controls.forEach(control => {
+        if (control.maturityLevel < 3) { // Générer des plans pour les contrôles peu matures
+          plans.push({
+            id: `iso-${control.id}`,
+            title: `Améliorer ${control.title}`,
+            description: `Renforcer l'implémentation du contrôle ${control.code}: ${control.description}`,
+            frameworkType: 'ISO27001',
+            frameworkRef: control.code,
+            priority: control.maturityLevel === 0 ? 'critical' : 
+                     control.maturityLevel === 1 ? 'high' : 'medium',
+            status: control.maturityLevel === 0 ? 'not_started' : 'in_progress',
+            assignee: control.responsible || 'RSSI',
+            dueDate: new Date(Date.now() + (90 - control.maturityLevel * 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            estimatedEffort: control.maturityLevel === 0 ? '2-3 mois' : '1-2 mois',
+            category: category.name,
+            tags: ['sécurité', 'iso27001', category.id],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            completionPercentage: control.maturityLevel * 25,
+            dependencies: [],
+            businessImpact: control.maturityLevel === 0 ? 'critical' : 'medium'
+          });
+        }
+      });
+    });
+  }
+
+  if (frameworkType === 'NIST') {
+    NIST_CSF_FUNCTIONS.forEach(func => {
+      func.categories.forEach(category => {
+        category.subCategories.forEach(subCategory => {
+          if (subCategory.maturityLevel < 3) {
+            plans.push({
+              id: `nist-${subCategory.id}`,
+              title: `Renforcer ${subCategory.title}`,
+              description: `Améliorer la sous-catégorie ${subCategory.code}: ${subCategory.description}`,
+              frameworkType: 'NIST',
+              frameworkRef: subCategory.code,
+              priority: subCategory.priority,
+              status: subCategory.status === 'not_started' ? 'not_started' : 'in_progress',
+              assignee: subCategory.responsible,
+              dueDate: new Date(Date.now() + (120 - subCategory.maturityLevel * 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+              estimatedEffort: subCategory.maturityLevel === 0 ? '3-4 mois' : '1-2 mois',
+              category: `${func.name} - ${category.name}`,
+              tags: ['cybersécurité', 'nist-csf', func.id.toLowerCase()],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+              completionPercentage: subCategory.maturityLevel * 25,
+              dependencies: [],
+              businessImpact: subCategory.priority
+            });
+          }
+        });
+      });
+    });
+  }
+
+  return plans.sort((a, b) => {
+    const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+    return priorityOrder[b.priority] - priorityOrder[a.priority];
+  });
+};
+
+interface ActionPlanManagementProps {
+  onBack?: () => void;
+}
 
 export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
-  const [actionPlans, setActionPlans] = useState<ActionPlan[]>(SAMPLE_ACTION_PLANS);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFramework, setSelectedFramework] = useState<'ISO27001' | 'NIST'>('ISO27001');
+  const [actionPlans, setActionPlans] = useState<ActionPlan[]>(() => 
+    generateActionPlansFromFrameworks(selectedFramework)
+  );
+  const [activeTab, setActiveTab] = useState('overview');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [showForm, setShowForm] = useState(false);
-  const [selectedAction, setSelectedAction] = useState<ActionPlan | null>(null);
 
-  const filteredActions = actionPlans.filter(action => {
-    const matchesSearch = action.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         action.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || action.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || action.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
+  // Régénérer les plans quand le référentiel change
+  React.useEffect(() => {
+    setActionPlans(generateActionPlansFromFrameworks(selectedFramework));
+  }, [selectedFramework]);
+
+  // Filtrer les plans d'action
+  const filteredPlans = actionPlans.filter(plan => {
+    const statusMatch = statusFilter === 'all' || plan.status === statusFilter;
+    const priorityMatch = priorityFilter === 'all' || plan.priority === priorityFilter;
+    return statusMatch && priorityMatch;
   });
 
-  const getStatusBadge = (status: ActionPlan['status']) => {
-    const variants = {
-      todo: { label: 'À Faire', className: 'bg-gray-500', icon: Clock },
-      in_progress: { label: 'En Cours', className: 'bg-blue-500', icon: Clock },
-      completed: { label: 'Terminée', className: 'bg-green-500', icon: CheckCircle },
-      overdue: { label: 'En Retard', className: 'bg-red-500', icon: AlertTriangle },
-      cancelled: { label: 'Annulée', className: 'bg-gray-400', icon: AlertTriangle },
-    };
-    
-    const variant = variants[status];
-    const IconComponent = variant.icon;
-    
-    return (
-      <Badge className={variant.className}>
-        <IconComponent className="h-3 w-3 mr-1" />
-        {variant.label}
-      </Badge>
-    );
-  };
-
-  const getPriorityBadge = (priority: ActionPlan['priority']) => {
-    const variants = {
-      low: { label: 'Faible', className: 'bg-green-100 text-green-800' },
-      medium: { label: 'Moyenne', className: 'bg-yellow-100 text-yellow-800' },
-      high: { label: 'Élevée', className: 'bg-orange-100 text-orange-800' },
-      critical: { label: 'Critique', className: 'bg-red-100 text-red-800' },
-    };
-    
-    return (
-      <Badge variant="outline" className={variants[priority].className}>
-        {variants[priority].label}
-      </Badge>
-    );
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR');
-  };
-
-  const getUserName = (userId: string) => {
-    const users: Record<string, string> = {
-      'user1': 'Alice Martin',
-      'user2': 'Bob Dupont', 
-      'user3': 'Claire Bernard',
-      'user4': 'David Leroy',
-    };
-    return users[userId] || userId;
-  };
-
-  const handleCreateAction = () => {
-    setSelectedAction(null);
-    setShowForm(true);
-  };
-
-  const handleEditAction = (action: ActionPlan) => {
-    setSelectedAction(action);
-    setShowForm(true);
-  };
-
-  const handleDeleteAction = (actionId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce plan d\'action ?')) {
-      setActionPlans(prev => prev.filter(a => a.id !== actionId));
-      toast.success('Plan d\'action supprimé');
-    }
-  };
-
-  const handleQuickStatusUpdate = (actionId: string, newStatus: ActionPlan['status']) => {
-    setActionPlans(prev => prev.map(a => 
-      a.id === actionId 
-        ? { ...a, status: newStatus, updatedAt: new Date().toISOString() }
-        : a
-    ));
-    toast.success('Statut mis à jour');
-  };
-
-  const handleFormSubmit = (actionData: Partial<ActionPlan>) => {
-    if (selectedAction) {
-      // Modification
-      setActionPlans(prev => prev.map(a => 
-        a.id === selectedAction.id ? { ...a, ...actionData, updatedAt: new Date().toISOString() } : a
-      ));
-    } else {
-      // Création
-      const newAction: ActionPlan = {
-        id: `action-${Date.now()}`,
-        assessmentId: 'assessment-1', // TODO: Link to current assessment
-        criterionId: actionData.criterionId || '',
-        title: actionData.title || '',
-        description: actionData.description || '',
-        responsible: actionData.responsible || '',
-        dueDate: actionData.dueDate || '',
-        priority: actionData.priority || 'medium',
-        status: 'todo',
-        comments: actionData.comments || '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setActionPlans(prev => [...prev, newAction]);
-    }
-    setShowForm(false);
-  };
-
+  // Calculer les statistiques
   const stats = {
     total: actionPlans.length,
-    completed: actionPlans.filter(a => a.status === 'completed').length,
-    inProgress: actionPlans.filter(a => a.status === 'in_progress').length,
-    overdue: actionPlans.filter(a => a.status === 'overdue').length,
+    completed: actionPlans.filter(p => p.status === 'completed').length,
+    inProgress: actionPlans.filter(p => p.status === 'in_progress').length,
+    critical: actionPlans.filter(p => p.priority === 'critical').length,
+    overdue: actionPlans.filter(p => new Date(p.dueDate) < new Date() && p.status !== 'completed').length,
+    avgCompletion: actionPlans.reduce((sum, p) => sum + p.completionPercentage, 0) / actionPlans.length
   };
 
-  return (
-    <div className="space-y-6">
-      {/* En-tête */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Button variant="ghost" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold">Gestion des Plans d'Action</h2>
-            <p className="text-muted-foreground">
-              Suivi et gestion des actions d'amélioration
-            </p>
-          </div>
-        </div>
-        <Button onClick={handleCreateAction}>
-          <Plus className="h-4 w-4 mr-2" />
-          Créer une Action
-        </Button>
-      </div>
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle2 className="h-3 w-3 mr-1" />Complété</Badge>;
+      case 'in_progress':
+        return <Badge className="bg-blue-100 text-blue-800"><Clock className="h-3 w-3 mr-1" />En cours</Badge>;
+      case 'blocked':
+        return <Badge className="bg-red-100 text-red-800"><AlertTriangle className="h-3 w-3 mr-1" />Bloqué</Badge>;
+      default:
+        return <Badge variant="outline"><Target className="h-3 w-3 mr-1" />Non démarré</Badge>;
+    }
+  };
 
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+  const getPriorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'critical':
+        return <Badge variant="destructive">Critique</Badge>;
+      case 'high':
+        return <Badge className="bg-orange-100 text-orange-800">Élevé</Badge>;
+      case 'medium':
+        return <Badge className="bg-yellow-100 text-yellow-800">Moyen</Badge>;
+      default:
+        return <Badge variant="outline">Faible</Badge>;
+    }
+  };
+
+  const handleExportPlans = () => {
+    toast.success(`Export des plans d'action ${selectedFramework} en cours...`);
+  };
+
+  const renderOverview = () => (
+    <div className="space-y-6">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Actions</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total Plans</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">Actions identifiées</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Terminées</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Complétés</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completed}</div>
+            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
             <p className="text-xs text-muted-foreground">
               {Math.round((stats.completed / stats.total) * 100)}% du total
             </p>
@@ -244,146 +206,162 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">En Cours</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgress}</div>
+            <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+            <p className="text-xs text-muted-foreground">Actions actives</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">En Retard</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Critiques</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.overdue}</div>
+            <div className="text-2xl font-bold text-red-600">{stats.critical}</div>
+            <p className="text-xs text-muted-foreground">Priorité max</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">En Retard</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.overdue}</div>
+            <p className="text-xs text-muted-foreground">Actions urgentes</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Progression</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{Math.round(stats.avgCompletion)}%</div>
+            <Progress value={stats.avgCompletion} className="mt-2" />
           </CardContent>
         </Card>
       </div>
 
-      {/* Filtres et recherche */}
+      {/* Répartition par priorité */}
       <Card>
         <CardHeader>
-          <CardTitle>Plans d'Action</CardTitle>
-          <CardDescription>
-            Gérez et suivez l'avancement des actions d'amélioration
-          </CardDescription>
+          <CardTitle>Répartition par Priorité</CardTitle>
+          <CardDescription>Distribution des plans d'action selon leur priorité</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher une action..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="todo">À Faire</SelectItem>
-                <SelectItem value="in_progress">En Cours</SelectItem>
-                <SelectItem value="completed">Terminée</SelectItem>
-                <SelectItem value="overdue">En Retard</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filtrer par priorité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes priorités</SelectItem>
-                <SelectItem value="critical">Critique</SelectItem>
-                <SelectItem value="high">Élevée</SelectItem>
-                <SelectItem value="medium">Moyenne</SelectItem>
-                <SelectItem value="low">Faible</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-4 gap-4">
+            {['critical', 'high', 'medium', 'low'].map(priority => {
+              const count = actionPlans.filter(p => p.priority === priority).length;
+              const percentage = Math.round((count / actionPlans.length) * 100);
+              return (
+                <div key={priority} className="text-center">
+                  <div className="text-2xl font-bold">{count}</div>
+                  <div className="text-sm text-muted-foreground capitalize">{priority}</div>
+                  <Progress value={percentage} className="mt-2" />
+                </div>
+              );
+            })}
           </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 
-          {/* Tableau des actions */}
+  const renderPlansTable = () => (
+    <div className="space-y-4">
+      {/* Filtres */}
+      <div className="flex items-center gap-4">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filtrer par statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="not_started">Non démarré</SelectItem>
+            <SelectItem value="in_progress">En cours</SelectItem>
+            <SelectItem value="completed">Complété</SelectItem>
+            <SelectItem value="blocked">Bloqué</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Filtrer par priorité" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes priorités</SelectItem>
+            <SelectItem value="critical">Critique</SelectItem>
+            <SelectItem value="high">Élevé</SelectItem>
+            <SelectItem value="medium">Moyen</SelectItem>
+            <SelectItem value="low">Faible</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <div className="ml-auto">
+          <span className="text-sm text-muted-foreground">
+            {filteredPlans.length} plan(s) affiché(s)
+          </span>
+        </div>
+      </div>
+
+      {/* Tableau */}
+      <Card>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Action</TableHead>
-                <TableHead>Critère</TableHead>
-                <TableHead>Responsable</TableHead>
-                <TableHead>Échéance</TableHead>
+                <TableHead>Plan d'Action</TableHead>
+                <TableHead>Référence</TableHead>
                 <TableHead>Priorité</TableHead>
                 <TableHead>Statut</TableHead>
+                <TableHead>Assigné</TableHead>
+                <TableHead>Échéance</TableHead>
+                <TableHead>Progression</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredActions.map((action) => (
-                <TableRow key={action.id}>
+              {filteredPlans.map((plan) => (
+                <TableRow key={plan.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{action.title}</div>
-                      <div className="text-sm text-muted-foreground max-w-xs truncate">
-                        {action.description}
-                      </div>
+                      <div className="font-medium">{plan.title}</div>
+                      <div className="text-sm text-muted-foreground">{plan.category}</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{action.criterionId}</Badge>
+                    <Badge variant="outline" className="font-mono">
+                      {plan.frameworkRef}
+                    </Badge>
                   </TableCell>
+                  <TableCell>{getPriorityBadge(plan.priority)}</TableCell>
+                  <TableCell>{getStatusBadge(plan.status)}</TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <User className="h-3 w-3" />
-                      <span className="text-sm">{getUserName(action.responsible)}</span>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      <span className="text-sm">{plan.assignee}</span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="h-3 w-3" />
-                      <span className="text-sm">{formatDate(action.dueDate)}</span>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span className="text-sm">{new Date(plan.dueDate).toLocaleDateString('fr-FR')}</span>
                     </div>
                   </TableCell>
-                  <TableCell>{getPriorityBadge(action.priority)}</TableCell>
                   <TableCell>
-                    <Select
-                      value={action.status}
-                      onValueChange={(value) => handleQuickStatusUpdate(action.id, value as ActionPlan['status'])}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todo">À Faire</SelectItem>
-                        <SelectItem value="in_progress">En Cours</SelectItem>
-                        <SelectItem value="completed">Terminée</SelectItem>
-                        <SelectItem value="overdue">En Retard</SelectItem>
-                        <SelectItem value="cancelled">Annulée</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Progress value={plan.completionPercentage} className="w-16" />
+                      <span className="text-sm">{plan.completionPercentage}%</span>
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleEditAction(action)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-destructive"
-                        onClick={() => handleDeleteAction(action.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -391,14 +369,69 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
           </Table>
         </CardContent>
       </Card>
+    </div>
+  );
 
-      {/* Formulaire de création/modification */}
-      <ActionPlanForm
-        isOpen={showForm}
-        onClose={() => setShowForm(false)}
-        actionPlan={selectedAction}
-        onSubmit={handleFormSubmit}
-      />
+  return (
+    <div className="space-y-6">
+      {/* En-tête avec sélecteur de référentiel */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <Button variant="ghost" onClick={onBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Retour
+            </Button>
+          )}
+          <div>
+            <h2 className="text-2xl font-bold">Gestion des Plans d'Action</h2>
+            <p className="text-muted-foreground">
+              Plans d'amélioration basés sur {selectedFramework === 'ISO27001' ? 'ISO 27001:2022' : 'NIST CSF 2.0'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Select value={selectedFramework} onValueChange={(value: 'ISO27001' | 'NIST') => setSelectedFramework(value)}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ISO27001">ISO 27001:2022</SelectItem>
+              <SelectItem value="NIST">NIST CSF 2.0</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={handleExportPlans} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Exporter
+          </Button>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau Plan
+          </Button>
+        </div>
+      </div>
+
+      {/* Onglets */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Vue d'ensemble
+          </TabsTrigger>
+          <TabsTrigger value="plans" className="flex items-center gap-2">
+            <Target className="h-4 w-4" />
+            Plans d'Action
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          {renderOverview()}
+        </TabsContent>
+
+        <TabsContent value="plans">
+          {renderPlansTable()}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
