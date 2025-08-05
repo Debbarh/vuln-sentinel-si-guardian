@@ -18,6 +18,7 @@ import { ReferenceFramework, Criterion, Question } from '@/types/frameworks';
 import { CriterionForm } from './CriterionForm';
 import { QuestionForm } from './QuestionForm';
 import { toast } from 'sonner';
+import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 
 interface FrameworkDetailsProps {
   framework: ReferenceFramework;
@@ -26,47 +27,44 @@ interface FrameworkDetailsProps {
 }
 
 export function FrameworkDetails({ framework, onBack, onUpdate }: FrameworkDetailsProps) {
-  const [criteria, setCriteria] = useState<Criterion[]>([
-    // Données exemple pour ISO 27001
-    {
-      id: 'A.5',
-      frameworkId: framework.id,
-      code: 'A.5',
-      name: 'Politiques de sécurité de l\'information',
-      description: 'Objectif: Fournir l\'orientation et le support de la direction pour la sécurité de l\'information.',
-      level: 1,
-      order: 1,
-    },
-    {
-      id: 'A.5.1',
-      frameworkId: framework.id,
-      code: 'A.5.1',
-      name: 'Politiques pour la sécurité de l\'information',
-      description: 'Un ensemble de politiques pour la sécurité de l\'information doit être défini.',
-      parentId: 'A.5',
-      level: 2,
-      order: 1,
-    },
-    {
-      id: 'A.6',
-      frameworkId: framework.id,
-      code: 'A.6',
-      name: 'Organisation de la sécurité de l\'information',
-      description: 'Objectif: Organiser la sécurité de l\'information au sein de l\'organisation.',
-      level: 1,
-      order: 2,
-    },
-    {
-      id: 'A.6.1',
-      frameworkId: framework.id,
-      code: 'A.6.1',
-      name: 'Organisation interne',
-      description: 'Un cadre de gestion doit être mis en place pour initier et contrôler la mise en œuvre.',
-      parentId: 'A.6',
-      level: 2,
-      order: 1,
-    },
-  ]);
+  // Initialisation des critères basée sur le framework sélectionné
+  const getInitialCriteria = (): Criterion[] => {
+    if (framework.id === 'iso27001' && framework.type === 'ISO27001') {
+      const criteria: Criterion[] = [];
+      
+      // Ajouter les catégories principales (niveau 1)
+      ISO27001_CONTROLS.forEach((category, categoryIndex) => {
+        criteria.push({
+          id: category.id,
+          frameworkId: framework.id,
+          code: category.id,
+          name: category.name,
+          description: category.description,
+          level: 1,
+          order: categoryIndex + 1,
+        });
+        
+        // Ajouter les contrôles (niveau 2)
+        category.controls.forEach((control, controlIndex) => {
+          criteria.push({
+            id: control.id,
+            frameworkId: framework.id,
+            code: control.code,
+            name: control.title,
+            description: control.description,
+            parentId: category.id,
+            level: 2,
+            order: controlIndex + 1,
+          });
+        });
+      });
+      
+      return criteria;
+    }
+    return [];
+  };
+
+  const [criteria, setCriteria] = useState<Criterion[]>(getInitialCriteria());
 
   const [questions, setQuestions] = useState<Question[]>([
     {
