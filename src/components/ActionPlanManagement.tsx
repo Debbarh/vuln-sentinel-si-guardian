@@ -235,6 +235,17 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
   };
 
   const handleEvidenceSubmit = (evidenceSubmission: EvidenceSubmission) => {
+    // Simuler la conversion des fichiers en pièces jointes
+    const attachments = evidenceSubmission.attachments.map((file, index) => ({
+      id: `attachment-${Date.now()}-${index}`,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      fileUrl: URL.createObjectURL(file), // En production, utiliser un service de stockage
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: currentUser
+    }));
+
     const newEvidence: Evidence = {
       id: `evidence-${Date.now()}`,
       actionPlanId: selectedPlanForEvidence?.id || '',
@@ -254,8 +265,7 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
         version: 1,
         title: evidenceSubmission.title,
         description: evidenceSubmission.description,
-        fileUrl: evidenceSubmission.fileUrl,
-        fileName: evidenceSubmission.fileName,
+        attachments,
         submittedBy: currentUser,
         submittedAt: new Date().toISOString(),
         department: evidenceSubmission.department,
@@ -274,6 +284,17 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
   };
 
   const handleNewVersionSubmit = (evidenceId: string, versionSubmission: EvidenceSubmission) => {
+    // Simuler la conversion des fichiers en pièces jointes
+    const attachments = versionSubmission.attachments.map((file, index) => ({
+      id: `attachment-${Date.now()}-${index}`,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      fileUrl: URL.createObjectURL(file),
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: currentUser
+    }));
+
     setEvidences(prev => {
       const updated = { ...prev };
       Object.keys(updated).forEach(actionPlanId => {
@@ -286,8 +307,7 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
               version: newVersionNumber,
               title: versionSubmission.title,
               description: versionSubmission.description,
-              fileUrl: versionSubmission.fileUrl,
-              fileName: versionSubmission.fileName,
+              attachments,
               submittedBy: currentUser,
               submittedAt: new Date().toISOString(),
               department: versionSubmission.department,
@@ -321,7 +341,48 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
     });
   };
 
-  const handleEvidenceValidation = (evidenceId: string, versionId: string, status: 'approved' | 'rejected', remarks?: string) => {
+  const handleEvidenceValidation = (
+    evidenceId: string, 
+    versionId: string, 
+    validationData: {
+      status: 'approved' | 'rejected' | 'requires_modification';
+      overallScore: number;
+      criteria: {
+        completeness: number;
+        relevance: number;
+        quality: number;
+        implementation: number;
+      };
+      remarks: string;
+      recommendations: string[];
+      nextActions: string[];
+      validationAttachments?: File[];
+    }
+  ) => {
+    // Convertir les fichiers de validation en pièces jointes
+    const validationAttachments = (validationData.validationAttachments || []).map((file, index) => ({
+      id: `validation-attachment-${Date.now()}-${index}`,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      fileUrl: URL.createObjectURL(file),
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: 'RSSI Principal'
+    }));
+
+    const rssiValidation = {
+      id: `validation-${Date.now()}`,
+      validatedBy: 'RSSI Principal',
+      validatedAt: new Date().toISOString(),
+      status: validationData.status,
+      overallScore: validationData.overallScore,
+      criteria: validationData.criteria,
+      remarks: validationData.remarks,
+      recommendations: validationData.recommendations,
+      nextActions: validationData.nextActions,
+      validationAttachments
+    };
+
     setEvidences(prev => {
       const updated = { ...prev };
       Object.keys(updated).forEach(actionPlanId => {
@@ -331,17 +392,15 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
               version.id === versionId
                 ? {
                     ...version,
-                    status,
-                    rssiRemarks: remarks,
-                    validatedBy: 'RSSI Principal',
-                    validatedAt: new Date().toISOString()
+                    status: validationData.status,
+                    rssiValidation
                   }
                 : version
             );
 
             // Mettre à jour le statut global si c'est la version actuelle
             const updatedVersion = updatedVersions.find(v => v.id === versionId);
-            const newLatestStatus = updatedVersion?.isLatest ? status : evidence.latestStatus;
+            const newLatestStatus = updatedVersion?.isLatest ? validationData.status : evidence.latestStatus;
 
             return {
               ...evidence,

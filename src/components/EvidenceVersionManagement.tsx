@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Slider } from '@/components/ui/slider';
 import { 
   FileText, 
   Upload, 
@@ -27,9 +28,11 @@ import {
   Download,
   Edit,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  AlertCircle
 } from 'lucide-react';
-import { Evidence, EvidenceVersion, EvidenceSubmission } from '@/types/evidence';
+import { Evidence, EvidenceVersion, EvidenceSubmission, RSIValidation } from '@/types/evidence';
+import { FileUploadZone, AttachmentViewer } from './FileUploadZone';
 import { toast } from 'sonner';
 
 interface EvidenceVersionManagementProps {
@@ -38,7 +41,24 @@ interface EvidenceVersionManagementProps {
   evidences: Evidence[];
   onEvidenceSubmit: (evidence: EvidenceSubmission) => void;
   onNewVersionSubmit: (evidenceId: string, newVersion: EvidenceSubmission) => void;
-  onEvidenceValidation: (evidenceId: string, versionId: string, status: 'approved' | 'rejected', remarks?: string) => void;
+  onEvidenceValidation: (
+    evidenceId: string, 
+    versionId: string, 
+    validationData: {
+      status: 'approved' | 'rejected' | 'requires_modification';
+      overallScore: number;
+      criteria: {
+        completeness: number;
+        relevance: number;
+        quality: number;
+        implementation: number;
+      };
+      remarks: string;
+      recommendations: string[];
+      nextActions: string[];
+      validationAttachments?: File[];
+    }
+  ) => void;
   userRole: 'department' | 'rssi';
   currentUser: string;
 }
@@ -56,7 +76,6 @@ export function EvidenceVersionManagement({
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isNewVersionDialogOpen, setIsNewVersionDialogOpen] = useState(false);
   const [isValidationDialogOpen, setIsValidationDialogOpen] = useState(false);
-  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
   const [selectedEvidence, setSelectedEvidence] = useState<Evidence | null>(null);
   const [selectedVersion, setSelectedVersion] = useState<EvidenceVersion | null>(null);
   const [expandedEvidences, setExpandedEvidences] = useState<Set<string>>(new Set());
@@ -67,7 +86,8 @@ export function EvidenceVersionManagement({
     department: '',
     evidenceType: 'document',
     maturityContribution: 1,
-    changeLog: 'Version initiale'
+    changeLog: 'Version initiale',
+    attachments: []
   });
   
   const [newVersion, setNewVersion] = useState<EvidenceSubmission>({
@@ -76,10 +96,25 @@ export function EvidenceVersionManagement({
     department: '',
     evidenceType: 'document',
     maturityContribution: 1,
-    changeLog: ''
+    changeLog: '',
+    attachments: []
   });
   
-  const [validationRemarks, setValidationRemarks] = useState('');
+  // États pour la validation RSSI complète
+  const [validationData, setValidationData] = useState({
+    status: 'approved' as 'approved' | 'rejected' | 'requires_modification',
+    overallScore: 7,
+    criteria: {
+      completeness: 7,
+      relevance: 7,
+      quality: 7,
+      implementation: 7
+    },
+    remarks: '',
+    recommendations: [''],
+    nextActions: [''],
+    validationAttachments: [] as File[]
+  });
 
   const handleSubmitEvidence = () => {
     if (!newEvidence.title || !newEvidence.description || !newEvidence.department) {
@@ -94,7 +129,8 @@ export function EvidenceVersionManagement({
       department: '',
       evidenceType: 'document',
       maturityContribution: 1,
-      changeLog: 'Version initiale'
+      changeLog: 'Version initiale',
+      attachments: []
     });
     setIsSubmitDialogOpen(false);
     toast.success('Preuve soumise avec succès');
@@ -113,22 +149,45 @@ export function EvidenceVersionManagement({
       department: '',
       evidenceType: 'document',
       maturityContribution: 1,
-      changeLog: ''
+      changeLog: '',
+      attachments: []
     });
     setIsNewVersionDialogOpen(false);
     setSelectedEvidence(null);
     toast.success('Nouvelle version soumise avec succès');
   };
 
-  const handleValidation = (status: 'approved' | 'rejected') => {
+  const handleValidation = () => {
     if (!selectedEvidence || !selectedVersion) return;
 
-    onEvidenceValidation(selectedEvidence.id, selectedVersion.id, status, validationRemarks);
+    // Calculer le score global
+    const { completeness, relevance, quality, implementation } = validationData.criteria;
+    const calculatedScore = Math.round((completeness + relevance + quality + implementation) / 4);
+    
+    const finalValidationData = {
+      ...validationData,
+      overallScore: calculatedScore,
+      recommendations: validationData.recommendations.filter(r => r.trim() !== ''),
+      nextActions: validationData.nextActions.filter(a => a.trim() !== '')
+    };
+
+    onEvidenceValidation(selectedEvidence.id, selectedVersion.id, finalValidationData);
+    
+    // Reset
     setIsValidationDialogOpen(false);
     setSelectedEvidence(null);
     setSelectedVersion(null);
-    setValidationRemarks('');
-    toast.success(`Version ${status === 'approved' ? 'approuvée' : 'rejetée'} avec succès`);
+    setValidationData({
+      status: 'approved',
+      overallScore: 7,
+      criteria: { completeness: 7, relevance: 7, quality: 7, implementation: 7 },
+      remarks: '',
+      recommendations: [''],
+      nextActions: [''],
+      validationAttachments: []
+    });
+    
+    toast.success(`Version ${finalValidationData.status === 'approved' ? 'approuvée' : finalValidationData.status === 'rejected' ? 'rejetée' : 'marquée pour modification'} avec succès`);
   };
 
   const getStatusBadge = (status: EvidenceVersion['status']) => {
@@ -139,6 +198,8 @@ export function EvidenceVersionManagement({
         return <Badge variant="outline" className="text-green-600"><CheckCircle2 className="w-3 h-3 mr-1" />Approuvée</Badge>;
       case 'rejected':
         return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Rejetée</Badge>;
+      case 'requires_modification':
+        return <Badge variant="outline" className="text-yellow-600"><AlertCircle className="w-3 h-3 mr-1" />Modification requise</Badge>;
       default:
         return null;
     }
@@ -181,6 +242,48 @@ export function EvidenceVersionManagement({
     return evidence.versions.find(v => v.isLatest);
   };
 
+  const addRecommendation = () => {
+    setValidationData(prev => ({
+      ...prev,
+      recommendations: [...prev.recommendations, '']
+    }));
+  };
+
+  const updateRecommendation = (index: number, value: string) => {
+    setValidationData(prev => ({
+      ...prev,
+      recommendations: prev.recommendations.map((r, i) => i === index ? value : r)
+    }));
+  };
+
+  const removeRecommendation = (index: number) => {
+    setValidationData(prev => ({
+      ...prev,
+      recommendations: prev.recommendations.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addNextAction = () => {
+    setValidationData(prev => ({
+      ...prev,
+      nextActions: [...prev.nextActions, '']
+    }));
+  };
+
+  const updateNextAction = (index: number, value: string) => {
+    setValidationData(prev => ({
+      ...prev,
+      nextActions: prev.nextActions.map((a, i) => i === index ? value : a)
+    }));
+  };
+
+  const removeNextAction = (index: number) => {
+    setValidationData(prev => ({
+      ...prev,
+      nextActions: prev.nextActions.filter((_, i) => i !== index)
+    }));
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -202,7 +305,7 @@ export function EvidenceVersionManagement({
                   Nouvelle preuve
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Soumettre une nouvelle preuve</DialogTitle>
                   <DialogDescription>
@@ -229,36 +332,38 @@ export function EvidenceVersionManagement({
                       rows={3}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="department">Département *</Label>
-                    <Select value={newEvidence.department} onValueChange={(value) => setNewEvidence({...newEvidence, department: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le département" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="it">Informatique</SelectItem>
-                        <SelectItem value="security">Sécurité</SelectItem>
-                        <SelectItem value="hr">Ressources Humaines</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                        <SelectItem value="operations">Opérations</SelectItem>
-                        <SelectItem value="legal">Juridique</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="evidenceType">Type de preuve</Label>
-                    <Select value={newEvidence.evidenceType} onValueChange={(value: EvidenceVersion['evidenceType']) => setNewEvidence({...newEvidence, evidenceType: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="document">Document</SelectItem>
-                        <SelectItem value="screenshot">Capture d'écran</SelectItem>
-                        <SelectItem value="certificate">Certificat</SelectItem>
-                        <SelectItem value="procedure">Procédure</SelectItem>
-                        <SelectItem value="other">Autre</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="department">Département *</Label>
+                      <Select value={newEvidence.department} onValueChange={(value) => setNewEvidence({...newEvidence, department: value})}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner le département" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="it">Informatique</SelectItem>
+                          <SelectItem value="security">Sécurité</SelectItem>
+                          <SelectItem value="hr">Ressources Humaines</SelectItem>
+                          <SelectItem value="finance">Finance</SelectItem>
+                          <SelectItem value="operations">Opérations</SelectItem>
+                          <SelectItem value="legal">Juridique</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="evidenceType">Type de preuve</Label>
+                      <Select value={newEvidence.evidenceType} onValueChange={(value: EvidenceVersion['evidenceType']) => setNewEvidence({...newEvidence, evidenceType: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="document">Document</SelectItem>
+                          <SelectItem value="screenshot">Capture d'écran</SelectItem>
+                          <SelectItem value="certificate">Certificat</SelectItem>
+                          <SelectItem value="procedure">Procédure</SelectItem>
+                          <SelectItem value="other">Autre</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="maturityContribution">Contribution à la maturité (1-5 points)</Label>
@@ -275,6 +380,18 @@ export function EvidenceVersionManagement({
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {/* Zone d'upload de fichiers */}
+                  <div>
+                    <Label>Pièces jointes</Label>
+                    <FileUploadZone
+                      files={newEvidence.attachments}
+                      onFilesChange={(files) => setNewEvidence({...newEvidence, attachments: files})}
+                      maxFiles={5}
+                      maxFileSize={10}
+                    />
+                  </div>
+                  
                   <div className="flex gap-2">
                     <Button onClick={handleSubmitEvidence} className="flex-1">
                       Créer la preuve
@@ -332,15 +449,28 @@ export function EvidenceVersionManagement({
                           <span>Type: {getEvidenceTypeLabel(evidence.evidenceType)}</span>
                           <span>Département: {evidence.department}</span>
                           <span>Versions approuvées: {approvedVersions}</span>
+                          {latestVersion?.attachments && (
+                            <span>Pièces jointes: {latestVersion.attachments.length}</span>
+                          )}
                           {pendingVersions > 0 && userRole === 'rssi' && (
                             <span className="text-orange-600">En attente: {pendingVersions}</span>
                           )}
                         </div>
                         
                         {latestVersion && (
-                          <p className="text-sm text-muted-foreground ml-8">
-                            {latestVersion.description}
-                          </p>
+                          <>
+                            <p className="text-sm text-muted-foreground ml-8">
+                              {latestVersion.description}
+                            </p>
+                            {latestVersion.attachments && latestVersion.attachments.length > 0 && (
+                              <div className="ml-8">
+                                <AttachmentViewer 
+                                  attachments={latestVersion.attachments}
+                                  title="Pièces jointes de la version actuelle"
+                                />
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                       
@@ -357,7 +487,8 @@ export function EvidenceVersionManagement({
                                 department: evidence.department,
                                 evidenceType: evidence.evidenceType,
                                 maturityContribution: evidence.maturityContribution,
-                                changeLog: ''
+                                changeLog: '',
+                                attachments: []
                               });
                               setIsNewVersionDialogOpen(true);
                             }}
@@ -387,6 +518,7 @@ export function EvidenceVersionManagement({
                             <TableRow>
                               <TableHead>Version</TableHead>
                               <TableHead>Modifications</TableHead>
+                              <TableHead>Pièces jointes</TableHead>
                               <TableHead>Soumise par</TableHead>
                               <TableHead>Date</TableHead>
                               <TableHead>Statut</TableHead>
@@ -413,11 +545,25 @@ export function EvidenceVersionManagement({
                                   <TableCell>
                                     <p className="text-sm">{version.changeLog}</p>
                                   </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline">
+                                      {version.attachments.length} fichier{version.attachments.length > 1 ? 's' : ''}
+                                    </Badge>
+                                  </TableCell>
                                   <TableCell>{version.submittedBy}</TableCell>
                                   <TableCell>
                                     {new Date(version.submittedAt).toLocaleDateString('fr-FR')}
                                   </TableCell>
-                                  <TableCell>{getStatusBadge(version.status)}</TableCell>
+                                  <TableCell>
+                                    <div className="space-y-1">
+                                      {getStatusBadge(version.status)}
+                                      {version.rssiValidation && (
+                                        <div className="text-xs text-muted-foreground">
+                                          Score: {version.rssiValidation.overallScore}/10
+                                        </div>
+                                      )}
+                                    </div>
+                                  </TableCell>
                                   <TableCell>
                                     <div className="flex gap-1">
                                       {userRole === 'rssi' && version.status === 'pending' && (
@@ -440,17 +586,28 @@ export function EvidenceVersionManagement({
                                         onClick={() => {
                                           setSelectedEvidence(evidence);
                                           setSelectedVersion(version);
-                                          setValidationRemarks(version.rssiRemarks || '');
+                                          if (version.rssiValidation) {
+                                            setValidationData({
+                                              status: version.rssiValidation.status,
+                                              overallScore: version.rssiValidation.overallScore,
+                                              criteria: version.rssiValidation.criteria,
+                                              remarks: version.rssiValidation.remarks,
+                                              recommendations: version.rssiValidation.recommendations.length > 0 ? version.rssiValidation.recommendations : [''],
+                                              nextActions: version.rssiValidation.nextActions.length > 0 ? version.rssiValidation.nextActions : [''],
+                                              validationAttachments: []
+                                            });
+                                          }
                                           setIsValidationDialogOpen(true);
                                         }}
                                       >
                                         <Eye className="w-3 h-3 mr-1" />
                                         Voir
                                       </Button>
-                                      {version.rssiRemarks && (
+                                      {version.rssiValidation && version.rssiValidation.remarks && (
                                         <Button
                                           size="sm"
                                           variant="outline"
+                                          title="Voir les remarques RSSI"
                                         >
                                           <MessageSquare className="w-3 h-3" />
                                         </Button>
@@ -472,7 +629,7 @@ export function EvidenceVersionManagement({
 
         {/* Dialog pour nouvelle version */}
         <Dialog open={isNewVersionDialogOpen} onOpenChange={setIsNewVersionDialogOpen}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Nouvelle version de preuve</DialogTitle>
               <DialogDescription>
@@ -522,6 +679,18 @@ export function EvidenceVersionManagement({
                   </SelectContent>
                 </Select>
               </div>
+              
+              {/* Zone d'upload pour nouvelle version */}
+              <div>
+                <Label>Pièces jointes pour cette version</Label>
+                <FileUploadZone
+                  files={newVersion.attachments}
+                  onFilesChange={(files) => setNewVersion({...newVersion, attachments: files})}
+                  maxFiles={5}
+                  maxFileSize={10}
+                />
+              </div>
+              
               <div className="flex gap-2">
                 <Button onClick={handleSubmitNewVersion} className="flex-1">
                   Soumettre la version
@@ -534,20 +703,21 @@ export function EvidenceVersionManagement({
           </DialogContent>
         </Dialog>
 
-        {/* Dialog de validation RSSI */}
+        {/* Dialog de validation RSSI complète */}
         <Dialog open={isValidationDialogOpen} onOpenChange={setIsValidationDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                Validation RSSI
+                Validation RSSI Complète
               </DialogTitle>
               <DialogDescription>
                 {selectedEvidence?.title} - Version {selectedVersion?.version}
               </DialogDescription>
             </DialogHeader>
             {selectedEvidence && selectedVersion && (
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Informations de base */}
                 <div className="bg-muted p-4 rounded-md space-y-2">
                   <p><strong>Type:</strong> {getEvidenceTypeLabel(selectedVersion.evidenceType)}</p>
                   <p><strong>Département:</strong> {selectedVersion.department}</p>
@@ -555,56 +725,260 @@ export function EvidenceVersionManagement({
                   <p><strong>Contribution maturité:</strong> +{selectedVersion.maturityContribution} points</p>
                   <p><strong>Modifications:</strong> {selectedVersion.changeLog}</p>
                 </div>
-                <div>
-                  <Label>Description de la preuve</Label>
-                  <p className="text-sm bg-muted p-3 rounded-md">
-                    {selectedVersion.description}
-                  </p>
-                </div>
-                <div>
-                  <Label htmlFor="validation-remarks">Remarques RSSI</Label>
-                  <Textarea
-                    id="validation-remarks"
-                    value={validationRemarks}
-                    onChange={(e) => setValidationRemarks(e.target.value)}
-                    placeholder="Commentaires, recommandations ou demandes de modification..."
-                    rows={4}
-                  />
-                </div>
-                {userRole === 'rssi' && selectedVersion.status === 'pending' && (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => handleValidation('approved')}
-                      className="flex-1"
-                    >
-                      <CheckCircle2 className="w-4 h-4 mr-2" />
-                      Approuver cette version
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleValidation('rejected')}
-                      className="flex-1"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Rejeter cette version
-                    </Button>
-                  </div>
-                )}
-                {selectedVersion.status !== 'pending' && (
-                  <div className="bg-muted p-3 rounded-md">
-                    <p className="text-sm">
-                      <strong>Statut:</strong> {selectedVersion.status === 'approved' ? 'Approuvée' : 'Rejetée'}
+
+                {/* Description et pièces jointes */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Description de la preuve</Label>
+                    <p className="text-sm bg-muted p-3 rounded-md">
+                      {selectedVersion.description}
                     </p>
-                    {selectedVersion.validatedBy && (
-                      <p className="text-sm">
-                        <strong>Validée par:</strong> {selectedVersion.validatedBy}
-                      </p>
-                    )}
-                    {selectedVersion.validatedAt && (
-                      <p className="text-sm">
-                        <strong>Date:</strong> {new Date(selectedVersion.validatedAt).toLocaleDateString('fr-FR')}
-                      </p>
-                    )}
+                  </div>
+                  <div>
+                    <AttachmentViewer 
+                      attachments={selectedVersion.attachments}
+                      title="Pièces jointes"
+                    />
+                  </div>
+                </div>
+
+                {userRole === 'rssi' && selectedVersion.status === 'pending' && (
+                  <>
+                    {/* Critères d'évaluation */}
+                    <div className="space-y-4">
+                      <h4 className="text-lg font-semibold">Évaluation détaillée</h4>
+                      
+                      <div>
+                        <Label>Statut de validation</Label>
+                        <Select value={validationData.status} onValueChange={(value: 'approved' | 'rejected' | 'requires_modification') => 
+                          setValidationData(prev => ({...prev, status: value}))
+                        }>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="approved">Approuvée</SelectItem>
+                            <SelectItem value="requires_modification">Modification requise</SelectItem>
+                            <SelectItem value="rejected">Rejetée</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Complétude (1-10): {validationData.criteria.completeness}</Label>
+                          <Slider
+                            value={[validationData.criteria.completeness]}
+                            onValueChange={([value]) => setValidationData(prev => ({
+                              ...prev,
+                              criteria: {...prev.criteria, completeness: value}
+                            }))}
+                            min={1}
+                            max={10}
+                            step={1}
+                            className="mt-2"
+                          />
+                        </div>
+                        <div>
+                          <Label>Pertinence (1-10): {validationData.criteria.relevance}</Label>
+                          <Slider
+                            value={[validationData.criteria.relevance]}
+                            onValueChange={([value]) => setValidationData(prev => ({
+                              ...prev,
+                              criteria: {...prev.criteria, relevance: value}
+                            }))}
+                            min={1}
+                            max={10}
+                            step={1}
+                            className="mt-2"
+                          />
+                        </div>
+                        <div>
+                          <Label>Qualité (1-10): {validationData.criteria.quality}</Label>
+                          <Slider
+                            value={[validationData.criteria.quality]}
+                            onValueChange={([value]) => setValidationData(prev => ({
+                              ...prev,
+                              criteria: {...prev.criteria, quality: value}
+                            }))}
+                            min={1}
+                            max={10}
+                            step={1}
+                            className="mt-2"
+                          />
+                        </div>
+                        <div>
+                          <Label>Mise en œuvre (1-10): {validationData.criteria.implementation}</Label>
+                          <Slider
+                            value={[validationData.criteria.implementation]}
+                            onValueChange={([value]) => setValidationData(prev => ({
+                              ...prev,
+                              criteria: {...prev.criteria, implementation: value}
+                            }))}
+                            min={1}
+                            max={10}
+                            step={1}
+                            className="mt-2"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-blue-50 rounded-md">
+                        <p className="text-sm font-medium">
+                          Score global calculé: {Math.round((validationData.criteria.completeness + validationData.criteria.relevance + validationData.criteria.quality + validationData.criteria.implementation) / 4)}/10
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Remarques */}
+                    <div>
+                      <Label htmlFor="validation-remarks">Remarques générales</Label>
+                      <Textarea
+                        id="validation-remarks"
+                        value={validationData.remarks}
+                        onChange={(e) => setValidationData(prev => ({...prev, remarks: e.target.value}))}
+                        placeholder="Commentaires généraux sur la preuve..."
+                        rows={3}
+                      />
+                    </div>
+
+                    {/* Recommandations */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label>Recommandations</Label>
+                        <Button size="sm" variant="outline" onClick={addRecommendation}>
+                          <Plus className="w-3 h-3 mr-1" />
+                          Ajouter
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {validationData.recommendations.map((rec, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={rec}
+                              onChange={(e) => updateRecommendation(index, e.target.value)}
+                              placeholder="Recommandation..."
+                              className="flex-1"
+                            />
+                            {validationData.recommendations.length > 1 && (
+                              <Button size="sm" variant="outline" onClick={() => removeRecommendation(index)}>
+                                <XCircle className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Actions suivantes */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label>Actions suivantes</Label>
+                        <Button size="sm" variant="outline" onClick={addNextAction}>
+                          <Plus className="w-3 h-3 mr-1" />
+                          Ajouter
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {validationData.nextActions.map((action, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              value={action}
+                              onChange={(e) => updateNextAction(index, e.target.value)}
+                              placeholder="Action suivante..."
+                              className="flex-1"
+                            />
+                            {validationData.nextActions.length > 1 && (
+                              <Button size="sm" variant="outline" onClick={() => removeNextAction(index)}>
+                                <XCircle className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Pièces jointes RSSI */}
+                    <div>
+                      <Label>Documents de validation RSSI (optionnel)</Label>
+                      <FileUploadZone
+                        files={validationData.validationAttachments}
+                        onFilesChange={(files) => setValidationData(prev => ({...prev, validationAttachments: files}))}
+                        maxFiles={3}
+                        maxFileSize={5}
+                      />
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button onClick={handleValidation} className="flex-1">
+                        Finaliser la validation
+                      </Button>
+                      <Button variant="outline" onClick={() => setIsValidationDialogOpen(false)} className="flex-1">
+                        Annuler
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                {/* Affichage de la validation existante */}
+                {selectedVersion.rssiValidation && (
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-semibold">Validation RSSI</h4>
+                    
+                    <div className="bg-muted p-4 rounded-md space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <p><strong>Statut:</strong> {selectedVersion.rssiValidation.status === 'approved' ? 'Approuvée' : selectedVersion.rssiValidation.status === 'rejected' ? 'Rejetée' : 'Modification requise'}</p>
+                        <p><strong>Score global:</strong> {selectedVersion.rssiValidation.overallScore}/10</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <p>Complétude: {selectedVersion.rssiValidation.criteria.completeness}/10</p>
+                        <p>Pertinence: {selectedVersion.rssiValidation.criteria.relevance}/10</p>
+                        <p>Qualité: {selectedVersion.rssiValidation.criteria.quality}/10</p>
+                        <p>Mise en œuvre: {selectedVersion.rssiValidation.criteria.implementation}/10</p>
+                      </div>
+                      
+                      {selectedVersion.rssiValidation.remarks && (
+                        <div>
+                          <strong>Remarques:</strong>
+                          <p className="mt-1">{selectedVersion.rssiValidation.remarks}</p>
+                        </div>
+                      )}
+                      
+                      {selectedVersion.rssiValidation.recommendations.length > 0 && (
+                        <div>
+                          <strong>Recommandations:</strong>
+                          <ul className="mt-1 list-disc list-inside">
+                            {selectedVersion.rssiValidation.recommendations.map((rec, index) => (
+                              <li key={index}>{rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {selectedVersion.rssiValidation.nextActions.length > 0 && (
+                        <div>
+                          <strong>Actions suivantes:</strong>
+                          <ul className="mt-1 list-disc list-inside">
+                            {selectedVersion.rssiValidation.nextActions.map((action, index) => (
+                              <li key={index}>{action}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      <div className="text-sm text-muted-foreground">
+                        <p>Validée par: {selectedVersion.rssiValidation.validatedBy}</p>
+                        <p>Date: {new Date(selectedVersion.rssiValidation.validatedAt).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                      
+                      {selectedVersion.rssiValidation.validationAttachments && selectedVersion.rssiValidation.validationAttachments.length > 0 && (
+                        <AttachmentViewer 
+                          attachments={selectedVersion.rssiValidation.validationAttachments}
+                          title="Documents joints par le RSSI"
+                        />
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
