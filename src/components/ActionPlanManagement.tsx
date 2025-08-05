@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
+import { ActionPlanForm } from './ActionPlanForm';
 import { toast } from 'sonner';
 
 interface ActionPlan {
@@ -90,7 +91,8 @@ const generateActionPlansFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 
               frameworkType: 'NIST',
               frameworkRef: subCategory.code,
               priority: subCategory.priority,
-              status: subCategory.status === 'not_started' ? 'not_started' : 'in_progress',
+              status: subCategory.status === 'not_started' ? 'not_started' : 
+                     subCategory.status === 'completed' ? 'completed' : 'in_progress',
               assignee: subCategory.responsible,
               dueDate: new Date(Date.now() + (120 - subCategory.maturityLevel * 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
               estimatedEffort: subCategory.maturityLevel === 0 ? '3-4 mois' : '1-2 mois',
@@ -126,6 +128,8 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [showForm, setShowForm] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<ActionPlan | null>(null);
 
   // Régénérer les plans quand le référentiel change
   React.useEffect(() => {
@@ -177,6 +181,36 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
 
   const handleExportPlans = () => {
     toast.success(`Export des plans d'action ${selectedFramework} en cours...`);
+  };
+
+  const handleCreatePlan = () => {
+    setSelectedPlan(null);
+    setShowForm(true);
+  };
+
+  const handleEditPlan = (plan: ActionPlan) => {
+    setSelectedPlan(plan);
+    setShowForm(true);
+  };
+
+  const handleFormSubmit = (planData: Partial<ActionPlan>) => {
+    if (selectedPlan) {
+      // Mise à jour
+      setActionPlans(prev => prev.map(p => 
+        p.id === selectedPlan.id ? { ...selectedPlan, ...planData } : p
+      ));
+    } else {
+      // Création
+      const newPlan: ActionPlan = {
+        ...planData as ActionPlan,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        completionPercentage: 0
+      };
+      setActionPlans(prev => [newPlan, ...prev]);
+    }
+    setShowForm(false);
+    setSelectedPlan(null);
   };
 
   const renderOverview = () => (
@@ -359,7 +393,7 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={() => handleEditPlan(plan)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                   </TableCell>
@@ -404,7 +438,7 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
             <Download className="h-4 w-4 mr-2" />
             Exporter
           </Button>
-          <Button>
+          <Button onClick={handleCreatePlan}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Plan
           </Button>
@@ -432,6 +466,15 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
           {renderPlansTable()}
         </TabsContent>
       </Tabs>
+
+      {/* Formulaire de création/édition */}
+      <ActionPlanForm
+        isOpen={showForm}
+        onClose={() => setShowForm(false)}
+        onSubmit={handleFormSubmit}
+        plan={selectedPlan}
+        frameworkType={selectedFramework}
+      />
     </div>
   );
 }
