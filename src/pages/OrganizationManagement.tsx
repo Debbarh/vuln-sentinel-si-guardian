@@ -965,18 +965,13 @@ const OrganizationManagement = () => {
                   
                   <div className="space-y-2">
                     <Label htmlFor="deptManager">Manager du département</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un manager" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="marie.dubois">Marie Dubois</SelectItem>
-                        <SelectItem value="pierre.martin">Pierre Martin</SelectItem>
-                        <SelectItem value="jean.leclerc">Jean Leclerc</SelectItem>
-                        <SelectItem value="sophie.moreau">Sophie Moreau</SelectItem>
-                        <SelectItem value="other">Autre utilisateur...</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input 
+                      id="deptManager" 
+                      placeholder="Nom du manager (ex: Jean Dupont)" 
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Le manager peut être un utilisateur de l'organisation ou une personne externe
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
