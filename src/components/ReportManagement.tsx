@@ -101,8 +101,6 @@ export function ReportManagement({ onBack }: ReportManagementProps) {
       frameworkType: manualReportData.frameworkType,
       description: manualReportData.description || 'Rapport créé manuellement',
       sections: manualReportData.sections.length > 0 ? manualReportData.sections : defaultSections,
-      estimatedPages: 8
-      createdAt: new Date().toISOString(),
       isActive: true,
       estimatedPages: 8
     };
