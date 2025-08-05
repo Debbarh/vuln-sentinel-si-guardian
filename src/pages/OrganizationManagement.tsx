@@ -38,6 +38,7 @@ const OrganizationManagement = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [showRoleForm, setShowRoleForm] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<any>(null);
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -482,7 +483,10 @@ const OrganizationManagement = () => {
                         Configurez les rôles et permissions de votre organisation
                       </CardDescription>
                     </div>
-                    <Button onClick={() => setShowRoleForm(true)}>
+                    <Button onClick={() => {
+                      setSelectedRole(null);
+                      setShowRoleForm(true);
+                    }}>
                       <UserPlus className="h-4 w-4 mr-2" />
                       Créer un rôle
                     </Button>
@@ -524,7 +528,14 @@ const OrganizationManagement = () => {
                                 </div>
                               </div>
                               <div className="flex gap-2">
-                                <Button size="sm" variant="outline">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedRole(role);
+                                    setShowRoleForm(true);
+                                  }}
+                                >
                                   <Edit className="h-4 w-4 mr-1" />
                                   Modifier
                                 </Button>
@@ -800,11 +811,16 @@ const OrganizationManagement = () => {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-xl font-semibold">Créer un nouveau rôle</h2>
+                <h2 className="text-xl font-semibold">
+                  {selectedRole ? 'Modifier le rôle' : 'Créer un nouveau rôle'}
+                </h2>
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => setShowRoleForm(false)}
+                  onClick={() => {
+                    setShowRoleForm(false);
+                    setSelectedRole(null);
+                  }}
                 >
                   ×
                 </Button>
@@ -815,12 +831,16 @@ const OrganizationManagement = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="roleName">Nom du rôle</Label>
-                      <Input id="roleName" placeholder="Ex: Analyste Senior" />
+                      <Input 
+                        id="roleName" 
+                        placeholder="Ex: Analyste Senior"
+                        defaultValue={selectedRole?.name || ''}
+                      />
                     </div>
                     
                     <div className="space-y-2">
                       <Label htmlFor="roleIcon">Icône</Label>
-                      <Select defaultValue="shield">
+                      <Select defaultValue={selectedRole?.icon || "shield"}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -842,12 +862,13 @@ const OrganizationManagement = () => {
                       id="roleDescription" 
                       placeholder="Décrivez les responsabilités de ce rôle..."
                       rows={3}
+                      defaultValue={selectedRole?.description || ''}
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="roleColor">Couleur du rôle</Label>
-                    <Select defaultValue="blue">
+                    <Select defaultValue={selectedRole?.color?.includes('blue') ? 'blue' : 'blue'}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -869,19 +890,39 @@ const OrganizationManagement = () => {
                         <h4 className="font-medium text-sm text-gray-700">Gestion des évaluations</h4>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="view_assessments" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="view_assessments" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('view_assessments')}
+                            />
                             <Label htmlFor="view_assessments" className="text-sm">Consulter les évaluations</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="create_assessments" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="create_assessments" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('create_assessments')}
+                            />
                             <Label htmlFor="create_assessments" className="text-sm">Créer des évaluations</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="edit_assessments" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="edit_assessments" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('edit_assessments')}
+                            />
                             <Label htmlFor="edit_assessments" className="text-sm">Modifier les évaluations</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="delete_assessments" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="delete_assessments" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('delete_assessments')}
+                            />
                             <Label htmlFor="delete_assessments" className="text-sm">Supprimer les évaluations</Label>
                           </div>
                         </div>
@@ -891,19 +932,39 @@ const OrganizationManagement = () => {
                         <h4 className="font-medium text-sm text-gray-700">Gestion des utilisateurs</h4>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="view_users" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="view_users" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('view_users')}
+                            />
                             <Label htmlFor="view_users" className="text-sm">Consulter les utilisateurs</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="invite_users" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="invite_users" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('invite_users')}
+                            />
                             <Label htmlFor="invite_users" className="text-sm">Inviter des utilisateurs</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="edit_users" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="edit_users" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('edit_users')}
+                            />
                             <Label htmlFor="edit_users" className="text-sm">Modifier les utilisateurs</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="delete_users" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="delete_users" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('delete_users')}
+                            />
                             <Label htmlFor="delete_users" className="text-sm">Supprimer les utilisateurs</Label>
                           </div>
                         </div>
@@ -913,19 +974,39 @@ const OrganizationManagement = () => {
                         <h4 className="font-medium text-sm text-gray-700">Gestion des rapports</h4>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="view_reports" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="view_reports" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('view_reports')}
+                            />
                             <Label htmlFor="view_reports" className="text-sm">Consulter les rapports</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="generate_reports" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="generate_reports" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('generate_reports')}
+                            />
                             <Label htmlFor="generate_reports" className="text-sm">Générer des rapports</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="export_reports" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="export_reports" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('export_reports')}
+                            />
                             <Label htmlFor="export_reports" className="text-sm">Exporter les rapports</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="schedule_reports" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="schedule_reports" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('schedule_reports')}
+                            />
                             <Label htmlFor="schedule_reports" className="text-sm">Programmer les rapports</Label>
                           </div>
                         </div>
@@ -935,15 +1016,30 @@ const OrganizationManagement = () => {
                         <h4 className="font-medium text-sm text-gray-700">Administration</h4>
                         <div className="space-y-2">
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="manage_settings" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="manage_settings" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('manage_settings')}
+                            />
                             <Label htmlFor="manage_settings" className="text-sm">Gérer les paramètres</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="manage_roles" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="manage_roles" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('manage_roles')}
+                            />
                             <Label htmlFor="manage_roles" className="text-sm">Gérer les rôles</Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <input type="checkbox" id="view_audit_logs" className="rounded" />
+                            <input 
+                              type="checkbox" 
+                              id="view_audit_logs" 
+                              className="rounded"
+                              defaultChecked={selectedRole?.permissions?.includes('view_audit_logs')}
+                            />
                             <Label htmlFor="view_audit_logs" className="text-sm">Consulter les logs d'audit</Label>
                           </div>
                         </div>
@@ -955,12 +1051,15 @@ const OrganizationManagement = () => {
                     <Button 
                       type="button" 
                       variant="outline"
-                      onClick={() => setShowRoleForm(false)}
+                      onClick={() => {
+                        setShowRoleForm(false);
+                        setSelectedRole(null);
+                      }}
                     >
                       Annuler
                     </Button>
                     <Button type="submit">
-                      Créer le rôle
+                      {selectedRole ? 'Modifier le rôle' : 'Créer le rôle'}
                     </Button>
                   </div>
                 </form>
