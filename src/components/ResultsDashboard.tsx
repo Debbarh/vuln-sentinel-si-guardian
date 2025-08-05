@@ -33,56 +33,84 @@ import {
   Cell
 } from 'recharts';
 import { Assessment } from '@/types/frameworks';
+import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { toast } from 'sonner';
 
 interface ResultsDashboardProps {
   onBack: () => void;
 }
 
-// Données exemple pour les résultats
+// Données basées sur les vraies catégories ISO 27001:2022
 const SAMPLE_RESULTS = {
   overallScore: 2.8,
   overallLevel: 'Défini',
-  totalGaps: 24,
+  totalGaps: 28,
   completedActions: 18,
   totalActions: 32,
-  complianceRate: 78,
+  complianceRate: 72,
 };
 
+// Données radar basées sur les 4 catégories ISO 27001:2022
 const RADAR_DATA = [
-  { subject: 'Politiques', A: 3.2, B: 2.8, fullMark: 4 },
-  { subject: 'Organisation', A: 2.9, B: 3.1, fullMark: 4 },
-  { subject: 'Gestion des Actifs', A: 2.5, B: 2.3, fullMark: 4 },
-  { subject: 'Contrôle d\'Accès', A: 3.5, B: 3.2, fullMark: 4 },
-  { subject: 'Cryptographie', A: 2.1, B: 2.0, fullMark: 4 },
-  { subject: 'Sécurité Physique', A: 3.0, B: 2.9, fullMark: 4 },
+  { subject: 'Contrôles Organisationnels (37)', A: 2.9, B: 3.2, fullMark: 4 },
+  { subject: 'Contrôles Humains (8)', A: 3.1, B: 3.3, fullMark: 4 },
+  { subject: 'Contrôles Physiques (14)', A: 2.8, B: 3.0, fullMark: 4 },
+  { subject: 'Contrôles Technologiques (34)', A: 2.6, B: 3.1, fullMark: 4 },
 ];
 
+// Données de barres avec quelques contrôles représentatifs de chaque catégorie
 const BAR_DATA = [
-  { name: 'A.5 Politiques', score: 3.2, target: 3.5 },
-  { name: 'A.6 Organisation', score: 2.9, target: 3.0 },
-  { name: 'A.8 Gestion Actifs', score: 2.5, target: 3.5 },
-  { name: 'A.9 Contrôle Accès', score: 3.5, target: 3.5 },
-  { name: 'A.10 Cryptographie', score: 2.1, target: 3.0 },
-  { name: 'A.11 Sécurité Physique', score: 3.0, target: 3.2 },
+  // Contrôles Organisationnels
+  { name: '5.1 Politiques SI', score: 3.2, target: 3.5, category: 'Organisationnel' },
+  { name: '5.15 Contrôle d\'accès', score: 2.9, target: 3.2, category: 'Organisationnel' },
+  { name: '5.24 Gestion incidents', score: 2.5, target: 3.0, category: 'Organisationnel' },
+  
+  // Contrôles Humains
+  { name: '6.3 Sensibilisation', score: 3.1, target: 3.3, category: 'Humain' },
+  { name: '6.7 Travail à distance', score: 2.8, target: 3.2, category: 'Humain' },
+  
+  // Contrôles Physiques
+  { name: '7.1 Périmètre sécurisé', score: 3.0, target: 3.2, category: 'Physique' },
+  { name: '7.8 Protection équipements', score: 2.7, target: 3.0, category: 'Physique' },
+  
+  // Contrôles Technologiques
+  { name: '8.7 Protection malware', score: 3.5, target: 3.5, category: 'Technologique' },
+  { name: '8.24 Cryptographie', score: 2.1, target: 3.0, category: 'Technologique' },
+  { name: '8.8 Vulnérabilités', score: 2.4, target: 3.2, category: 'Technologique' },
 ];
 
 const GAPS_DATA = [
   {
-    reference: 'ISO 27001',
-    criterion: 'A.8.1',
-    subCriterion: 'Inventaire des actifs',
+    reference: 'ISO 27001:2022',
+    criterion: '5.9',
+    subCriterion: 'Inventaire des informations et autres actifs associés',
     score: 1.2,
     level: 'Initial',
-    recommendation: 'Mettre en place un inventaire automatisé'
+    recommendation: 'Mettre en place un inventaire automatisé des actifs informationnels'
   },
   {
-    reference: 'ISO 27001', 
-    criterion: 'A.10.1',
-    subCriterion: 'Politique cryptographique',
+    reference: 'ISO 27001:2022', 
+    criterion: '8.24',
+    subCriterion: 'Utilisation de la cryptographie',
     score: 1.8,
     level: 'Reproductible',
-    recommendation: 'Définir une politique cryptographique formelle'
+    recommendation: 'Définir une politique cryptographique formelle et l\'implémenter'
+  },
+  {
+    reference: 'ISO 27001:2022',
+    criterion: '8.11',
+    subCriterion: 'Masquage des données',
+    score: 1.5,
+    level: 'Initial',
+    recommendation: 'Implémenter des techniques de masquage pour les données sensibles'
+  },
+  {
+    reference: 'ISO 27001:2022',
+    criterion: '5.21',
+    subCriterion: 'Gestion de la chaîne d\'approvisionnement TIC',
+    score: 1.9,
+    level: 'Reproductible',
+    recommendation: 'Évaluer et gérer les risques liés aux fournisseurs TIC'
   },
 ];
 

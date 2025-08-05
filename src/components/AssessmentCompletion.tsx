@@ -23,6 +23,7 @@ import {
 import { Assessment, Criterion, Question, AssessmentResponse } from '@/types/frameworks';
 import { DEFAULT_FRAMEWORKS } from '@/types/frameworks';
 import { getUserDisplayName, SAMPLE_USERS } from '@/types/users';
+import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { toast } from 'sonner';
 
 interface AssessmentCompletionProps {
@@ -31,95 +32,80 @@ interface AssessmentCompletionProps {
   onUpdate: (assessment: Assessment) => void;
 }
 
-// Données exemple de critères et questions
-const SAMPLE_CRITERIA: Criterion[] = [
-  {
-    id: 'A.5',
-    frameworkId: 'iso27001',
-    code: 'A.5',
-    name: 'Politiques de sécurité de l\'information',
-    description: 'Objectif: Fournir l\'orientation et le support de la direction pour la sécurité de l\'information.',
-    level: 1,
-    order: 1,
-  },
-  {
-    id: 'A.5.1',
-    frameworkId: 'iso27001',
-    code: 'A.5.1',
-    name: 'Politiques pour la sécurité de l\'information',
-    description: 'Un ensemble de politiques pour la sécurité de l\'information doit être défini.',
-    parentId: 'A.5',
-    level: 2,
-    order: 1,
-  },
-  {
-    id: 'A.6',
-    frameworkId: 'iso27001',
-    code: 'A.6',
-    name: 'Organisation de la sécurité de l\'information',
-    description: 'Objectif: Organiser la sécurité de l\'information au sein de l\'organisation.',
-    level: 1,
-    order: 2,
-  },
-  {
-    id: 'A.6.1',
-    frameworkId: 'iso27001',
-    code: 'A.6.1',
-    name: 'Organisation interne',
-    description: 'Un cadre de gestion doit être mis en place pour initier et contrôler la mise en œuvre.',
-    parentId: 'A.6',
-    level: 2,
-    order: 1,
-  },
-];
-
-const SAMPLE_QUESTIONS: Question[] = [
-  {
-    id: 'q1',
-    criterionId: 'A.5.1',
-    text: 'Des politiques de sécurité de l\'information sont-elles définies et documentées ?',
-    description: 'Vérifier l\'existence de politiques formelles approuvées par la direction',
-    type: 'radio',
-    options: [
-      { id: 'opt1', value: '0', label: 'Non implémenté', maturityLevel: 0, order: 1 },
-      { id: 'opt2', value: '1', label: 'Partiellement implémenté', maturityLevel: 1, order: 2 },
-      { id: 'opt3', value: '2', label: 'Largement implémenté', maturityLevel: 2, order: 3 },
-      { id: 'opt4', value: '3', label: 'Complètement implémenté', maturityLevel: 3, order: 4 },
-    ],
-    required: true,
-    order: 1,
-  },
-  {
-    id: 'q2',
-    criterionId: 'A.5.1',
-    text: 'Les politiques sont-elles communiquées à tous les employés et parties prenantes pertinentes ?',
-    description: 'Évaluer l\'efficacité de la communication des politiques',
-    type: 'radio',
-    options: [
-      { id: 'opt5', value: '0', label: 'Non implémenté', maturityLevel: 0, order: 1 },
-      { id: 'opt6', value: '1', label: 'Partiellement implémenté', maturityLevel: 1, order: 2 },
-      { id: 'opt7', value: '2', label: 'Largement implémenté', maturityLevel: 2, order: 3 },
-      { id: 'opt8', value: '3', label: 'Complètement implémenté', maturityLevel: 3, order: 4 },
-    ],
-    required: true,
-    order: 2,
-  },
-  {
-    id: 'q3',
-    criterionId: 'A.6.1',
-    text: 'Un responsable de la sécurité de l\'information a-t-il été désigné ?',
-    description: 'Vérifier l\'existence d\'un RSSI ou équivalent',
-    type: 'radio',
-    options: [
-      { id: 'opt9', value: '0', label: 'Non implémenté', maturityLevel: 0, order: 1 },
-      { id: 'opt10', value: '1', label: 'Partiellement implémenté', maturityLevel: 1, order: 2 },
-      { id: 'opt11', value: '2', label: 'Largement implémenté', maturityLevel: 2, order: 3 },
-      { id: 'opt12', value: '3', label: 'Complètement implémenté', maturityLevel: 3, order: 4 },
-    ],
-    required: true,
-    order: 1,
-  },
-];
+// Génération des critères et questions à partir des contrôles ISO 27001
+const generateCriteriaFromISO27001 = (frameworkId: string): { criteria: Criterion[], questions: Question[] } => {
+  const criteria: Criterion[] = [];
+  const questions: Question[] = [];
+  
+  if (frameworkId === 'iso27001') {
+    ISO27001_CONTROLS.forEach((category, categoryIndex) => {
+      // Ajouter la catégorie principale
+      criteria.push({
+        id: category.id,
+        frameworkId,
+        code: category.id,
+        name: category.name,
+        description: category.description,
+        level: 1,
+        order: categoryIndex + 1,
+      });
+      
+      // Ajouter les contrôles de cette catégorie
+      category.controls.forEach((control, controlIndex) => {
+        criteria.push({
+          id: control.id,
+          frameworkId,
+          code: control.code,
+          name: control.title,
+          description: control.description,
+          parentId: category.id,
+          level: 2,
+          order: controlIndex + 1,
+        });
+        
+        // Générer des questions d'évaluation standardisées pour chaque contrôle
+        const baseQuestionId = `q-${control.id}`;
+        
+        // Question principale d'implémentation
+        questions.push({
+          id: `${baseQuestionId}-implementation`,
+          criterionId: control.id,
+          text: `Quel est le niveau d'implémentation du contrôle "${control.title}" ?`,
+          description: control.description,
+          type: 'radio',
+          options: [
+            { id: `${baseQuestionId}-opt1`, value: '0', label: 'Non implémenté (0)', maturityLevel: 0, order: 1 },
+            { id: `${baseQuestionId}-opt2`, value: '1', label: 'Initial - Implémentation ad hoc (1)', maturityLevel: 1, order: 2 },
+            { id: `${baseQuestionId}-opt3`, value: '2', label: 'Reproductible - Procédures définies (2)', maturityLevel: 2, order: 3 },
+            { id: `${baseQuestionId}-opt4`, value: '3', label: 'Défini - Processus standardisés (3)', maturityLevel: 3, order: 4 },
+            { id: `${baseQuestionId}-opt5`, value: '4', label: 'Géré - Mesures et contrôles (4)', maturityLevel: 4, order: 5 },
+          ],
+          required: true,
+          order: 1,
+        });
+        
+        // Question sur l'efficacité
+        questions.push({
+          id: `${baseQuestionId}-effectiveness`,
+          criterionId: control.id,
+          text: `L'efficacité de ce contrôle est-elle mesurée et évaluée régulièrement ?`,
+          description: 'Évaluer si des métriques et indicateurs sont en place pour mesurer l\'efficacité',
+          type: 'radio',
+          options: [
+            { id: `${baseQuestionId}-eff1`, value: 'no', label: 'Aucune mesure en place', order: 1 },
+            { id: `${baseQuestionId}-eff2`, value: 'basic', label: 'Mesures basiques occasionnelles', order: 2 },
+            { id: `${baseQuestionId}-eff3`, value: 'regular', label: 'Mesures régulières avec reporting', order: 3 },
+            { id: `${baseQuestionId}-eff4`, value: 'advanced', label: 'Mesures avancées avec amélioration continue', order: 4 },
+          ],
+          required: false,
+          order: 2,
+        });
+      });
+    });
+  }
+  
+  return { criteria, questions };
+};
 
 export function AssessmentCompletion({ assessment, onBack, onUpdate }: AssessmentCompletionProps) {
   const [responses, setResponses] = useState<AssessmentResponse[]>([]);
@@ -130,14 +116,12 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
   const frameworks = DEFAULT_FRAMEWORKS.filter(f => assessment.frameworkIds.includes(f.id));
   const currentFramework = frameworks[currentFrameworkIndex];
   
-  // Filtrer les critères par framework actuel
-  const criteria = SAMPLE_CRITERIA.filter(c => c.frameworkId === currentFramework?.id);
+  // Générer les critères et questions dynamiquement
+  const { criteria, questions } = generateCriteriaFromISO27001(currentFramework?.id || '');
   const topLevelCriteria = criteria.filter(c => !c.parentId).sort((a, b) => a.order - b.order);
   
   // Calculer les statistiques de progression
-  const allQuestions = SAMPLE_QUESTIONS.filter(q => 
-    criteria.some(c => c.id === q.criterionId)
-  );
+  const allQuestions = questions;
   const answeredQuestions = responses.filter(r => 
     allQuestions.some(q => q.id === r.questionId)
   );
@@ -146,7 +130,7 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
     : 0;
 
   const getQuestionsByCriterion = (criterionId: string) => {
-    return SAMPLE_QUESTIONS.filter(q => q.criterionId === criterionId).sort((a, b) => a.order - b.order);
+    return questions.filter(q => q.criterionId === criterionId).sort((a, b) => a.order - b.order);
   };
 
   const getChildCriteria = (parentId?: string) => {
