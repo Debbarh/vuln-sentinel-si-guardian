@@ -78,7 +78,8 @@ const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'IS
         current: cat.avgMaturity,
         target: Math.min(cat.avgMaturity + 0.5, 4),
         fullMark: 4
-      }))
+      })),
+      barData: generateISO27001BarData()
     };
   }
 
@@ -91,11 +92,13 @@ const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'IS
       
       return {
         id: nistFunction.id,
-        name: nistFunction.name,
+        name: nistFunction.name.replace(' - ', '\n'),
+        functionId: nistFunction.id,
         totalSubCategories,
         implementedSubCategories,
         avgMaturity: Math.round(avgMaturity * 10) / 10,
-        complianceRate: Math.round((implementedSubCategories / totalSubCategories) * 100)
+        complianceRate: Math.round((implementedSubCategories / totalSubCategories) * 100),
+        tier: getNISTTier(avgMaturity)
       };
     });
 
@@ -114,11 +117,12 @@ const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'IS
       complianceRate: Math.round(overallCompliance),
       functionStats,
       radarData: functionStats.map(func => ({
-        subject: `${func.name.replace(' - ', ' ')} (${func.totalSubCategories})`,
+        subject: func.functionId,
         current: func.avgMaturity,
         target: Math.min(func.avgMaturity + 0.5, 4),
         fullMark: 4
-      }))
+      })),
+      barData: generateNISTBarData()
     };
   }
 
@@ -130,8 +134,50 @@ const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'IS
     totalActions: 0,
     complianceRate: 0,
     categoryStats: [],
-    radarData: []
+    radarData: [],
+    barData: []
   };
+};
+
+// Génération des données de barres pour ISO 27001
+const generateISO27001BarData = () => {
+  const barData: any[] = [];
+  
+  ISO27001_CONTROLS.forEach(category => {
+    // Prendre les 2 premiers contrôles de chaque catégorie comme exemples
+    category.controls.slice(0, 2).forEach(control => {
+      barData.push({
+        name: `${control.code} ${control.title.substring(0, 15)}...`,
+        score: control.maturityLevel,
+        target: Math.min(control.maturityLevel + 1, 4),
+        category: category.name.replace('Contrôles ', '')
+      });
+    });
+  });
+  
+  return barData.slice(0, 10); // Limiter à 10 contrôles pour l'affichage
+};
+
+// Génération des données de barres pour NIST
+const generateNISTBarData = () => {
+  const barData: any[] = [];
+  
+  NIST_CSF_FUNCTIONS.forEach(func => {
+    func.categories.forEach(category => {
+      // Prendre la première sous-catégorie de chaque catégorie
+      const subCategory = category.subCategories[0];
+      if (subCategory) {
+        barData.push({
+          name: `${subCategory.code} ${subCategory.title.substring(0, 12)}...`,
+          score: subCategory.maturityLevel,
+          target: Math.min(subCategory.maturityLevel + 1, 4),
+          function: func.id
+        });
+      }
+    });
+  });
+  
+  return barData.slice(0, 12); // 2 par fonction
 };
 
 const getMaturityLevel = (score: number): string => {
@@ -149,51 +195,55 @@ const getNISTTierLevel = (score: number): string => {
   return 'Adaptatif';
 };
 
-// Par défaut on affiche ISO27001, mais on peut switcher
-const CALCULATED_RESULTS = calculateResultsFromFrameworks('ISO27001');
-const NIST_RESULTS = calculateResultsFromFrameworks('NIST');
-
-// Données de barres avec les vrais contrôles et leurs scores actuels
-const generateBarData = () => {
-  const barData: any[] = [];
-  
-  ISO27001_CONTROLS.forEach(category => {
-    // Prendre les 3 premiers contrôles de chaque catégorie comme exemples
-    category.controls.slice(0, 3).forEach(control => {
-      barData.push({
-        name: `${control.code} ${control.title.substring(0, 20)}...`,
-        score: control.maturityLevel,
-        target: Math.min(control.maturityLevel + 1, 4),
-        category: category.name.replace('Contrôles ', '')
-      });
-    });
-  });
-  
-  return barData;
+const getNISTTier = (score: number): string => {
+  if (score < 1.5) return 'Tier 1';
+  if (score < 2.5) return 'Tier 2';
+  if (score < 3.5) return 'Tier 3';
+  return 'Tier 4';
 };
 
-const BAR_DATA = generateBarData();
-
-// Lacunes basées sur les vrais contrôles avec maturityLevel < 2
-const generateGapsData = () => {
+// Génération des lacunes basées sur les vrais contrôles
+const generateGapsData = (frameworkType: 'ISO27001' | 'NIST') => {
   const gaps: any[] = [];
   
-  ISO27001_CONTROLS.forEach(category => {
-    category.controls
-      .filter(control => control.maturityLevel < 2)
-      .slice(0, 10) // Limiter à 10 lacunes pour l'affichage
-      .forEach(control => {
-        gaps.push({
-          reference: 'ISO 27001:2022',
-          criterion: control.code,
-          subCriterion: control.title,
-          score: control.maturityLevel,
-          level: getMaturityLevel(control.maturityLevel),
-          recommendation: control.gaps.length > 0 ? control.gaps[0] : 'Améliorer l\'implémentation de ce contrôle',
-          priority: control.priority
+  if (frameworkType === 'ISO27001') {
+    ISO27001_CONTROLS.forEach(category => {
+      category.controls
+        .filter(control => control.maturityLevel < 2)
+        .slice(0, 8) // Limiter pour l'affichage
+        .forEach(control => {
+          gaps.push({
+            reference: 'ISO 27001:2022',
+            criterion: control.code,
+            subCriterion: control.title,
+            score: control.maturityLevel,
+            level: getMaturityLevel(control.maturityLevel),
+            recommendation: control.gaps.length > 0 ? control.gaps[0] : 'Améliorer l\'implémentation de ce contrôle',
+            priority: control.priority
+          });
         });
+    });
+  } else {
+    NIST_CSF_FUNCTIONS.forEach(func => {
+      func.categories.forEach(category => {
+        category.subCategories
+          .filter(sub => sub.maturityLevel < 2)
+          .slice(0, 6) // Limiter pour l'affichage
+          .forEach(sub => {
+            gaps.push({
+              reference: 'NIST CSF 2.0',
+              criterion: sub.code,
+              subCriterion: sub.title,
+              score: sub.maturityLevel,
+              level: getNISTTierLevel(sub.maturityLevel),
+              recommendation: sub.gaps.length > 0 ? sub.gaps[0] : 'Renforcer l\'implémentation de cette sous-catégorie',
+              priority: sub.priority,
+              function: func.id
+            });
+          });
       });
-  });
+    });
+  }
   
   return gaps.sort((a, b) => {
     const priorityOrder = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
@@ -202,7 +252,10 @@ const generateGapsData = () => {
   });
 };
 
-const GAPS_DATA = generateGapsData();
+// Par défaut on affiche ISO27001, mais on peut switcher
+const CALCULATED_RESULTS = calculateResultsFromFrameworks('ISO27001');
+const NIST_RESULTS = calculateResultsFromFrameworks('NIST');
+
 
 export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
   const [selectedAssessment, setSelectedAssessment] = useState('assessment-1');
@@ -299,10 +352,10 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={BAR_DATA}>
+              <BarChart data={currentResults.barData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis domain={[0, 4]} />
+                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                <YAxis domain={[0, 4]} tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="score" fill="#8884d8" name="Score Actuel" />
@@ -315,8 +368,11 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
     </div>
   );
 
-  const renderGaps = () => (
-    <Card>
+  const renderGaps = () => {
+    const gapsData = generateGapsData(selectedFramework);
+    
+    return (
+      <Card>
       <CardHeader>
         <CardTitle>Lacunes Prioritaires</CardTitle>
         <CardDescription>
@@ -336,12 +392,21 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {GAPS_DATA.map((gap, index) => (
+            {gapsData.map((gap, index) => (
               <TableRow key={index}>
                 <TableCell>
                   <Badge variant="outline">{gap.reference}</Badge>
                 </TableCell>
-                <TableCell className="font-medium">{gap.criterion}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center space-x-1">
+                    <span>{gap.criterion}</span>
+                    {gap.function && (
+                      <Badge variant="outline" className="text-xs">
+                        {gap.function}
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="max-w-xs truncate">{gap.subCriterion}</TableCell>
                 <TableCell>
                   <Badge variant={gap.score === 0 ? "destructive" : "secondary"}>
@@ -350,8 +415,8 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
                 </TableCell>
                 <TableCell>
                   <Badge variant="outline" className={
-                    gap.level === 'Initial' ? 'text-red-600' : 
-                    gap.level === 'Reproductible' ? 'text-orange-600' : 'text-blue-600'
+                    (gap.level === 'Initial' || gap.level === 'Partiel') ? 'text-red-600' : 
+                    (gap.level === 'Reproductible' || gap.level === 'Informé par les Risques') ? 'text-orange-600' : 'text-blue-600'
                   }>
                     {gap.level}
                   </Badge>
@@ -362,8 +427,9 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
           </TableBody>
         </Table>
       </CardContent>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-6">
