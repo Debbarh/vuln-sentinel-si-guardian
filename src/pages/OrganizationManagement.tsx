@@ -30,6 +30,7 @@ const OrganizationManagement = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [showRoleForm, setShowRoleForm] = useState(false);
+  const [showDepartmentForm, setShowDepartmentForm] = useState(false);
 
   // Données de démonstration
   const organizationInfo = {
@@ -50,7 +51,6 @@ const OrganizationManagement = () => {
       description: "Département responsable de la sécurité des systèmes d'information",
       manager: "Marie Dubois",
       employeeCount: 12,
-      budget: "850000",
       status: "active",
       createdDate: "2024-01-15"
     },
@@ -60,7 +60,6 @@ const OrganizationManagement = () => {
       description: "Équipe de développement logiciel et applications",
       manager: "Pierre Martin",
       employeeCount: 25,
-      budget: "1200000",
       status: "active",
       createdDate: "2024-01-10"
     },
@@ -70,7 +69,6 @@ const OrganizationManagement = () => {
       description: "Gestion des infrastructures et systèmes",
       manager: "Jean Leclerc",
       employeeCount: 8,
-      budget: "650000",
       status: "active",
       createdDate: "2024-02-01"
     },
@@ -80,7 +78,6 @@ const OrganizationManagement = () => {
       description: "Assurance conformité et audit interne",
       manager: "Sophie Moreau",
       employeeCount: 5,
-      budget: "400000",
       status: "active",
       createdDate: "2024-01-20"
     }
@@ -660,7 +657,7 @@ const OrganizationManagement = () => {
                         Organisez les départements de votre entreprise
                       </CardDescription>
                     </div>
-                    <Button>
+                    <Button onClick={() => setShowDepartmentForm(true)}>
                       <UserPlus className="h-4 w-4 mr-2" />
                       Créer un département
                     </Button>
@@ -687,14 +684,10 @@ const OrganizationManagement = () => {
                                   </Badge>
                                 </div>
                                 <p className="text-gray-600 mb-3">{dept.description}</p>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="grid grid-cols-1 gap-2 text-sm">
                                   <div>
                                     <span className="font-medium text-gray-700">Manager:</span>
                                     <span className="ml-2">{dept.manager}</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium text-gray-700">Budget:</span>
-                                    <span className="ml-2">{parseInt(dept.budget).toLocaleString('fr-FR')} €</span>
                                   </div>
                                 </div>
                               </div>
@@ -748,15 +741,15 @@ const OrganizationManagement = () => {
 
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Budget total</CardTitle>
+                    <CardTitle className="text-sm font-medium">Employés moyens</CardTitle>
                     <Settings className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {departments.reduce((total, dept) => total + parseInt(dept.budget), 0).toLocaleString('fr-FR')} €
+                      {Math.round(departments.reduce((total, dept) => total + dept.employeeCount, 0) / departments.length)}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Budget annuel cumulé
+                      Par département
                     </p>
                   </CardContent>
                 </Card>
@@ -931,6 +924,84 @@ const OrganizationManagement = () => {
                     </Button>
                     <Button type="submit">
                       Créer le rôle
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Formulaire de création de département */}
+        {showDepartmentForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h2 className="text-xl font-semibold">Créer un nouveau département</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowDepartmentForm(false)}
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <form className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="deptName">Nom du département</Label>
+                    <Input id="deptName" placeholder="Ex: Ressources Humaines" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="deptDescription">Description</Label>
+                    <Textarea 
+                      id="deptDescription" 
+                      placeholder="Décrivez les responsabilités de ce département..."
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="deptManager">Manager du département</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un manager" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="marie.dubois">Marie Dubois</SelectItem>
+                        <SelectItem value="pierre.martin">Pierre Martin</SelectItem>
+                        <SelectItem value="jean.leclerc">Jean Leclerc</SelectItem>
+                        <SelectItem value="sophie.moreau">Sophie Moreau</SelectItem>
+                        <SelectItem value="other">Autre utilisateur...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="deptStatus">Statut</Label>
+                    <Select defaultValue="active">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Actif</SelectItem>
+                        <SelectItem value="inactive">Inactif</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setShowDepartmentForm(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button type="submit">
+                      Créer le département
                     </Button>
                   </div>
                 </form>
