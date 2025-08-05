@@ -20,7 +20,8 @@ import {
   Edit,
   Trash2,
   Crown,
-  ArrowLeft
+  ArrowLeft,
+  Building2
 } from "lucide-react";
 
 const OrganizationManagement = () => {
@@ -35,7 +36,8 @@ const OrganizationManagement = () => {
     plan: "Enterprise",
     userCount: 45,
     maxUsers: 100,
-    createdDate: "2024-01-15"
+    createdDate: "2024-01-15",
+    logo: null as string | null
   };
 
   const users = [
@@ -548,6 +550,34 @@ const OrganizationManagement = () => {
                     <Label htmlFor="orgName">Nom de l'organisation</Label>
                     <Input id="orgName" value={organizationInfo.name} />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Logo de l'organisation</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                        {organizationInfo.logo ? (
+                          <img 
+                            src={organizationInfo.logo} 
+                            alt="Logo organisation"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Building2 className="h-8 w-8 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <Input 
+                          type="file" 
+                          accept="image/*"
+                          className="cursor-pointer"
+                        />
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Formats acceptés: PNG, JPG, SVG (max 2MB)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <Button>Sauvegarder les modifications</Button>
                 </CardContent>
               </Card>
