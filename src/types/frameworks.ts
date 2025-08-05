@@ -102,10 +102,10 @@ export const DEFAULT_FRAMEWORKS: ReferenceFramework[] = [
     updatedAt: new Date().toISOString(),
   },
   {
-    id: 'nist-csf',
-    name: 'NIST Cybersecurity Framework',
+    id: 'nist-csf-2',
+    name: 'NIST Cybersecurity Framework 2.0',
     version: '2.0',
-    description: 'Cadre de cybersécurité du National Institute of Standards and Technology',
+    description: 'Cadre de cybersécurité du National Institute of Standards and Technology - Version 2.0',
     type: 'NIST',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

@@ -19,6 +19,7 @@ import { CriterionForm } from './CriterionForm';
 import { QuestionForm } from './QuestionForm';
 import { toast } from 'sonner';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
+import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
 
 interface FrameworkDetailsProps {
   framework: ReferenceFramework;
@@ -61,6 +62,54 @@ export function FrameworkDetails({ framework, onBack, onUpdate }: FrameworkDetai
       
       return criteria;
     }
+    
+    if (framework.id === 'nist-csf-2' && framework.type === 'NIST') {
+      const criteria: Criterion[] = [];
+      
+      // Ajouter les fonctions principales (niveau 1)
+      NIST_CSF_FUNCTIONS.forEach((nistFunction, functionIndex) => {
+        criteria.push({
+          id: nistFunction.id,
+          frameworkId: framework.id,
+          code: nistFunction.id,
+          name: nistFunction.name,
+          description: nistFunction.description,
+          level: 1,
+          order: functionIndex + 1,
+        });
+        
+        // Ajouter les catégories (niveau 2)
+        nistFunction.categories.forEach((category, categoryIndex) => {
+          criteria.push({
+            id: category.id,
+            frameworkId: framework.id,
+            code: category.code,
+            name: category.name,
+            description: category.description,
+            parentId: nistFunction.id,
+            level: 2,
+            order: categoryIndex + 1,
+          });
+          
+          // Ajouter les sous-catégories (niveau 3)
+          category.subCategories.forEach((subCategory, subIndex) => {
+            criteria.push({
+              id: subCategory.id,
+              frameworkId: framework.id,
+              code: subCategory.code,
+              name: subCategory.title,
+              description: subCategory.description,
+              parentId: category.id,
+              level: 3,
+              order: subIndex + 1,
+            });
+          });
+        });
+      });
+      
+      return criteria;
+    }
+    
     return [];
   };
 
