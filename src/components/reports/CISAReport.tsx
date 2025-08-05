@@ -381,7 +381,8 @@ export function CISAReport({ template }: CISAReportProps) {
                     <Progress value={mockData.maturityDistribution.optimal} className="h-2 mt-1" />
                   </div>
                 </div>
-              </div>
+                </div>
+              </CardContent>
             </Card>
             
             <Card>
