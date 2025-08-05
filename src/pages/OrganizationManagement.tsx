@@ -77,13 +77,91 @@ const OrganizationManagement = () => {
     }
   ];
 
+  // Définition des rôles et permissions
+  const organizationRoles = [
+    {
+      id: 'admin',
+      name: 'Administrateur',
+      description: 'Accès complet à toutes les fonctionnalités',
+      color: 'bg-red-100 text-red-800 border-red-200',
+      icon: Crown,
+      permissions: ['all'],
+      userCount: 2
+    },
+    {
+      id: 'rssi',
+      name: 'RSSI',
+      description: 'Responsable de la sécurité des systèmes d\'information',
+      color: 'bg-purple-100 text-purple-800 border-purple-200',
+      icon: Shield,
+      permissions: ['security_full', 'reports', 'users_read', 'frameworks_full'],
+      userCount: 1
+    },
+    {
+      id: 'security',
+      name: 'Sécurité',
+      description: 'Équipe sécurité - Gestion opérationnelle',
+      color: 'bg-blue-100 text-blue-800 border-blue-200',
+      icon: Shield,
+      permissions: ['security_write', 'assessments', 'vulnerabilities'],
+      userCount: 8
+    },
+    {
+      id: 'dev',
+      name: 'Développeur',
+      description: 'Équipe développement - Accès technique',
+      color: 'bg-green-100 text-green-800 border-green-200',
+      icon: Settings,
+      permissions: ['technical_read', 'vulnerabilities_read', 'assessments_read'],
+      userCount: 15
+    },
+    {
+      id: 'analyst',
+      name: 'Analyste',
+      description: 'Analyste sécurité - Évaluation et reporting',
+      color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      icon: Users,
+      permissions: ['assessments_write', 'reports_read', 'frameworks_read'],
+      userCount: 12
+    },
+    {
+      id: 'executive',
+      name: 'Top Management',
+      description: 'Direction exécutive - Vue stratégique',
+      color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      icon: Crown,
+      permissions: ['dashboard_executive', 'reports_read', 'strategic_view'],
+      userCount: 3
+    }
+  ];
+
+  const permissionCategories = {
+    'all': 'Tous les droits',
+    'security_full': 'Sécurité - Gestion complète',
+    'security_write': 'Sécurité - Écriture',
+    'reports': 'Rapports - Génération',
+    'reports_read': 'Rapports - Lecture',
+    'users_read': 'Utilisateurs - Lecture',
+    'frameworks_full': 'Référentiels - Gestion complète',
+    'frameworks_read': 'Référentiels - Lecture',
+    'assessments': 'Évaluations - Gestion',
+    'assessments_write': 'Évaluations - Écriture',
+    'assessments_read': 'Évaluations - Lecture',
+    'vulnerabilities': 'Vulnérabilités - Gestion',
+    'vulnerabilities_read': 'Vulnérabilités - Lecture',
+    'technical_read': 'Technique - Lecture',
+    'dashboard_executive': 'Dashboard exécutif',
+    'strategic_view': 'Vue stratégique'
+  };
+
   const getRoleBadge = (role: string) => {
     const roleLabels = {
       rssi: { label: "RSSI", variant: "destructive", icon: Crown },
       admin: { label: "Admin", variant: "default", icon: Shield },
       security: { label: "Sécurité", variant: "secondary", icon: Shield },
-      tech: { label: "Technique", variant: "outline", icon: Settings },
-      analyst: { label: "Analyste", variant: "outline", icon: Users }
+      dev: { label: "Développeur", variant: "outline", icon: Settings },
+      analyst: { label: "Analyste", variant: "outline", icon: Users },
+      executive: { label: "Top Management", variant: "outline", icon: Crown }
     } as const;
     
     const roleInfo = roleLabels[role as keyof typeof roleLabels] || { label: role, variant: "outline", icon: Users };
@@ -133,7 +211,7 @@ const OrganizationManagement = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">
               <Building className="h-4 w-4 mr-2" />
               Vue d'ensemble
@@ -141,6 +219,10 @@ const OrganizationManagement = () => {
             <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" />
               Utilisateurs
+            </TabsTrigger>
+            <TabsTrigger value="roles">
+              <Shield className="h-4 w-4 mr-2" />
+              Rôles
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
@@ -261,10 +343,11 @@ const OrganizationManagement = () => {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="analyst">Analyste</SelectItem>
-                              <SelectItem value="tech">Responsable technique</SelectItem>
+                              <SelectItem value="dev">Développeur</SelectItem>
                               <SelectItem value="security">Responsable sécurité</SelectItem>
                               <SelectItem value="admin">Administrateur</SelectItem>
                               <SelectItem value="rssi">RSSI</SelectItem>
+                              <SelectItem value="executive">Top Management</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -326,6 +409,128 @@ const OrganizationManagement = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Gestion des rôles */}
+          <TabsContent value="roles">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Gestion des Rôles</CardTitle>
+                      <CardDescription>
+                        Configurez les rôles et permissions de votre organisation
+                      </CardDescription>
+                    </div>
+                    <Button>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Créer un rôle
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    {organizationRoles.map((role) => {
+                      const IconComponent = role.icon;
+                      return (
+                        <Card key={role.id} className={`border-2 ${role.color.split(' ').pop()?.replace('text-', 'border-').replace('-800', '-200')}`}>
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center space-x-4 flex-1">
+                                <div className={`p-3 rounded-lg ${role.color.split(' ')[0]} ${role.color.split(' ')[1]}`}>
+                                  <IconComponent className="h-6 w-6" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <h3 className="text-lg font-semibold">{role.name}</h3>
+                                    <Badge variant="outline" className={role.color}>
+                                      {role.userCount} utilisateur{role.userCount > 1 ? 's' : ''}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-gray-600 mb-3">{role.description}</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    <span className="text-sm font-medium text-gray-700">Permissions:</span>
+                                    {role.permissions.slice(0, 3).map((permission) => (
+                                      <Badge key={permission} variant="secondary" className="text-xs">
+                                        {permissionCategories[permission as keyof typeof permissionCategories]}
+                                      </Badge>
+                                    ))}
+                                    {role.permissions.length > 3 && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        +{role.permissions.length - 3} autres
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline">
+                                  <Edit className="h-4 w-4 mr-1" />
+                                  Modifier
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Matrice des permissions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Matrice des Permissions</CardTitle>
+                  <CardDescription>
+                    Vue d'ensemble des permissions par rôle
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[200px]">Fonctionnalité</TableHead>
+                          {organizationRoles.map((role) => (
+                            <TableHead key={role.id} className="text-center min-w-[120px]">
+                              <div className="flex flex-col items-center gap-1">
+                                <role.icon className="h-4 w-4" />
+                                <span className="text-xs">{role.name}</span>
+                              </div>
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {Object.entries(permissionCategories).map(([permKey, permLabel]) => (
+                          <TableRow key={permKey}>
+                            <TableCell className="font-medium">{permLabel}</TableCell>
+                            {organizationRoles.map((role) => (
+                              <TableCell key={role.id} className="text-center">
+                                {role.permissions.includes(permKey) || role.permissions.includes('all') ? (
+                                  <div className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+                                    ✓
+                                  </div>
+                                ) : (
+                                  <div className="w-6 h-6 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto">
+                                    ×
+                                  </div>
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Paramètres */}
