@@ -112,7 +112,7 @@ export const DEFAULT_FRAMEWORKS: ReferenceFramework[] = [
   },
   {
     id: 'cisa-ztmm',
-    name: 'CISA Zero Trust Maturity Model',
+    name: 'CISA Zero Trust Maturity Model 2.0',
     version: '2.0',
     description: 'Modèle de maturité Zero Trust de la Cybersecurity and Infrastructure Security Agency',
     type: 'CISA',
