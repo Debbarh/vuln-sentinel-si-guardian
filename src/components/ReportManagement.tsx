@@ -46,23 +46,158 @@ export function ReportManagement({ onBack }: ReportManagementProps) {
   const [activeTab, setActiveTab] = useState('templates');
 
   const handleGenerateReport = (template: ReportTemplate) => {
-    // Simulation de génération PDF
     toast.success(`Génération du rapport ${template.name} en cours...`);
     
     setTimeout(() => {
-      // Simuler la création d'un fichier PDF
-      const blob = new Blob(['Contenu du rapport PDF simulé'], { type: 'application/pdf' });
+      // Générer le contenu HTML du rapport
+      const reportContent = generateReportHTML(template);
+      
+      // Créer un blob HTML
+      const blob = new Blob([reportContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${template.name}_${new Date().toISOString().split('T')[0]}.pdf`;
+      link.download = `${template.name}_${new Date().toISOString().split('T')[0]}.html`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      toast.success('Rapport PDF généré et téléchargé avec succès');
-    }, 2000);
+      toast.success('Rapport HTML généré et téléchargé avec succès');
+    }, 1000);
+  };
+
+  const generateReportHTML = (template: ReportTemplate): string => {
+    const currentDate = new Date().toLocaleDateString('fr-FR');
+    
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${template.name}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
+        .section { margin: 30px 0; }
+        .metric { display: inline-block; margin: 10px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .chart-placeholder { width: 100%; height: 200px; background: #f5f5f5; border: 1px solid #ddd; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f5f5f5; }
+        .progress-bar { width: 100%; height: 20px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #3b82f6); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>${template.name}</h1>
+        <p>Référentiel: ${template.frameworkType}</p>
+        <p>Date de génération: ${currentDate}</p>
+        <p>${template.description}</p>
+    </div>
+
+    <div class="section">
+        <h2>📊 Métriques Clés</h2>
+        <div class="metric">
+            <h3>Score Global</h3>
+            <p style="font-size: 24px; color: #3b82f6;">3.2/4.0</p>
+        </div>
+        <div class="metric">
+            <h3>Conformité</h3>
+            <p style="font-size: 24px; color: #10b981;">78%</p>
+        </div>
+        <div class="metric">
+            <h3>Contrôles Évalués</h3>
+            <p style="font-size: 24px; color: #8b5cf6;">127</p>
+        </div>
+        <div class="metric">
+            <h3>Actions Requises</h3>
+            <p style="font-size: 24px; color: #f59e0b;">24</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>📈 Analyse de Maturité</h2>
+        <table>
+            <tr>
+                <th>Domaine</th>
+                <th>Score</th>
+                <th>Statut</th>
+                <th>Progression</th>
+            </tr>
+            <tr>
+                <td>Gouvernance de la Sécurité</td>
+                <td>3.4/4.0</td>
+                <td>Avancé</td>
+                <td><div class="progress-bar"><div class="progress-fill" style="width: 85%"></div></div></td>
+            </tr>
+            <tr>
+                <td>Gestion des Risques</td>
+                <td>3.1/4.0</td>
+                <td>Avancé</td>
+                <td><div class="progress-bar"><div class="progress-fill" style="width: 77%"></div></div></td>
+            </tr>
+            <tr>
+                <td>Contrôles Techniques</td>
+                <td>2.8/4.0</td>
+                <td>Intermédiaire</td>
+                <td><div class="progress-bar"><div class="progress-fill" style="width: 70%"></div></div></td>
+            </tr>
+            <tr>
+                <td>Sensibilisation</td>
+                <td>2.5/4.0</td>
+                <td>Intermédiaire</td>
+                <td><div class="progress-bar"><div class="progress-fill" style="width: 62%"></div></div></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>🎯 Recommandations</h2>
+        <ul>
+            <li><strong>Priorité Haute:</strong> Mettre en place un programme de sensibilisation régulier</li>
+            <li><strong>Priorité Moyenne:</strong> Améliorer la surveillance des contrôles techniques</li>
+            <li><strong>Priorité Faible:</strong> Documenter les procédures de gouvernance</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>📋 Plan d'Action</h2>
+        <table>
+            <tr>
+                <th>Action</th>
+                <th>Priorité</th>
+                <th>Échéance</th>
+                <th>Responsable</th>
+            </tr>
+            <tr>
+                <td>Formation cybersécurité</td>
+                <td>Haute</td>
+                <td>30 jours</td>
+                <td>RH + IT</td>
+            </tr>
+            <tr>
+                <td>Audit technique</td>
+                <td>Moyenne</td>
+                <td>60 jours</td>
+                <td>RSSI</td>
+            </tr>
+            <tr>
+                <td>Mise à jour documentation</td>
+                <td>Faible</td>
+                <td>90 jours</td>
+                <td>Qualité</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <p><em>Rapport généré automatiquement par le système de gestion des référentiels de sécurité.</em></p>
+    </div>
+</body>
+</html>`;
   };
 
   const handlePreviewReport = (template: ReportTemplate) => {
