@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
+import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -29,7 +30,7 @@ interface ActionPlanData {
   id: string;
   title: string;
   description: string;
-  frameworkType: 'ISO27001' | 'NIST';
+  frameworkType: 'ISO27001' | 'NIST' | 'CISA';
   frameworkRef: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'not_started' | 'in_progress' | 'completed' | 'blocked';
@@ -47,7 +48,7 @@ interface ActionPlanFormProps {
   onClose: () => void;
   onSubmit: (plan: Partial<ActionPlanData>) => void;
   plan?: ActionPlanData | null;
-  frameworkType: 'ISO27001' | 'NIST';
+  frameworkType: 'ISO27001' | 'NIST' | 'CISA';
 }
 
 // Équipes et responsables disponibles
@@ -92,7 +93,7 @@ export function ActionPlanForm({ isOpen, onClose, onSubmit, plan, frameworkType 
           category: category.name
         }))
       );
-    } else {
+    } else if (frameworkType === 'NIST') {
       return NIST_CSF_FUNCTIONS.flatMap(func => 
         func.categories.flatMap(category =>
           category.subCategories.map(subCategory => ({
@@ -101,6 +102,14 @@ export function ActionPlanForm({ isOpen, onClose, onSubmit, plan, frameworkType 
             category: `${func.name} - ${category.name}`
           }))
         )
+      );
+    } else {
+      return CISA_ZTMM_PILLARS.flatMap(pillar => 
+        pillar.subComponents.map(subComponent => ({
+          value: subComponent.id,
+          label: `${subComponent.id} - ${subComponent.title}`,
+          category: pillar.name
+        }))
       );
     }
   };
@@ -216,7 +225,10 @@ export function ActionPlanForm({ isOpen, onClose, onSubmit, plan, frameworkType 
             <Badge variant="outline">{frameworkType}</Badge>
           </DialogTitle>
           <DialogDescription>
-            Créer un plan d'action pour améliorer la conformité {frameworkType === 'ISO27001' ? 'ISO 27001:2022' : 'NIST CSF 2.0'}
+            Créer un plan d'action pour améliorer la conformité {
+              frameworkType === 'ISO27001' ? 'ISO 27001:2022' : 
+              frameworkType === 'NIST' ? 'NIST CSF 2.0' : 'CISA Zero Trust'
+            }
           </DialogDescription>
         </DialogHeader>
 

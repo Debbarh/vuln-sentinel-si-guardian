@@ -25,7 +25,9 @@ import { DEFAULT_FRAMEWORKS } from '@/types/frameworks';
 import { getUserDisplayName, SAMPLE_USERS } from '@/types/users';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
+import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 import { NISTAssessmentForm } from './NISTAssessmentForm';
+import { CISAAssessmentForm } from './CISAAssessmentForm';
 import { toast } from 'sonner';
 
 interface AssessmentCompletionProps {
@@ -169,6 +171,72 @@ const generateCriteriaFromFramework = (frameworkId: string): { criteria: Criteri
     });
   }
   
+  if (frameworkId === 'cisa-ztmm') {
+    CISA_ZTMM_PILLARS.forEach((pillar, pillarIndex) => {
+      // Ajouter le pilier principal (niveau 1)
+      criteria.push({
+        id: pillar.id,
+        frameworkId,
+        code: pillar.id,
+        name: pillar.name,
+        description: pillar.description,
+        level: 1,
+        order: pillarIndex + 1,
+      });
+      
+      // Ajouter les sous-composants (niveau 2)
+      pillar.subComponents.forEach((subComponent, subIndex) => {
+        criteria.push({
+          id: subComponent.id,
+          frameworkId,
+          code: subComponent.id,
+          name: subComponent.title,
+          description: subComponent.description,
+          parentId: pillar.id,
+          level: 2,
+          order: subIndex + 1,
+        });
+        
+        // Générer des questions d'évaluation CISA pour chaque sous-composant
+        const baseQuestionId = `q-${subComponent.id}`;
+        
+        // Question sur le niveau de maturité CISA
+        questions.push({
+          id: `${baseQuestionId}-maturity`,
+          criterionId: subComponent.id,
+          text: `Quel est le niveau de maturité Zero Trust pour "${subComponent.title}" ?`,
+          description: subComponent.description,
+          type: 'radio',
+          options: [
+            { id: `${baseQuestionId}-traditional`, value: '1', label: 'Traditionnel - Sécurité périmétrique', maturityLevel: 1, order: 1 },
+            { id: `${baseQuestionId}-initial`, value: '2', label: 'Initial - Premières mesures Zero Trust', maturityLevel: 2, order: 2 },
+            { id: `${baseQuestionId}-advanced`, value: '3', label: 'Avancé - Capacités Zero Trust étendues', maturityLevel: 3, order: 3 },
+            { id: `${baseQuestionId}-optimal`, value: '4', label: 'Optimal - Architecture Zero Trust complète', maturityLevel: 4, order: 4 },
+          ],
+          required: true,
+          order: 1,
+        });
+        
+        // Question sur l'implémentation actuelle
+        questions.push({
+          id: `${baseQuestionId}-implementation`,
+          criterionId: subComponent.id,
+          text: `Cette capacité Zero Trust est-elle actuellement implémentée ?`,
+          description: 'Évaluer le niveau d\'implémentation actuel',
+          type: 'radio',
+          options: [
+            { id: `${baseQuestionId}-impl-no`, value: 'no', label: 'Non implémenté', order: 1 },
+            { id: `${baseQuestionId}-impl-partial`, value: 'partial', label: 'Partiellement implémenté', order: 2 },
+            { id: `${baseQuestionId}-impl-yes`, value: 'yes', label: 'Complètement implémenté', order: 3 },
+            { id: `${baseQuestionId}-impl-na`, value: 'na', label: 'Non applicable', order: 4 },
+          ],
+          required: true,
+          order: 2,
+        });
+      });
+    });
+  }
+  
   return { criteria, questions };
 };
 
@@ -178,12 +246,14 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
   const [currentCriterionId, setCurrentCriterionId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [showNISTSpecialized, setShowNISTSpecialized] = useState(false);
+  const [showCISASpecialized, setShowCISASpecialized] = useState(false);
 
   const frameworks = DEFAULT_FRAMEWORKS.filter(f => assessment.frameworkIds.includes(f.id));
   const currentFramework = frameworks[currentFrameworkIndex];
 
-  // Vérifier si NIST CSF 2.0 est présent pour afficher l'interface spécialisée
+  // Vérifier si NIST CSF 2.0 et CISA ZTMM sont présents pour afficher les interfaces spécialisées
   const hasNISTFramework = assessment.frameworkIds.includes('nist-csf-2');
+  const hasCISAFramework = assessment.frameworkIds.includes('cisa-ztmm');
 
   const handleNISTAssessmentComplete = (nistResponses: any[]) => {
     // Convertir les réponses NIST en format standard
@@ -204,6 +274,27 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
 
     setShowNISTSpecialized(false);
     toast.success('Évaluation NIST complétée avec succès');
+  };
+
+  const handleCISAAssessmentComplete = (cisaResponses: any[]) => {
+    // Convertir les réponses CISA en format standard
+    const convertedResponses: AssessmentResponse[] = cisaResponses.map(cr => ({
+      id: `cisa-response-${cr.subComponentId}`,
+      assessmentId: assessment.id,
+      questionId: `cisa-${cr.subComponentId}`,
+      value: cr.currentMaturityLevel,
+      comment: cr.comment,
+      evaluator: 'current-user',
+      answeredAt: new Date().toISOString(),
+    }));
+
+    setResponses(prev => [
+      ...prev.filter(r => !r.questionId.startsWith('cisa-')),
+      ...convertedResponses
+    ]);
+
+    setShowCISASpecialized(false);
+    toast.success('Évaluation CISA Zero Trust complétée avec succès');
   };
   
   // Générer les critères et questions dynamiquement
@@ -462,6 +553,16 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
     );
   }
 
+  // Afficher l'interface CISA spécialisée si demandée
+  if (showCISASpecialized) {
+    return (
+      <CISAAssessmentForm
+        onComplete={handleCISAAssessmentComplete}
+        onBack={() => setShowCISASpecialized(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* En-tête */}
@@ -487,6 +588,16 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
             >
               <FileText className="h-4 w-4 mr-2" />
               Interface NIST Spécialisée
+            </Button>
+          )}
+          {hasCISAFramework && (
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCISASpecialized(true)}
+              className="border-purple-500 text-purple-600 hover:bg-purple-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Interface CISA Zero Trust
             </Button>
           )}
           <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>

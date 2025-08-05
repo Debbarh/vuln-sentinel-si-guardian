@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
+import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 import { ActionPlanForm } from './ActionPlanForm';
 import { toast } from 'sonner';
 
@@ -30,7 +31,7 @@ interface ActionPlan {
   id: string;
   title: string;
   description: string;
-  frameworkType: 'ISO27001' | 'NIST';
+  frameworkType: 'ISO27001' | 'NIST' | 'CISA';
   frameworkRef: string; // Ex: "A.5.1" pour ISO ou "GV.OC-01" pour NIST
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'not_started' | 'in_progress' | 'completed' | 'blocked';
