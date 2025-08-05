@@ -35,6 +35,7 @@ import {
 import { Assessment } from '@/types/frameworks';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
+import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 import { toast } from 'sonner';
 
 interface ResultsDashboardProps {
@@ -42,7 +43,7 @@ interface ResultsDashboardProps {
 }
 
 // Calculer les résultats basés sur les vraies données des référentiels
-const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'ISO27001') => {
+const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' | 'CISA' = 'ISO27001') => {
   if (frameworkType === 'ISO27001') {
     const categoryStats = ISO27001_CONTROLS.map(category => {
       const totalControls = category.controls.length;
@@ -126,6 +127,46 @@ const calculateResultsFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'IS
     };
   }
 
+  if (frameworkType === 'CISA') {
+    const pillarStats = CISA_ZTMM_PILLARS.map(pillar => {
+      const totalSubComponents = pillar.subComponents.length;
+      // Simuler des niveaux de maturité pour CISA (1-4)
+      const avgMaturity = Math.floor(Math.random() * 3) + 1.5; // 1.5 à 4.5
+      const implementedSubComponents = Math.floor(totalSubComponents * (avgMaturity / 4));
+      
+      return {
+        id: pillar.id,
+        name: pillar.name,
+        totalSubComponents,
+        implementedSubComponents,
+        avgMaturity: Math.round(avgMaturity * 10) / 10,
+        complianceRate: Math.round((implementedSubComponents / totalSubComponents) * 100),
+        tier: getCISATier(avgMaturity)
+      };
+    });
+
+    const overallMaturity = pillarStats.reduce((sum, pillar) => sum + pillar.avgMaturity, 0) / pillarStats.length;
+    const overallCompliance = pillarStats.reduce((sum, pillar) => sum + pillar.complianceRate, 0) / pillarStats.length;
+    const totalGaps = pillarStats.filter(p => p.avgMaturity < 2).length;
+
+    return {
+      overallScore: Math.round(overallMaturity * 10) / 10,
+      overallLevel: getCISALevel(overallMaturity),
+      totalGaps,
+      completedActions: 12,
+      totalActions: 24,
+      complianceRate: Math.round(overallCompliance),
+      pillarStats,
+      radarData: pillarStats.map(pillar => ({
+        subject: pillar.name.replace('Zero Trust ', ''),
+        current: pillar.avgMaturity,
+        target: Math.min(pillar.avgMaturity + 0.5, 4),
+        fullMark: 4
+      })),
+      barData: generateCISABarData()
+    };
+  }
+
   return {
     overallScore: 0,
     overallLevel: 'Initial',
@@ -180,6 +221,23 @@ const generateNISTBarData = () => {
   return barData.slice(0, 12); // 2 par fonction
 };
 
+// Génération des données de barres pour CISA
+const generateCISABarData = () => {
+  const barData: any[] = [];
+  
+  CISA_ZTMM_PILLARS.slice(0, 8).forEach(pillar => {
+    const score = Math.floor(Math.random() * 3) + 1.5;
+    barData.push({
+      name: pillar.name.substring(0, 15) + '...',
+      score: Math.round(score * 10) / 10,
+      target: Math.min(score + 0.5, 4),
+      pillar: pillar.name
+    });
+  });
+  
+  return barData;
+};
+
 const getMaturityLevel = (score: number): string => {
   if (score < 1) return 'Initial';
   if (score < 2) return 'Reproductible';
@@ -202,8 +260,22 @@ const getNISTTier = (score: number): string => {
   return 'Tier 4';
 };
 
+const getCISALevel = (score: number): string => {
+  if (score < 1.5) return 'Traditionnel';
+  if (score < 2.5) return 'Initial';
+  if (score < 3.5) return 'Avancé';
+  return 'Optimal';
+};
+
+const getCISATier = (score: number): string => {
+  if (score < 1.5) return 'Traditionnel';
+  if (score < 2.5) return 'Initial';
+  if (score < 3.5) return 'Avancé';
+  return 'Optimal';
+};
+
 // Génération des lacunes basées sur les vrais contrôles
-const generateGapsData = (frameworkType: 'ISO27001' | 'NIST') => {
+const generateGapsData = (frameworkType: 'ISO27001' | 'NIST' | 'CISA') => {
   const gaps: any[] = [];
   
   if (frameworkType === 'ISO27001') {
@@ -222,6 +294,19 @@ const generateGapsData = (frameworkType: 'ISO27001' | 'NIST') => {
             priority: control.priority
           });
         });
+    });
+  } else if (frameworkType === 'CISA') {
+    // Simuler des lacunes pour CISA
+    CISA_ZTMM_PILLARS.slice(0, 5).forEach(pillar => {
+      gaps.push({
+        reference: 'CISA ZTMM',
+        criterion: pillar.id,
+        subCriterion: pillar.name,
+        score: Math.floor(Math.random() * 2) + 1,
+        level: 'Initial',
+        recommendation: 'Renforcer les capacités Zero Trust pour ce pilier',
+        priority: 'high'
+      });
     });
   } else {
     NIST_CSF_FUNCTIONS.forEach(func => {
@@ -259,11 +344,11 @@ const NIST_RESULTS = calculateResultsFromFrameworks('NIST');
 
 export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
   const [selectedAssessment, setSelectedAssessment] = useState('assessment-1');
-  const [selectedFramework, setSelectedFramework] = useState<'ISO27001' | 'NIST'>('ISO27001');
+  const [selectedFramework, setSelectedFramework] = useState<'ISO27001' | 'NIST' | 'CISA'>('ISO27001');
   const [activeTab, setActiveTab] = useState('overview');
 
   // Calculer les résultats selon le framework sélectionné
-  const currentResults = selectedFramework === 'ISO27001' ? CALCULATED_RESULTS : NIST_RESULTS;
+  const currentResults = calculateResultsFromFrameworks(selectedFramework);
 
   const handleExportReport = () => {
     toast.success(`Génération du rapport ${selectedFramework} PDF en cours...`);
@@ -448,13 +533,14 @@ export function ResultsDashboard({ onBack }: ResultsDashboardProps) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Select value={selectedFramework} onValueChange={(value: 'ISO27001' | 'NIST') => setSelectedFramework(value)}>
+          <Select value={selectedFramework} onValueChange={(value: 'ISO27001' | 'NIST' | 'CISA') => setSelectedFramework(value)}>
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ISO27001">ISO 27001:2022</SelectItem>
               <SelectItem value="NIST">NIST CSF 2.0</SelectItem>
+              <SelectItem value="CISA">CISA Zero Trust</SelectItem>
             </SelectContent>
           </Select>
           <Select value={selectedAssessment} onValueChange={setSelectedAssessment}>
