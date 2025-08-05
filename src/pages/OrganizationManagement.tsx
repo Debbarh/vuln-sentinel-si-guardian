@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   Building, 
   Users, 
@@ -28,6 +29,7 @@ const OrganizationManagement = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+  const [showRoleForm, setShowRoleForm] = useState(false);
 
   // Données de démonstration
   const organizationInfo = {
@@ -425,7 +427,7 @@ const OrganizationManagement = () => {
                         Configurez les rôles et permissions de votre organisation
                       </CardDescription>
                     </div>
-                    <Button>
+                    <Button onClick={() => setShowRoleForm(true)}>
                       <UserPlus className="h-4 w-4 mr-2" />
                       Créer un rôle
                     </Button>
@@ -599,9 +601,182 @@ const OrganizationManagement = () => {
             </div>
           </TabsContent>
         </Tabs>
+        
+        {/* Formulaire de création de rôle */}
+        {showRoleForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b">
+                <h2 className="text-xl font-semibold">Créer un nouveau rôle</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowRoleForm(false)}
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                <form className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="roleName">Nom du rôle</Label>
+                      <Input id="roleName" placeholder="Ex: Analyste Senior" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="roleIcon">Icône</Label>
+                      <Select defaultValue="shield">
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="shield">🛡️ Shield</SelectItem>
+                          <SelectItem value="user">👤 User</SelectItem>
+                          <SelectItem value="settings">⚙️ Settings</SelectItem>
+                          <SelectItem value="crown">👑 Crown</SelectItem>
+                          <SelectItem value="briefcase">💼 Briefcase</SelectItem>
+                          <SelectItem value="computer">💻 Computer</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="roleDescription">Description</Label>
+                    <Textarea 
+                      id="roleDescription" 
+                      placeholder="Décrivez les responsabilités de ce rôle..."
+                      rows={3}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="roleColor">Couleur du rôle</Label>
+                    <Select defaultValue="blue">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="blue">🔵 Bleu</SelectItem>
+                        <SelectItem value="green">🟢 Vert</SelectItem>
+                        <SelectItem value="red">🔴 Rouge</SelectItem>
+                        <SelectItem value="purple">🟣 Violet</SelectItem>
+                        <SelectItem value="orange">🟠 Orange</SelectItem>
+                        <SelectItem value="gray">⚫ Gris</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <Label>Permissions du rôle</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm text-gray-700">Gestion des évaluations</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="view_assessments" className="rounded" />
+                            <Label htmlFor="view_assessments" className="text-sm">Consulter les évaluations</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="create_assessments" className="rounded" />
+                            <Label htmlFor="create_assessments" className="text-sm">Créer des évaluations</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="edit_assessments" className="rounded" />
+                            <Label htmlFor="edit_assessments" className="text-sm">Modifier les évaluations</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="delete_assessments" className="rounded" />
+                            <Label htmlFor="delete_assessments" className="text-sm">Supprimer les évaluations</Label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm text-gray-700">Gestion des utilisateurs</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="view_users" className="rounded" />
+                            <Label htmlFor="view_users" className="text-sm">Consulter les utilisateurs</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="invite_users" className="rounded" />
+                            <Label htmlFor="invite_users" className="text-sm">Inviter des utilisateurs</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="edit_users" className="rounded" />
+                            <Label htmlFor="edit_users" className="text-sm">Modifier les utilisateurs</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="delete_users" className="rounded" />
+                            <Label htmlFor="delete_users" className="text-sm">Supprimer les utilisateurs</Label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm text-gray-700">Gestion des rapports</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="view_reports" className="rounded" />
+                            <Label htmlFor="view_reports" className="text-sm">Consulter les rapports</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="generate_reports" className="rounded" />
+                            <Label htmlFor="generate_reports" className="text-sm">Générer des rapports</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="export_reports" className="rounded" />
+                            <Label htmlFor="export_reports" className="text-sm">Exporter les rapports</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="schedule_reports" className="rounded" />
+                            <Label htmlFor="schedule_reports" className="text-sm">Programmer les rapports</Label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-sm text-gray-700">Administration</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="manage_settings" className="rounded" />
+                            <Label htmlFor="manage_settings" className="text-sm">Gérer les paramètres</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="manage_roles" className="rounded" />
+                            <Label htmlFor="manage_roles" className="text-sm">Gérer les rôles</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="view_audit_logs" className="rounded" />
+                            <Label htmlFor="view_audit_logs" className="text-sm">Consulter les logs d'audit</Label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <Button 
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setShowRoleForm(false)}
+                    >
+                      Annuler
+                    </Button>
+                    <Button type="submit">
+                      Créer le rôle
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
 };
 
 export default OrganizationManagement;
