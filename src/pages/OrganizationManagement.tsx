@@ -41,7 +41,50 @@ const OrganizationManagement = () => {
     createdDate: "2024-01-15",
     logo: null as string | null
   };
-
+  
+  // Données des départements
+  const departments = [
+    {
+      id: 1,
+      name: "Sécurité Informatique",
+      description: "Département responsable de la sécurité des systèmes d'information",
+      manager: "Marie Dubois",
+      employeeCount: 12,
+      budget: "850000",
+      status: "active",
+      createdDate: "2024-01-15"
+    },
+    {
+      id: 2,
+      name: "Développement",
+      description: "Équipe de développement logiciel et applications",
+      manager: "Pierre Martin",
+      employeeCount: 25,
+      budget: "1200000",
+      status: "active",
+      createdDate: "2024-01-10"
+    },
+    {
+      id: 3,
+      name: "Infrastructure",
+      description: "Gestion des infrastructures et systèmes",
+      manager: "Jean Leclerc",
+      employeeCount: 8,
+      budget: "650000",
+      status: "active",
+      createdDate: "2024-02-01"
+    },
+    {
+      id: 4,
+      name: "Conformité",
+      description: "Assurance conformité et audit interne",
+      manager: "Sophie Moreau",
+      employeeCount: 5,
+      budget: "400000",
+      status: "active",
+      createdDate: "2024-01-20"
+    }
+  ];
   const users = [
     {
       id: 1,
@@ -215,7 +258,7 @@ const OrganizationManagement = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">
               <Building className="h-4 w-4 mr-2" />
               Vue d'ensemble
@@ -227,6 +270,10 @@ const OrganizationManagement = () => {
             <TabsTrigger value="roles">
               <Shield className="h-4 w-4 mr-2" />
               Rôles
+            </TabsTrigger>
+            <TabsTrigger value="departments">
+              <Building2 className="h-4 w-4 mr-2" />
+              Départements
             </TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="h-4 w-4 mr-2" />
@@ -598,6 +645,122 @@ const OrganizationManagement = () => {
                   </Button>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
+
+          {/* Gestion des départements */}
+          <TabsContent value="departments">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Gestion des Départements</CardTitle>
+                      <CardDescription>
+                        Organisez les départements de votre entreprise
+                      </CardDescription>
+                    </div>
+                    <Button>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Créer un département
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    {departments.map((dept) => (
+                      <Card key={dept.id} className="border-2 border-blue-200">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-4 flex-1">
+                              <div className="p-3 rounded-lg bg-blue-100 text-blue-800">
+                                <Building2 className="h-6 w-6" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h3 className="text-lg font-semibold">{dept.name}</h3>
+                                  <Badge variant="outline" className="text-green-700 border-green-200">
+                                    {dept.employeeCount} employé{dept.employeeCount > 1 ? 's' : ''}
+                                  </Badge>
+                                  <Badge variant="secondary">
+                                    {dept.status === 'active' ? 'Actif' : 'Inactif'}
+                                  </Badge>
+                                </div>
+                                <p className="text-gray-600 mb-3">{dept.description}</p>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <span className="font-medium text-gray-700">Manager:</span>
+                                    <span className="ml-2">{dept.manager}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium text-gray-700">Budget:</span>
+                                    <span className="ml-2">{parseInt(dept.budget).toLocaleString('fr-FR')} €</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline">
+                                <Edit className="h-4 w-4 mr-1" />
+                                Modifier
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Statistiques des départements */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total départements</CardTitle>
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{departments.length}</div>
+                    <p className="text-xs text-muted-foreground">
+                      Départements actifs
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total employés</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {departments.reduce((total, dept) => total + dept.employeeCount, 0)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Répartis dans tous les départements
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Budget total</CardTitle>
+                    <Settings className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {departments.reduce((total, dept) => total + parseInt(dept.budget), 0).toLocaleString('fr-FR')} €
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Budget annuel cumulé
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
