@@ -8,14 +8,38 @@ import { FrameworkManagement } from "@/components/FrameworkManagement";
 import { AssessmentManagement } from "@/components/AssessmentManagement";
 import { ResultsDashboard } from "@/components/ResultsDashboard";
 import { ActionPlanManagement } from "@/components/ActionPlanManagement";
+import { FrameworkComparison } from "@/components/FrameworkComparison";
+import { NISTProfileManager } from "@/components/NISTProfileManager";
 import { toast } from "sonner";
 
 const MaturityAssessment = () => {
   const [activeTab, setActiveTab] = useState("frameworks");
+  const [currentView, setCurrentView] = useState<'main' | 'comparison' | 'nist-profiles'>('main');
 
   const handleGenerateReport = () => {
     toast.success("Génération du rapport en cours...");
   };
+
+  const handleBackToMain = () => {
+    setCurrentView('main');
+  };
+
+  // Navigation conditionnelle
+  if (currentView === 'comparison') {
+    return (
+      <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        <FrameworkComparison onBack={() => setCurrentView('main')} />
+      </DashboardLayout>
+    );
+  }
+
+  if (currentView === 'nist-profiles') {
+    return (
+      <DashboardLayout activeTab={activeTab} onTabChange={setActiveTab}>
+        <NISTProfileManager onBack={() => setCurrentView('main')} />
+      </DashboardLayout>
+    );
+  }
 
   const renderResultsDashboard = () => (
     <div className="space-y-6">
