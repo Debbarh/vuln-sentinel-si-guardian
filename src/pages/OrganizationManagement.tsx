@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +40,8 @@ const OrganizationManagement = () => {
   const [showRoleForm, setShowRoleForm] = useState(false);
   const [showDepartmentForm, setShowDepartmentForm] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<any>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [departmentToDelete, setDepartmentToDelete] = useState<any>(null);
 
   // Données de démonstration
   const organizationInfo = {
@@ -722,16 +725,13 @@ const OrganizationManagement = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
-                                    <Users className="h-4 w-4 mr-2" />
-                                    Voir les employés
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Settings className="h-4 w-4 mr-2" />
-                                    Paramètres
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-red-600">
+                                  <DropdownMenuItem 
+                                    className="text-red-600"
+                                    onClick={() => {
+                                      setDepartmentToDelete(dept);
+                                      setShowDeleteConfirm(true);
+                                    }}
+                                  >
                                     <Trash2 className="h-4 w-4 mr-2" />
                                     Supprimer
                                   </DropdownMenuItem>
@@ -1055,6 +1055,38 @@ const OrganizationManagement = () => {
             </div>
           </div>
         )}
+        
+        {/* Confirmation de suppression du département */}
+        <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir supprimer le département "{departmentToDelete?.name}" ? 
+                Cette action est irréversible et tous les employés de ce département devront être réassignés.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setShowDeleteConfirm(false);
+                setDepartmentToDelete(null);
+              }}>
+                Annuler
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                className="bg-red-600 hover:bg-red-700"
+                onClick={() => {
+                  // Ici on ajouterait la logique de suppression
+                  console.log(`Suppression du département: ${departmentToDelete?.name}`);
+                  setShowDeleteConfirm(false);
+                  setDepartmentToDelete(null);
+                }}
+              >
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
