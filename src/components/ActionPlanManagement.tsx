@@ -27,12 +27,15 @@ import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 import { ActionPlanForm } from './ActionPlanForm';
 import { toast } from 'sonner';
 
+const SUPPORTED_FRAMEWORKS = ['iso27001', 'nist-csf-2', 'cisa-ztmm'] as const;
+type SupportedFramework = typeof SUPPORTED_FRAMEWORKS[number];
+
 interface ActionPlan {
   id: string;
   title: string;
   description: string;
   frameworkType: 'ISO27001' | 'NIST' | 'CISA';
-  frameworkRef: string; // Ex: "A.5.1" pour ISO ou "GV.OC-01" pour NIST
+  frameworkRef: string;
   priority: 'low' | 'medium' | 'high' | 'critical';
   status: 'not_started' | 'in_progress' | 'completed' | 'blocked';
   assignee: string;
@@ -48,7 +51,7 @@ interface ActionPlan {
 }
 
 // Génération des plans d'action basés sur les référentiels
-const generateActionPlansFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 'ISO27001'): ActionPlan[] => {
+const generateActionPlansFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' | 'CISA' = 'ISO27001'): ActionPlan[] => {
   const plans: ActionPlan[] = [];
 
   if (frameworkType === 'ISO27001') {
@@ -111,6 +114,36 @@ const generateActionPlansFromFrameworks = (frameworkType: 'ISO27001' | 'NIST' = 
     });
   }
 
+  if (frameworkType === 'CISA') {
+    CISA_ZTMM_PILLARS.forEach(pillar => {
+      pillar.subComponents.forEach(subComponent => {
+        // Simuler des niveaux de maturité faibles pour générer des plans
+        const maturityLevel = Math.floor(Math.random() * 3); // 0-2
+        if (maturityLevel < 2) {
+          plans.push({
+            id: `cisa-${subComponent.id}`,
+            title: `Renforcer ${subComponent.title}`,
+            description: `Améliorer les capacités Zero Trust pour: ${subComponent.description}`,
+            frameworkType: 'CISA',
+            frameworkRef: subComponent.id,
+            priority: maturityLevel === 0 ? 'critical' : 'high',
+            status: maturityLevel === 0 ? 'not_started' : 'in_progress',
+            assignee: 'Équipe Zero Trust',
+            dueDate: new Date(Date.now() + (120 - maturityLevel * 45) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            estimatedEffort: maturityLevel === 0 ? '3-6 mois' : '2-4 mois',
+            category: pillar.name,
+            tags: ['zero-trust', 'cisa-ztmm', pillar.id],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            completionPercentage: maturityLevel * 30,
+            dependencies: [],
+            businessImpact: maturityLevel === 0 ? 'critical' : 'high'
+          });
+        }
+      });
+    });
+  }
+
   return plans.sort((a, b) => {
     const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
     return priorityOrder[b.priority] - priorityOrder[a.priority];
@@ -122,7 +155,7 @@ interface ActionPlanManagementProps {
 }
 
 export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
-  const [selectedFramework, setSelectedFramework] = useState<'ISO27001' | 'NIST'>('ISO27001');
+  const [selectedFramework, setSelectedFramework] = useState<'ISO27001' | 'NIST' | 'CISA'>('ISO27001');
   const [actionPlans, setActionPlans] = useState<ActionPlan[]>(() => 
     generateActionPlansFromFrameworks(selectedFramework)
   );
@@ -421,18 +454,22 @@ export function ActionPlanManagement({ onBack }: ActionPlanManagementProps) {
           <div>
             <h2 className="text-2xl font-bold">Gestion des Plans d'Action</h2>
             <p className="text-muted-foreground">
-              Plans d'amélioration basés sur {selectedFramework === 'ISO27001' ? 'ISO 27001:2022' : 'NIST CSF 2.0'}
+              Plans d'amélioration basés sur {
+                selectedFramework === 'ISO27001' ? 'ISO 27001:2022' : 
+                selectedFramework === 'NIST' ? 'NIST CSF 2.0' : 'CISA Zero Trust'
+              }
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Select value={selectedFramework} onValueChange={(value: 'ISO27001' | 'NIST') => setSelectedFramework(value)}>
+          <Select value={selectedFramework} onValueChange={(value: 'ISO27001' | 'NIST' | 'CISA') => setSelectedFramework(value)}>
             <SelectTrigger className="w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ISO27001">ISO 27001:2022</SelectItem>
               <SelectItem value="NIST">NIST CSF 2.0</SelectItem>
+              <SelectItem value="CISA">CISA Zero Trust</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={handleExportPlans} variant="outline">
