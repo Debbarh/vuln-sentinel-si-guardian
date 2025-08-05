@@ -20,6 +20,7 @@ import { QuestionForm } from './QuestionForm';
 import { toast } from 'sonner';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
+import { CISA_ZTMM_PILLARS } from '@/data/cisaControls';
 
 interface FrameworkDetailsProps {
   framework: ReferenceFramework;
@@ -103,6 +104,39 @@ export function FrameworkDetails({ framework, onBack, onUpdate }: FrameworkDetai
               level: 3,
               order: subIndex + 1,
             });
+          });
+        });
+      });
+      
+      return criteria;
+    }
+    
+    if (framework.id === 'cisa-ztmm' && framework.type === 'CISA') {
+      const criteria: Criterion[] = [];
+      
+      // Ajouter les piliers principaux (niveau 1)
+      CISA_ZTMM_PILLARS.forEach((pillar, pillarIndex) => {
+        criteria.push({
+          id: pillar.id,
+          frameworkId: framework.id,
+          code: pillar.id,
+          name: pillar.name,
+          description: pillar.description,
+          level: 1,
+          order: pillarIndex + 1,
+        });
+        
+        // Ajouter les sous-composants (niveau 2)
+        pillar.subComponents.forEach((component, componentIndex) => {
+          criteria.push({
+            id: component.id,
+            frameworkId: framework.id,
+            code: component.id,
+            name: component.title,
+            description: component.description,
+            parentId: pillar.id,
+            level: 2,
+            order: componentIndex + 1,
           });
         });
       });
