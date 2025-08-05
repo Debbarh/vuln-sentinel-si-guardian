@@ -548,19 +548,6 @@ const OrganizationManagement = () => {
                     <Label htmlFor="orgName">Nom de l'organisation</Label>
                     <Input id="orgName" value={organizationInfo.name} />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="orgType">Type de déploiement</Label>
-                    <Select value={organizationInfo.type}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="saas">SaaS (Cloud)</SelectItem>
-                        <SelectItem value="onpremise">On-premise</SelectItem>
-                        <SelectItem value="hybrid">Hybride</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <Button>Sauvegarder les modifications</Button>
                 </CardContent>
               </Card>
