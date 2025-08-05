@@ -25,6 +25,7 @@ import { DEFAULT_FRAMEWORKS } from '@/types/frameworks';
 import { getUserDisplayName, SAMPLE_USERS } from '@/types/users';
 import { ISO27001_CONTROLS } from '@/data/iso27001Controls';
 import { NIST_CSF_FUNCTIONS } from '@/data/nistControls';
+import { NISTAssessmentForm } from './NISTAssessmentForm';
 import { toast } from 'sonner';
 
 interface AssessmentCompletionProps {
@@ -176,9 +177,34 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
   const [currentFrameworkIndex, setCurrentFrameworkIndex] = useState(0);
   const [currentCriterionId, setCurrentCriterionId] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showNISTSpecialized, setShowNISTSpecialized] = useState(false);
 
   const frameworks = DEFAULT_FRAMEWORKS.filter(f => assessment.frameworkIds.includes(f.id));
   const currentFramework = frameworks[currentFrameworkIndex];
+
+  // Vérifier si NIST CSF 2.0 est présent pour afficher l'interface spécialisée
+  const hasNISTFramework = assessment.frameworkIds.includes('nist-csf-2');
+
+  const handleNISTAssessmentComplete = (nistResponses: any[]) => {
+    // Convertir les réponses NIST en format standard
+    const convertedResponses: AssessmentResponse[] = nistResponses.map(nr => ({
+      id: `nist-response-${nr.subCategoryId}`,
+      assessmentId: assessment.id,
+      questionId: `nist-${nr.subCategoryId}`,
+      value: nr.currentTier,
+      comment: nr.comment,
+      evaluator: 'current-user',
+      answeredAt: new Date().toISOString(),
+    }));
+
+    setResponses(prev => [
+      ...prev.filter(r => !r.questionId.startsWith('nist-')),
+      ...convertedResponses
+    ]);
+
+    setShowNISTSpecialized(false);
+    toast.success('Évaluation NIST complétée avec succès');
+  };
   
   // Générer les critères et questions dynamiquement
   const { criteria, questions } = generateCriteriaFromFramework(currentFramework?.id || '');
@@ -426,6 +452,16 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
     responses.some(r => r.questionId === q.id)
   );
 
+  // Afficher l'interface NIST spécialisée si demandée
+  if (showNISTSpecialized) {
+    return (
+      <NISTAssessmentForm
+        onComplete={handleNISTAssessmentComplete}
+        onBack={() => setShowNISTSpecialized(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* En-tête */}
@@ -443,6 +479,16 @@ export function AssessmentCompletion({ assessment, onBack, onUpdate }: Assessmen
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          {hasNISTFramework && (
+            <Button 
+              variant="outline" 
+              onClick={() => setShowNISTSpecialized(true)}
+              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Interface NIST Spécialisée
+            </Button>
+          )}
           <Button variant="outline" onClick={handleSaveDraft} disabled={isSaving}>
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
