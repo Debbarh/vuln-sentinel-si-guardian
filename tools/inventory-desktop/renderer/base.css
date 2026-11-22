@@ -1,0 +1,339 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource-variable/jost';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Police arabe servie par l'application (CSP font-src 'self'), même rendu sur tous les postes.
+   Seul le sous-ensemble arabe est déclaré : le reste du texte garde Jost, et le
+   fichier n'est téléchargé que lorsque la page contient de l'arabe. Licence OFL 1.1. */
+@font-face {
+  font-family: 'Noto Sans Arabic Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/noto-sans-arabic/files/noto-sans-arabic-arabic-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC, U+102E0-102FB, U+10E60-10E7E, U+10EC2-10EC4, U+10EFC-10EFF, U+1EE00-1EEFF;
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= --theme(--breakpoint-sm)) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
+
+/* inline : les utilitaires utilisent directement hsl(var(--…)), si bien qu'une classe .dark posée
+   sur n'importe quel élément change bien les couleurs de son sous-arbre. */
+@theme inline {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-hover: hsl(var(--primary-hover));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-hover: hsl(var(--destructive-hover));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-soft: hsl(var(--success-soft));
+  --color-success-solid: #087f5b;
+  --color-warning: hsl(var(--warning));
+  --color-warning-soft: hsl(var(--warning-soft));
+  --color-warning-solid: #8a4b08;
+  --color-danger: hsl(var(--danger));
+  --color-danger-soft: hsl(var(--danger-soft));
+  --color-info: hsl(var(--info));
+  --color-info-soft: hsl(var(--info-soft));
+  --color-brand: #135DFB;
+  --color-surface: hsl(var(--surface));
+  --color-chart-1: hsl(var(--primary));
+  --color-chart-2: hsl(var(--success));
+  --color-chart-3: hsl(var(--warning));
+  --color-chart-4: hsl(var(--danger));
+  --color-chart-5: hsl(var(--muted-foreground));
+
+  --font-sans: "Jost Variable", "Noto Sans Arabic Variable", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --shadow-panel: 0 2px 8px -4px hsl(var(--foreground) / 0.1), 0 0 0 1px hsl(var(--foreground) / 0.015);
+  --shadow-float: 0 12px 36px -12px hsl(var(--foreground) / 0.22);
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/*
+  Tailwind v4 rend aux boutons le curseur par défaut du navigateur ; on garde le comportement de la
+  v3 (curseur « main ») pour ne pas changer l'ergonomie des écrans existants.
+*/
+@layer base {
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --background: 220 33% 97.5%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 220.86 96.67% 52.94%;
+    --primary-hover: 221 90% 46%;
+    --primary-foreground: 0 0% 100%;
+
+    --surface: 220 30% 99%;
+    --secondary: 220 24% 95%;
+    --secondary-foreground: 222 47% 18%;
+
+    --muted: 220 24% 95%;
+    /* Contraste 5,0:1 sur --muted et 5,6:1 sur blanc (seuil WCAG AA : 4,5:1). */
+    --muted-foreground: 215 16% 42%;
+
+    --accent: 220 50% 96%;
+    --accent-foreground: 222 47% 18%;
+
+    /* #dc2626 (au lieu de #ef4444) : texte clair à 4,62:1, seuil WCAG AA 4,5:1. */
+    --destructive: 0 72.2% 50.6%;
+    --destructive-hover: 0 72% 43%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 22% 90%;
+    --input: 220 18% 78%;
+    --ring: var(--primary);
+
+    --success: 161 75% 25%;
+    --success-soft: 155 45% 95%;
+    --warning: 31 90% 28%;
+    --warning-soft: 43 95% 95%;
+    --danger: 0 68% 38%;
+    --danger-soft: 0 85% 97%;
+    --info: 222 80% 35%;
+    --info-soft: 220 100% 97%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+
+    --sidebar-foreground: 222 30% 20%;
+
+    --sidebar-primary: 220.86 96.67% 52.94%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 220 100% 96%;
+
+    --sidebar-accent-foreground: 222 80% 35%;
+
+    --sidebar-border: 220 22% 90%;
+
+    --sidebar-ring: 217 91% 54%;
+  }
+
+  @media screen {
+  .dark {
+    color-scheme: dark;
+    --background: 222 47% 8%;
+    --foreground: 210 40% 96%;
+
+    --card: 222 38% 11%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 222 38% 11%;
+    --popover-foreground: 210 40% 96%;
+
+    --surface: 222 35% 10%;
+
+    --primary: 220 100% 73%;
+    --primary-hover: 220 100% 78%;
+    --primary-foreground: 222 47% 8%;
+
+    --secondary: 222 28% 18%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 222 28% 18%;
+    --muted-foreground: 215 20% 72%;
+
+    --accent: 222 28% 18%;
+    --accent-foreground: 210 40% 96%;
+
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 157 62% 70%;
+    --success-soft: 162 34% 14%;
+    --warning: 40 95% 75%;
+    --warning-soft: 35 40% 15%;
+    --danger: 0 90% 79%;
+    --danger-soft: 0 35% 16%;
+    --info: 218 100% 81%;
+    --info-soft: 222 45% 17%;
+
+    --border: 222 24% 22%;
+    --input: 222 24% 24%;
+    --ring: var(--primary);
+    --sidebar-background: 222 38% 10%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 45% 17%;
+    --sidebar-accent-foreground: 218 100% 81%;
+    --sidebar-border: 222 24% 22%;
+    --sidebar-ring: 217 91% 62%;
+  }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  html { scroll-padding-top: 5rem; }
+  ::selection { background: hsl(var(--primary) / 0.18); }
+  input, textarea, select { accent-color: hsl(var(--primary)); }
+  select { @apply border-input bg-card text-foreground transition-colors; }
+  select:focus-visible { @apply outline-hidden ring-2 ring-ring ring-offset-2 ring-offset-background; }
+  select:disabled { @apply cursor-not-allowed opacity-50; }
+  select option { @apply bg-popover text-popover-foreground; }
+  summary { @apply rounded-md; }
+  summary:focus-visible { @apply outline-hidden ring-2 ring-ring ring-offset-2 ring-offset-background; }
+  :where([dir='rtl']) { letter-spacing: normal; }
+  .recharts-cartesian-axis-tick text, .recharts-polar-angle-axis-tick text,
+  .recharts-polar-radius-axis-tick text { fill: hsl(var(--muted-foreground)); }
+  .recharts-cartesian-grid line, .recharts-polar-grid-angle line,
+  .recharts-polar-grid-concentric path { stroke: hsl(var(--border)); }
+}
+
+html[data-theme-changing] *, html[data-theme-changing] ::before, html[data-theme-changing] ::after {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* In-app reports use the light tokens on paper, including when the workspace is dark. */
+@media print {
+  @page { size: A4; margin: 16mm 14mm; }
+  :root { --background: 0 0% 100%; color-scheme: light; }
+  html, body { background: white; }
+  [data-slot="workspace-shell"] { min-height: 0; }
+  [data-slot="workspace-shell"] > a,
+  [data-slot="workspace-shell"] > aside,
+  [data-slot="workspace-body"] > header,
+  [data-sonner-toaster],
+  .recharts-tooltip-wrapper,
+  .recharts-tooltip-cursor { display: none !important; }
+  [data-slot="workspace-body"] { padding-inline-start: 0 !important; }
+  [data-slot="workspace-body"] > [id] { max-width: none; padding: 0; }
+  [data-slot="workspace-body"] > footer { padding-inline: 0; }
+  [data-slot="table-container"] { overflow: visible; border-radius: 0; }
+  [data-slot="compliance-report"] button { display: none !important; }
+  [data-slot="compliance-report"] .overflow-x-auto { overflow: visible; }
+  table { width: 100%; }
+  th, td { white-space: normal !important; overflow-wrap: anywhere; }
+  thead { display: table-header-group; }
+  tr, [data-slot="security-report"] [data-slot="card-header"] { break-inside: avoid; }
+  h1, h2, h3 { break-after: avoid; }
+  p { orphans: 3; widows: 3; }
+  [data-slot="security-report"] { font-size: 10pt; }
+  [data-slot="workspace-shell"] [data-slot="card"] { box-shadow: none; }
+  [data-slot="security-report"] a { overflow-wrap: anywhere; }
+  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}

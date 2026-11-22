@@ -1,0 +1,3 @@
+const{contextBridge,ipcRenderer}=require('electron');
+const invoke=(name,...args)=>ipcRenderer.invoke('collector:'+name,...args);
+contextBridge.exposeInMainWorld('collector',Object.freeze({state:()=>invoke('state'),initialise:()=>invoke('initialise'),enroll:(id,token)=>invoke('enroll',id,token),refresh:()=>invoke('refresh'),chooseReports:()=>invoke('chooseReports'),preview:()=>invoke('preview'),sendReports:confirmed=>invoke('sendReports',confirmed),discardReports:language=>invoke('discardReports',language),saveProfile:profile=>invoke('saveProfile',profile),removeProfile:name=>invoke('removeProfile',name),copyFingerprint:()=>invoke('copyFingerprint'),openConsole:()=>invoke('openConsole')}));

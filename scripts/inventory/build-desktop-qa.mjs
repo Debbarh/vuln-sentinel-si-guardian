@@ -1,0 +1,2 @@
+import{createRequire}from'node:module';import{pathToFileURL}from'node:url';const require=createRequire(new URL('../../tools/inventory-desktop/package.json',import.meta.url));const{build}=await import(pathToFileURL(require.resolve('vite')).href);
+await build({configFile:false,root:process.cwd(),publicDir:false,logLevel:'error',build:{target:'es2022',minify:false,outDir:'tools/inventory-desktop/qa',emptyOutDir:false,lib:{entry:'tools/inventory-desktop/qa/fixture.mjs',formats:['cjs'],fileName:()=> 'fixture.cjs'},rolldownOptions:{platform:'node',external:/^node:/}}});

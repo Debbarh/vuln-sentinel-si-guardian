@@ -1,0 +1,70 @@
+name: Inventory desktop preview qualification
+on:
+  pull_request:
+    paths:
+      - 'tools/inventory-desktop/**'
+      - 'scripts/inventory/*desktop*'
+      - '.github/workflows/inventory-desktop.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            target: mac
+          - os: windows-2025
+            target: win
+          - os: ubuntu-24.04
+            target: linux
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 26.13.0
+          cache: npm
+          cache-dependency-path: |
+            tools/inventory-desktop/package-lock.json
+      - run: npm ci --ignore-scripts --prefix tools/inventory-desktop
+      - run: node tools/inventory-desktop/node_modules/electron/install.js
+      - run: node scripts/inventory/build-desktop.mjs
+      - run: node tools/inventory-desktop/node_modules/typescript/bin/tsc -p tools/inventory-desktop/tsconfig.json --noEmit
+      - run: npm test --prefix tools/inventory-desktop
+      - run: node scripts/inventory/build-desktop-qa.mjs
+      - if: runner.os != 'Linux'
+        run: node tools/inventory-desktop/qa/check-native.mjs
+      - if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          sudo apt-get update
+          sudo apt-get install -y xvfb dbus-x11 gnome-keyring libsecret-1-0 libgtk-3-0 libnss3 libasound2t64 libgbm1
+          xvfb-run -a dbus-run-session -- bash -euc '
+            export XDG_CURRENT_DESKTOP=GNOME
+            export DESKTOP_SESSION=gnome
+            test_keyring_password=$(openssl rand -hex 32)
+            printf "%s" "$test_keyring_password" | gnome-keyring-daemon --unlock --components=secrets
+            node tools/inventory-desktop/qa/check-native.mjs
+          '
+      - run: npm audit --prefix tools/inventory-desktop --audit-level=moderate
+      - run: node tools/inventory-desktop/node_modules/electron-builder/cli.js --projectDir tools/inventory-desktop --${{ matrix.target }} --publish never
+      - run: node scripts/inventory/verify-desktop-package.mjs
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: collector-preview-${{ matrix.target }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/qualification.json
+            tools/inventory-desktop/release/SHA256SUMS
+            tools/inventory-desktop/release/*.dmg
+            tools/inventory-desktop/release/*.zip
+            tools/inventory-desktop/release/*.exe
+            tools/inventory-desktop/release/*.AppImage
+            tools/inventory-desktop/release/*.deb
+            .codex/artifacts/cyber-skill/desktop-client/native-qa.json
