@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "private": true,
   "description": "Collecteur local s\u00e9curis\u00e9 Cyber-Skill",
-  "author": "Cyber-Skill",
+  "author": {
+    "name": "Cyber-Skill",
+    "email": "no-reply@cyber-skill.com"
+  },
   "license": "UNLICENSED",
   "main": "build/main.cjs",
   "scripts": {
@@ -104,5 +107,6 @@
   },
   "overrides": {
     "minimatch@>=7.0.0 <11.0.1": "11.0.9"
-  }
+  },
+  "homepage": "https://cyber-skill.com"
 }
