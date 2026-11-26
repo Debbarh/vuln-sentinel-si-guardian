@@ -43,8 +43,8 @@ export async function handleCollector(request:Request,env:ApiEnv,http:Http=fetch
  const reply=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...headers,...(status===429?{'Retry-After':'3600'}:status===409?{'Retry-After':'5'}:{})}});
  let lease:string|undefined,id:string|undefined,batch:string|undefined;
  try{
-  const url=new URL(request.url),action=/^\/collector\/v1\/(enroll|push|status|discard)$/.exec(url.pathname.replace(/^.*\/veille-api/,''))?.[1];
-  if(!['enroll','push','status','discard'].includes(action??''))return reply({error:'not_found'},404);
+  const url=new URL(request.url),action=/^\/collector\/v1\/(enroll|push|status|discard|policy)$/.exec(url.pathname.replace(/^.*\/veille-api/,''))?.[1];
+  if(!['enroll','push','status','discard','policy'].includes(action??''))return reply({error:'not_found'},404);
   if(request.method!=='POST')return reply({error:'method_not_allowed'},405);
   if(request.headers.has('origin')||url.search||!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type')??'')||!['identity',''].includes(request.headers.get('content-encoding')??''))throw new CollectorError('invalid',400);
   const origin=env.collectorOrigin;if(!origin||!env.url||!env.serviceKey||!/^https:\/\//.test(origin)||new URL(origin).origin!==origin)throw new CollectorError('unavailable',503);
@@ -62,8 +62,12 @@ export async function handleCollector(request:Request,env:ApiEnv,http:Http=fetch
    ||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(time)||!Number.isFinite(Date.parse(time))||new Date(time).toISOString()!==time||Math.abs(now()-Date.parse(time))>300000)throw new CollectorError('forbidden',401);
   const key=await call<{public_key:string;fingerprint:string;status:string;id:string;sequence:string;expires_at:string}>(env,http,'watch_collector_key',{collector:id});
   if(!key||key.id!==id||!await verify(key.public_key,requestMessage(origin,action!,id,batch,sequence,time,hash),signature))throw new CollectorError('forbidden',401);
-  if(action==='status'){
+  if(action==='status'||action==='policy'){
    let raw='';const content=await limitedJson(new Response(request.body),512,value=>{raw=value;});if(JSON.stringify(content)!=='{}'||hash!==await sha256(raw))throw new CollectorError('integrity',422);
+   if(action==='policy'){
+    if(key.status!=='active')throw new CollectorError('forbidden',401);
+    return reply(await call(env,http,'watch_collector_network_mandate',{collector:id,key_fingerprint:key.fingerprint,request_id:batch}));
+   }
    return reply({id:key.id,fingerprint:key.fingerprint,status:key.status,sequence:key.sequence,expires_at:key.expires_at});
   }
   if(key.status!=='active')throw new CollectorError('forbidden',401);

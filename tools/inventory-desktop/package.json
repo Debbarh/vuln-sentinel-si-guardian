@@ -1,7 +1,7 @@
 {
   "name": "cyber-skill-inventory-desktop",
   "productName": "Cyber-Skill Collector",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Collecteur local s\u00e9curis\u00e9 Cyber-Skill",
   "author": {

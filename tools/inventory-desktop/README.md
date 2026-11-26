@@ -1,4 +1,4 @@
-# Cyber-Skill Collector — client graphique 0.1.0
+# Cyber-Skill Collector — client graphique 0.2.0
 
 Application locale React/shadcn embarquée dans Electron 45.4.1. L’utilisateur n’installe pas Node et ne saisit pas de commandes. Le client utilise le protocole Ed25519 du collecteur existant et la même base Supabase ; aucune base locale métier, aucun serveur GLPI ou Netdisco n’est ajouté.
 
@@ -55,3 +55,13 @@ Le workflow `inventory-desktop.yml` teste les PR ciblées sur Windows, macOS et 
 Les outils de packaging utilisent une surcharge ciblée de minimatch 11.0.9 pour remplacer les versions 7–11.0.0 signalées par npm audit ; les anciennes API 3/5 restent inchangées. Les notices des dépendances effectivement incluses sont générées ; le texte MIT omis du paquet npm react-remove-scroll-bar est conservé depuis son dépôt officiel avec URL de commit et empreinte dans `licenses/supplemental.json`.
 
 Sources : [sécurité Electron](https://www.electronjs.org/docs/latest/tutorial/security), [safeStorage et frontières de confiance](https://www.electronjs.org/docs/latest/api/safe-storage), [packaging electron-builder](https://www.electron.build/configuration/), [SNMP::Info du projet Netdisco](https://github.com/netdisco/snmp-info).
+
+## Mandat réseau — préversion 0.2.0
+
+Le bouton **Récupérer le mandat** demande le périmètre actuel par le protocole Ed25519 existant. La réponse est liée à l’identité, à l’empreinte de sa clé et au nonce signé de cette demande. La route ne consomme pas une séquence d’import et ne réserve aucun transfert. Une identité inactive, expirée ou une organisation fermée ne reçoit aucun périmètre ; PostgreSQL revérifie ces conditions après la vérification HTTP.
+
+La validité est au plus de cinq minutes, bornée aussi par l’expiration de l’identité. Le mandat est conservé en mémoire uniquement, jamais restauré après redémarrage. Toute tentative de rafraîchissement invalide l’ancien mandat avant la requête. Une expiration, un retour en arrière d’horloge, une suspension avec divergence des horloges, un profil local absent, une désactivation ou une fenêtre horaire fermée empêchent l’autorisation locale des cibles. Une réponse lente n’allonge pas sa validité.
+
+L’interface présente les réseaux, exclusions, horaires, cadence, référence du profil et nombre de cibles calculé sans DNS. Elle indique explicitement que **le moteur n’est pas activé**. Ce lot n’exécute ni SNMP ni GLPI et ne met pas en place de service de planification. Il prépare le contrat d’autorisation à vérifier avant chaque future tâche ; une modification serveur n’annule pas magiquement une réponse déjà reçue, d’où le bail court et la récupération à renouveler avant exécution.
+
+La route nécessite la migration additive `20261122144000_veille_collector_network_mandate.sql` et le contrôleur serveur correspondant. Une ancienne plateforme qui ne possède pas cette route échoue sans réutiliser un mandat en cache. L’association et l’import manuel restent compatibles avec le protocole précédent.

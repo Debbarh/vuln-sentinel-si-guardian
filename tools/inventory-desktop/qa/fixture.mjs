@@ -3,6 +3,7 @@ const digest=x=>createHash('sha256').update(x).digest('hex');const id='11111111-
 async function rpc(url,init){const p=JSON.parse(await new Response(init.body).text());let result;
  if(url.endsWith('watch_collector_enroll')){publicKey=p.public_key;fingerprint=digest(Buffer.from(publicKey,'hex'));result={id,fingerprint,status:'pending'};}
  else if(url.endsWith('watch_collector_key'))result={id,public_key:publicKey,fingerprint,status:'active',sequence};
+ else if(url.endsWith('watch_collector_network_mandate'))result={collector_id:id,request_id:p.request_id,key_fingerprint:fingerprint,revision:1,issued_at:new Date().toISOString(),expires_at:new Date(Date.now()+299000).toISOString(),config:{enabled:true,site:'Site de recette',ranges:['192.168.10.0/30'],exclusions:['192.168.10.1/32'],interval_minutes:1440,timezone:'UTC',start_minute:0,end_minute:1440,credential_ref:'snmp-local'}};
  else if(url.endsWith('watch_collector_begin'))result=accepted.get(p.batch)??{ack:false,lease};
  else if(url.endsWith('watch_collector_receive')){proof.received++;proof.exactCounter=p.payload_text.includes('18446744073709551615');proof.secretExcluded=!/QA-PASSWORD|QA-LICENSE/.test(p.payload_text);sequence=String(Number(sequence)+1);result={ack:true,id:p.batch,sequence,hash:digest(p.payload_text),status:'queued'};accepted.set(p.batch,result);}
  else throw Error('unexpected fixture operation');return new Response(JSON.stringify(result));}

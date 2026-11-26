@@ -35,6 +35,7 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
   state:async(...args)=>{noArgs(args);return engine.state();},initialise:async(...args)=>{noArgs(args);return engine.initialise();},
   enroll:async(...args)=>{if(args.length!==2||typeof args[0]!=='string'||typeof args[1]!=='string'||args[0].length>36||args[1].length>68)fail('invalid_arguments');return engine.enroll(args[0],args[1]);},
   refresh:async(...args)=>{noArgs(args);return engine.refresh();},
+  fetchMandate:async(...args)=>{noArgs(args);return engine.fetchMandate();},
   chooseReports:async(...args)=>{noArgs(args);const result=await dialogs.showOpenDialog(window,{properties:['openFile','multiSelections'],filters:[{name:'GLPI Agent JSON',extensions:['json']}]});if(result.canceled)return null;if(result.filePaths.length<1||result.filePaths.length>50)fail('file_count');
    function*files(){let total=0;for(const filename of result.filePaths){const before=fs.lstatSync(filename);if(!before.isFile()||before.isSymbolicLink())fail('invalid_report');total+=before.size;if(total>MAX_REPORT_BYTES)fail('file_size');const fd=fs.openSync(filename,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW??0));try{const opened=fs.fstatSync(fd);if(opened.ino!==before.ino||opened.dev!==before.dev||opened.size!==before.size||!opened.isFile())fail('invalid_report');const bytes=readLimited(fd,MAX_REPORT_BYTES);if(bytes.length!==opened.size)fail('invalid_report');yield bytes;}finally{fs.closeSync(fd);}}}
    return engine.prepare(files());},

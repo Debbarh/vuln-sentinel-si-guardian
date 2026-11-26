@@ -68,7 +68,12 @@
   },
   "qa/server-handler.ts": {
     "source": "supabase/functions/veille-api/collector/handler.ts",
-    "sourceSha256": "c804caf7104d50a7cb72c4464d5dbd43735ae15a261d54f6c0ae3dbe72825a4a",
-    "sha256": "ae1aaefb6ef9220820ffcd9084b2b6bcc49659ba990c396c7d9c479989df01b8"
+    "sourceSha256": "066777478b1584e994126891dda7e12dc83973e0d040e3155b0b585dcf4407ee",
+    "sha256": "981795e57a17d0ad7b053777300d701eba2de5fc5bd26611d89e7acdcafc7a21"
+  },
+  "shared/network-policy.ts": {
+    "source": "src/features/veille/inventory/network-policy.ts",
+    "sourceSha256": "5fe6db6bcba384fb136aa7250dc9735d72c797fde4e807ffb6172c6f722ec8a5",
+    "sha256": "57bbe32d6f29715c1bc45f421847c032fb45ccd201f495c68e208479629fe800"
   }
 }

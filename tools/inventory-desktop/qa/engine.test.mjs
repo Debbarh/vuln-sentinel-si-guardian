@@ -27,3 +27,13 @@ it('rejects concurrent operations instead of queuing secrets and overwriting enc
 it('only accepts authenticated-and-encrypted SNMP profiles and never returns their passwords',async()=>{const f=fixture();await f.engine.initialise();await expect(f.engine.saveProfile({name:'x',username:'user',authProtocol:'MD5',privacyProtocol:'DES',authPassword:'abcdefgh',privacyPassword:'abcdefgh'})).rejects.toThrow('credentials_invalid');expect(f.net.http).not.toHaveBeenCalled();});
 it('binds native IPC to the exact local main frame',()=>{const frame={url:UI_URL},contents={mainFrame:frame},window={webContents:contents,isDestroyed:()=>false};expect(validSender({sender:contents,senderFrame:frame},window)).toBe(true);expect(validSender({sender:contents,senderFrame:{url:UI_URL}},window)).toBe(false);expect(validSender({sender:{},senderFrame:frame},window)).toBe(false);frame.url='https://cyber-skill.com';expect(validSender({sender:contents,senderFrame:frame},window)).toBe(false);expect(browserPreferences('/trusted/preload.cjs')).toMatchObject({sandbox:true,contextIsolation:true,nodeIntegration:false,webviewTag:false,devTools:false});expect(CSP).toContain("connect-src 'none'");});
 it.each(['file:///etc/passwd','cyberskill://other/index.html','cyberskill://collector/%2e%2e%2fidentity.pem','cyberskill://collector/assets/a%2f..%2fsecret.js','cyberskill://collector/index.html?token=x'])('denies renderer resource escape: %s',url=>{expect(assetPath(url)).toBe(null);});
+
+it('keeps network mandates in memory only and clears them before a failed refresh or a restart',async()=>{
+ const f=fixture();await enrolled(f);const before=fs.readFileSync(f.store.file);
+ const config={enabled:true,site:'Site local',ranges:['192.168.10.0/30'],exclusions:['192.168.10.1/32'],interval_minutes:1440,timezone:'UTC',start_minute:0,end_minute:1440,credential_ref:'snmp-local'};
+ f.engine.http=vi.fn(async(_url,init)=>Response.json({collector_id:id,request_id:init.headers['x-cs-batch'],key_fingerprint:(await f.store.read()).identity.state.fingerprint,revision:1,issued_at:new Date().toISOString(),expires_at:new Date(Date.now()+299000).toISOString(),config}));
+ const value=await f.engine.fetchMandate();expect(value.networkMandate).toMatchObject({revision:1,targetCount:1,status:'profile_missing'});
+ expect(fs.readFileSync(f.store.file)).toEqual(before);
+ const restarted=new DesktopEngine(f.store,{http:f.engine.http});expect((await restarted.state()).networkMandate).toBe(null);
+ f.engine.http=vi.fn().mockRejectedValue(Error('offline'));await expect(f.engine.fetchMandate()).rejects.toThrow('offline');expect((await f.engine.state()).networkMandate).toBe(null);
+});
