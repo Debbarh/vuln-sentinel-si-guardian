@@ -90,18 +90,18 @@ async function downloadPackage(spec,file,signal,http) {
 export class LocalGlpi {
  constructor(directory,runner,{platform=process.platform,arch=process.arch,http=fetch}={}){this.directory=directory;this.runner=runner;this.platform=platform;this.arch=arch;this.http=http;}
  supported(){return !!GLPI_PACKAGES[this.platform+'-'+this.arch];}
- async collect(collectorId,{signal,mode='inventory'}={}) {
+ async collect(collectorId,{signal,mode='inventory',onPhase=()=>{}}={}) {
   if(!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(collectorId)||!['inventory','version'].includes(mode))fail('invalid_arguments');
   const spec=GLPI_PACKAGES[this.platform+'-'+this.arch];if(!spec)fail('glpi_platform');
   const base=privateDirectory(this.directory),cache=privateDirectory(path.join(base,'packages')),workRoot=privateDirectory(path.join(base,'work'));
   // Exclusive application instance: unfinished private workspaces from a crash are disposable.
   for(const name of fs.readdirSync(workRoot)){if(/^run-[a-f0-9-]{36}$/.test(name))fs.rmSync(path.join(workRoot,name),{recursive:true,force:true});}
   const archive=path.join(cache,spec.file);
-  if(!fs.existsSync(archive))await downloadPackage(spec,archive,signal,this.http);
-  abort(signal);if(await archiveDigest(archive)!==spec.sha256)fail('glpi_integrity');
+  if(!fs.existsSync(archive)){onPhase('download');await downloadPackage(spec,archive,signal,this.http);}
+  onPhase('verify');abort(signal);if(await archiveDigest(archive)!==spec.sha256)fail('glpi_integrity');
   const named=path.join(workRoot,'run-'+randomUUID());fs.mkdirSync(named,{mode:0o700});
   try {
-   const extract=path.join(named,'extracted'),env=collectionEnvironment('',named,this.platform);let root,command,args;
+   onPhase('extract');const extract=path.join(named,'extracted'),env=collectionEnvironment('',named,this.platform);let root,command,args;
    if(this.platform==='darwin') {
     await runBounded('/usr/sbin/pkgutil',['--expand-full',archive,extract],{env,cwd:named,signal,capture:false,limit:1024*1024});
     root=path.join(extract,'GLPI-Agent-1.21_arm64.pkg','Payload','Applications','GLPI-Agent');command=path.join(root,'bin','perl');
@@ -125,7 +125,7 @@ export class LocalGlpi {
    fs.mkdirSync(path.join(named,'var'),{mode:0o700});
    fs.writeFileSync(path.join(named,'setup.pm'),`package setup; use strict; use warnings; use parent qw(Exporter); our @EXPORT=('%setup'); our %setup=(datadir=>$ENV{CS_GLPI_DATA},libdir=>$ENV{CS_GLPI_LIB},vardir=>$ENV{CS_GLPI_WORK}.'/var'); 1;\n`,{mode:0o600,flag:'wx'});
    // Our first include path replaces only upstream installation paths. Collection modules remain upstream.
-   return await runBounded(command,[...args,'-I'+named,this.runner,collectorId,mode],{cwd:named,env:runtimeEnv,signal});
+   onPhase(mode);return await runBounded(command,[...args,'-I'+named,this.runner,collectorId,mode],{cwd:named,env:runtimeEnv,signal});
   } finally {fs.rmSync(named,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
  }
 }

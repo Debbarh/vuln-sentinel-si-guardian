@@ -21,7 +21,7 @@ export class DesktopEngine{
   const timer=setInterval(async()=>{if(validation)return;validation=active().catch(error=>{verificationError=error;controller.abort();}).finally(()=>{validation=null;});},30000);
   let bytes;
   try{
-   if(signal?.aborted)controller.abort();bytes=await collect(r.identity.state.collectorId,{signal:controller.signal});
+   if(signal?.aborted)controller.abort();bytes=await collect(r.identity.state.collectorId,{signal:controller.signal});clearInterval(timer);
    if(validation)await validation;if(verificationError)throw verificationError;await active();r.pending=preparePayload(r.identity.state,[bytes]);this.reviewedId=null;
    await this.store.write(r);return this.summary(r);
   }catch(error){if(verificationError)throw verificationError;if(signal?.aborted)fail('collection_cancelled');throw error;

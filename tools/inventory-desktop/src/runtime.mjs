@@ -33,8 +33,8 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
  });
  window=new BrowserWindow({width:1100,height:840,minWidth:480,minHeight:620,title:'Cyber-Skill Collector',show:false,autoHideMenuBar:true,webPreferences:browserPreferences(path.join(__dirname,'preload.cjs'))});
  window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',event=>event.preventDefault());window.webContents.on('will-frame-navigate',event=>event.preventDefault());window.webContents.on('will-attach-webview',event=>event.preventDefault());
- let invoking=false,collectionController=null;
- app.on('before-quit',()=>collectionController?.abort());
+ let invoking=false,collectionController=null,quitting=false;
+ app.on('before-quit',event=>{if(collectionController){event.preventDefault();quitting=true;collectionController.abort();}});
  const actions={
   state:async(...args)=>{noArgs(args);return engine.state();},initialise:async(...args)=>{noArgs(args);return engine.initialise();},
   enroll:async(...args)=>{if(args.length!==2||typeof args[0]!=='string'||typeof args[1]!=='string'||args[0].length>36||args[1].length>68)fail('invalid_arguments');return engine.enroll(args[0],args[1]);},
@@ -45,7 +45,7 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
    if(!localGlpi.supported())fail('glpi_platform');const text=collectionLocales[args[0]];
    const confirmation=await dialogs.showMessageBox(window,{type:'question',message:text.generate,detail:text.detail,buttons:[text.back,text.confirm],defaultId:0,cancelId:0,noLink:true});
    if(confirmation.response!==1)return null;
-   collectionController=new AbortController();try{return await engine.generate((id,options)=>localGlpi.collect(id,options),{signal:collectionController.signal,consent:true});}finally{collectionController=null;}
+   collectionController=new AbortController();try{return await engine.generate((id,options)=>localGlpi.collect(id,options),{signal:collectionController.signal,consent:true});}finally{collectionController=null;if(quitting)app.quit();}
   },
   cancelGeneration:async(...args)=>{noArgs(args);collectionController?.abort();return null;},
   chooseReports:async(...args)=>{noArgs(args);const result=await dialogs.showOpenDialog(window,{properties:['openFile','multiSelections'],filters:[{name:'GLPI Agent JSON',extensions:['json']}]});if(result.canceled)return null;if(result.filePaths.length<1||result.filePaths.length>50)fail('file_count');
@@ -57,7 +57,7 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
   saveProfile:async(...args)=>{if(args.length!==1)fail('invalid_arguments');return engine.saveProfile(args[0]);},
   removeProfile:async(...args)=>{if(args.length!==1)fail('invalid_arguments');return engine.removeProfile(args[0]);},
   copyFingerprint:async(...args)=>{noArgs(args);const s=await engine.state();if(!s.fingerprint)fail('not_initialised');clipboard.writeText(s.fingerprint);return null;},
-  openConsole:async(...args)=>{noArgs(args);await shell.openExternal(ORIGIN+'/veille?tab=pilotage&section=connectors');return null;},
+  openConsole:async(...args)=>{noArgs(args);await shell.openExternal(ORIGIN+'/organization?tab=collectors');return null;},
  };
  for(const[name,action]of Object.entries(actions))ipcMain.handle('collector:'+name,async(event,...args)=>{
   if(!validSender(event,window))return{ok:false,error:'forbidden'};

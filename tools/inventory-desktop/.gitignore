@@ -4,3 +4,4 @@ release/
 *.log
 
 qa/fixture.cjs
+qa/glpi-qualification.cjs
