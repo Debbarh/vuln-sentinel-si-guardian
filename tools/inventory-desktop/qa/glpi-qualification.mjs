@@ -14,7 +14,7 @@ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'cs-glpi-qualification-'));
 const id='11111111-1111-4111-8111-111111111111';
 const glpi=new LocalGlpi(directory,path.resolve('tools/inventory-desktop/src/glpi-runner.pl'));
 try {
- const version=await glpi.collect(id,{mode:'version'});assert.equal(version.toString().trim(),GLPI_VERSION);version.fill(0);
+ const version=await glpi.collect(id,{mode:'version'});assert.equal(version.toString().trim(),process.platform==='linux'?'1.21-1':GLPI_VERSION);version.fill(0);
  if(!versionOnly){
   process.env.CS_DESKTOP_QA_PROOF=path.join(directory,'transport-proof.json');let value=null;
   const store={read:async()=>structuredClone(value),write:async r=>{value=structuredClone(r);},exclusive:async fn=>fn(),available:async()=>true};

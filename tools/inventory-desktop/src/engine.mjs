@@ -24,6 +24,7 @@ export class DesktopEngine{
    if(signal?.aborted)controller.abort();bytes=await collect(r.identity.state.collectorId,{signal:controller.signal});
    if(validation)await validation;if(verificationError)throw verificationError;await active();r.pending=preparePayload(r.identity.state,[bytes]);this.reviewedId=null;
    await this.store.write(r);return this.summary(r);
+  }catch(error){if(verificationError)throw verificationError;if(signal?.aborted)fail('collection_cancelled');throw error;
   }finally{clearInterval(timer);signal?.removeEventListener('abort',cancel);bytes?.fill(0);}
  });}
  async preview(){return this.store.exclusive(async()=>{const r=await this.record();if(!r.pending)fail('no_pending_batch');this.reviewedId=r.pending.id;return{batch:r.pending.id,reports:JSON.parse(r.pending.body).reports};});}
