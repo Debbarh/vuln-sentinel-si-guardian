@@ -35,7 +35,7 @@ if windows:
    recorded.add(source['path']);download(lock['repository']+source['path'],out/'sources'/Path(source['path']).name,source['sha512'],'sha512')
  for folder in ['bin','lib']:
   src=out/'usr'/folder
-  if src.exists():shutil.copytree(src,out/folder,dirs_exist_ok=True);shutil.rmtree(src)
+  if src.exists():shutil.copytree(src,out/folder,dirs_exist_ok=True,symlinks=True);shutil.rmtree(src)
  perl=out/'bin/perl.exe';make=out/'bin/make.exe';base_env['PATH']=str(out/'bin')+os.pathsep+os.environ.get('PATH','')
  # Cygwin's root is inferred from its own DLL. Its prebuilt Perl/XS versions are locked together.
 else:
@@ -93,8 +93,18 @@ elif sys.platform=='darwin':
 # Flatten internal symlinks to regular files; refuse external links before hashing resources.
 for path in list(out.rglob('*')):
  if path.is_symlink():
-  resolved=path.resolve();assert resolved.is_relative_to(out.resolve())and resolved.is_file(),'External or directory symlink in runtime'
-  data=resolved.read_bytes();mode=resolved.stat().st_mode;path.unlink();path.write_bytes(data);path.chmod(mode)
+  target=path.readlink()
+  if windows and str(target).startswith(('/usr/bin/','/bin/')):resolved=out/'bin'/str(target).split('/')[-1]
+  elif windows and str(target).startswith('/usr/lib/'):resolved=out/'lib'/str(target).removeprefix('/usr/lib/')
+  else:resolved=path.resolve(strict=False)
+  if windows and not resolved.exists()and Path(str(resolved)+'.exe').exists():resolved=Path(str(resolved)+'.exe')
+  if not resolved.exists():
+   # Unneeded packaging aliases (e.g. cross-toolchain pkg-config) are not runtime dependencies.
+   path.unlink();continue
+  assert resolved.resolve().is_relative_to(out.resolve()),'External link in runtime'
+  if resolved.is_dir():path.unlink();shutil.copytree(resolved,path,symlinks=False)
+  else:
+   data=resolved.read_bytes();mode=resolved.stat().st_mode;path.unlink();path.write_bytes(data);path.chmod(mode)
 includes=['-I'+p.as_posix()for p in libdirs]
 verify='use SNMP;use SNMP::Info;use NetAddr::IP;use Regexp::Common;die "version" unless $SNMP::Info::VERSION eq "3.985004";print "SNMP runtime loaded\\n";'
 run([perl,*includes,'-e',verify],env=base_env)
