@@ -36,7 +36,7 @@ if windows:
  for folder in ['bin','lib']:
   src=out/'usr'/folder
   if src.exists():shutil.copytree(src,out/folder,dirs_exist_ok=True,symlinks=True);shutil.rmtree(src)
- perl=out/'bin/perl.exe';make=out/'bin/make.exe';base_env['PATH']=str(out/'bin')+os.pathsep+os.environ.get('PATH','')
+ (out/'tmp').mkdir(exist_ok=True);perl=out/'bin/perl.exe';make=out/'bin/make.exe';base_env['PATH']=str(out/'bin')+os.pathsep+os.environ.get('PATH','')
  # Cygwin's root is inferred from its own DLL. Its prebuilt Perl/XS versions are locked together.
 else:
  perl_source=trees['perl'];run(['sh','Configure','-des','-Dprefix='+str(out),'-Dusethreads','-Uuseshrplib','-Dman1dir=none','-Dman3dir=none'],perl_source,base_env);run(['make','-j'+jobs],perl_source,base_env);run(['make','install'],perl_source,base_env)
@@ -46,11 +46,14 @@ else:
  run(['./configure','--prefix='+str(out),'--with-default-snmp-version=3','--with-sys-contact=','--with-sys-location=','--with-logfile=/dev/null','--with-persistent-directory='+str(work/'snmp-state'),'--disable-agent','--disable-applications','--disable-manuals','--without-rpm','--without-kmem-usage','--with-openssl='+openssl,'--with-perl-modules=INSTALL_BASE='+str(out),'--disable-embedded-perl'],snmp,base_env)
  run(['make','-j'+jobs],snmp,base_env);run(['make','install'],snmp,base_env)
  # Configure's optional XS installation is verified below; no CPAN fallback is fetched.
-install_base=subprocess.check_output([str(out/'bin/cygpath.exe'),'-u',str(out)],text=True).strip()if windows else str(out)
+install_base=str(out)if not windows else None
 for name in ['netaddr','regexp']:
- tree=trees[name];args=[perl,'Makefile.PL','INSTALL_BASE='+install_base]
+ tree=trees[name];args=[perl,'Makefile.PL']+(['INSTALL_BASE='+install_base]if install_base else[])
  if name=='netaddr':args.append('-noxs')
- run(args,tree,base_env);run([make],tree,base_env);run([make,'install'],tree,base_env)
+ run(args,tree,base_env);run([make],tree,base_env)
+ if windows:
+  for lib in tree.rglob('blib/lib'):shutil.copytree(lib,out/'site',dirs_exist_ok=True)
+ else:run([make,'install'],tree,base_env)
 shutil.copytree(trees['snmp-info']/'lib',out/'site',dirs_exist_ok=True)
 shutil.copytree(trees['mibs'],out/'mibs',dirs_exist_ok=True)
 # Remove executable agent/helper programs from the distribution. Only the worker interpreter is launched.
@@ -106,9 +109,15 @@ for path in list(out.rglob('*')):
   if resolved.is_dir():path.unlink();shutil.copytree(resolved,path,symlinks=False)
   else:
    data=resolved.read_bytes();mode=resolved.stat().st_mode;path.unlink();path.write_bytes(data);path.chmod(mode)
+launcher=out/'bin'/('cs-snmp-worker.exe'if windows else'cs-snmp-worker')
+if windows:
+ compiler=shutil.which('gcc')or r'C:\msys64\mingw64\bin\gcc.exe'
+ run([compiler,'-O2','-Wall','-Wextra','-municode','-static-libgcc',desktop/'network/worker-limiter.c','-o',launcher])
+else:run(['cc','-O2','-Wall','-Wextra',desktop/'network/worker-limiter.c','-o',launcher]+(['-lproc']if sys.platform=='darwin'else[]))
+shutil.copy2(desktop/'network/worker-limiter.c',out/'sources/worker-limiter.c')
 includes=['-I'+p.as_posix()for p in libdirs]
 verify='use SNMP;use SNMP::Info;use NetAddr::IP;use Regexp::Common;die "version" unless $SNMP::Info::VERSION eq "3.985004";print "SNMP runtime loaded\\n";'
 run([perl,*includes,'-e',verify],env=base_env)
-manifest={'version':1,'platform':sys.platform,'arch':platform.machine().lower(),'snmpInfo':'3.985004','netSnmp':'5.9.5.2','executable':str(perl.relative_to(out)).replace('\\','/'),'include': [str(p.relative_to(out)).replace('\\','/')for p in libdirs],'mibs':[str(p.relative_to(out)).replace('\\','/')for p in (out/'mibs').iterdir()if p.is_dir()],'sources':sources,'files':{str(p.relative_to(out)).replace('\\','/'):sha(p)for p in sorted(out.rglob('*'))if p.is_file()}}
+manifest={'version':1,'platform':sys.platform,'arch':platform.machine().lower(),'snmpInfo':'3.985004','netSnmp':'5.9.5.2','limiter':str(launcher.relative_to(out)).replace('\\','/'),'executable':str(perl.relative_to(out)).replace('\\','/'),'include': [str(p.relative_to(out)).replace('\\','/')for p in libdirs],'mibs':[str(p.relative_to(out)).replace('\\','/')for p in (out/'mibs').iterdir()if p.is_dir()],'sources':sources,'files':{str(p.relative_to(out)).replace('\\','/'):sha(p)for p in sorted(out.rglob('*'))if p.is_file()}}
 (desktop/'network-runtime-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print(json.dumps({'runtimeBuilt':True,'platform':sys.platform,'files':len(manifest['files']),'bytes':sum(p.stat().st_size for p in out.rglob('*')if p.is_file())}),flush=True)
