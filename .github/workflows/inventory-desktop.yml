@@ -36,6 +36,10 @@ jobs:
       - run: node tools/inventory-desktop/node_modules/typescript/bin/tsc -p tools/inventory-desktop/tsconfig.json --noEmit
       - run: npm test --prefix tools/inventory-desktop
       - run: node scripts/inventory/build-desktop-qa.mjs
+      - name: Qualify real standalone GLPI on disposable runner
+        run: node tools/inventory-desktop/qa/glpi-qualification.cjs
+        env:
+          CS_GLPI_DISPOSABLE_RUNNER: "true"
       - if: runner.os != 'Linux'
         run: node tools/inventory-desktop/qa/check-native.mjs
       - if: runner.os == 'Linux'
@@ -68,3 +72,4 @@ jobs:
             tools/inventory-desktop/release/*.AppImage
             tools/inventory-desktop/release/*.deb
             .codex/artifacts/cyber-skill/desktop-client/native-qa.json
+            .codex/artifacts/cyber-skill/desktop-client/glpi-qa.json

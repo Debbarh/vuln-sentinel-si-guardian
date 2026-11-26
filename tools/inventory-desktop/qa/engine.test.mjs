@@ -37,3 +37,30 @@ it('keeps network mandates in memory only and clears them before a failed refres
  const restarted=new DesktopEngine(f.store,{http:f.engine.http});expect((await restarted.state()).networkMandate).toBe(null);
  f.engine.http=vi.fn().mockRejectedValue(Error('offline'));await expect(f.engine.fetchMandate()).rejects.toThrow('offline');expect((await f.engine.state()).networkMandate).toBe(null);
 });
+
+it('generates only with local consent and a live approved identity, stages masked output and never pushes automatically',async()=>{
+ const f=fixture();await enrolled(f);const collect=vi.fn(async()=>Buffer.from(report));
+ await expect(f.engine.generate(collect)).rejects.toThrow('collection_consent');expect(collect).not.toHaveBeenCalled();
+ const result=await f.engine.generate(collect,{consent:true});expect(result.pending.count).toBe(1);expect(f.net.reports).toHaveLength(0);
+ expect(collect).toHaveBeenCalledWith(id,expect.objectContaining({signal:expect.any(AbortSignal)}));
+ await expect(f.engine.deliver('push',true)).rejects.toThrow('review_required');const preview=await f.engine.preview();expect(preview.reports[0]).not.toMatch(/AUTH-SECRET|LICENSE-SECRET/);
+ await f.engine.deliver('push',true);expect(f.net.reports).toHaveLength(1);
+});
+it('refuses inactive, offline and revoked collectors before starting a local inventory',async()=>{
+ const f=fixture();await enrolled(f);const collect=vi.fn();
+ for(const status of ['pending','revoked','expired']){
+  f.engine.http=vi.fn(async()=>Response.json({id,fingerprint:(await f.store.read()).identity.state.fingerprint,status}));
+  await expect(f.engine.generate(collect,{consent:true})).rejects.toThrow('collector_not_active');
+ }
+ f.engine.http=vi.fn().mockRejectedValue(Error('offline'));await expect(f.engine.generate(collect,{consent:true})).rejects.toThrow('offline');expect(collect).not.toHaveBeenCalled();
+});
+it('rejects a generated result if approval was revoked during collection, without retaining report bytes',async()=>{
+ const f=fixture();await enrolled(f);const bytes=Buffer.from(report),http=f.engine.http;
+ await expect(f.engine.generate(async()=>{f.engine.http=async()=>Response.json({id,fingerprint:(await f.store.read()).identity.state.fingerprint,status:'revoked'});return bytes;},{consent:true})).rejects.toThrow('collector_not_active');
+ expect(bytes.every(n=>n===0)).toBe(true);expect((await f.store.read()).pending).toBe(null);expect(f.net.reports).toHaveLength(0);f.engine.http=http;
+});
+it('keeps an existing batch intact and stops cancelled generation without creating another batch',async()=>{
+ const f=fixture();await enrolled(f);const c=new AbortController(),bytes=Buffer.from(report);
+ await expect(f.engine.generate(async()=>{c.abort();return bytes;},{consent:true,signal:c.signal})).rejects.toThrow('collection_cancelled');expect((await f.store.read()).pending).toBe(null);expect(bytes.every(n=>n===0)).toBe(true);
+ await f.engine.prepare([report]);const pending=(await f.store.read()).pending,collect=vi.fn();await expect(f.engine.generate(collect,{consent:true})).rejects.toThrow('pending_batch_exists');expect((await f.store.read()).pending).toEqual(pending);expect(collect).not.toHaveBeenCalled();
+});

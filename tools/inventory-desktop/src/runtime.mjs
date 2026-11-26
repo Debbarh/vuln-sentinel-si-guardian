@@ -2,6 +2,8 @@ import{app,BrowserWindow,ipcMain,protocol,session,dialog,safeStorage,shell,clipb
 import fs from'node:fs';import path from'node:path';
 import{EncryptedStore,readLimited}from'./store.mjs';import{DesktopEngine,ORIGIN}from'./engine.mjs';import{UI_URL,CSP,assetPath,browserPreferences,validSender}from'./security.mjs';
 import{MAX_REPORT_BYTES,LocalCollectorError,fail}from'../shared/client.mjs';
+import{LocalGlpi}from'./glpi-local.mjs';
+import{collectionLocales}from'../renderer/collection-locales.ts';
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.woff':'font/woff','.woff2':'font/woff2'};
 function osCrypto(){
  const legacyLinux=()=>process.platform==='linux';
@@ -22,6 +24,7 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
  await app.whenReady();app.setAppUserModelId('com.cyber-skill.inventory.collector');Menu.setApplicationMenu(null);
  const renderer=path.join(__dirname,'renderer');
  const store=new EncryptedStore(path.join(app.getPath('userData'),'private'),crypto??osCrypto()),engine=new DesktopEngine(store,{...(http?{http}:{})});
+ const localGlpi=new LocalGlpi(path.join(app.getPath('userData'),'glpi'),path.join(__dirname,'glpi-runner.pl'));
  const isolated=session.fromPartition('cyber-skill-collector');isolated.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));isolated.setPermissionCheckHandler(()=>false);isolated.on('will-download',event=>event.preventDefault());
  isolated.webRequest.onBeforeRequest({urls:['http://*/*','https://*/*','ws://*/*','wss://*/*']},(_details,callback)=>callback({cancel:true}));
  isolated.protocol.handle('cyberskill',request=>{
@@ -30,12 +33,21 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
  });
  window=new BrowserWindow({width:1100,height:840,minWidth:480,minHeight:620,title:'Cyber-Skill Collector',show:false,autoHideMenuBar:true,webPreferences:browserPreferences(path.join(__dirname,'preload.cjs'))});
  window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',event=>event.preventDefault());window.webContents.on('will-frame-navigate',event=>event.preventDefault());window.webContents.on('will-attach-webview',event=>event.preventDefault());
- let invoking=false;
+ let invoking=false,collectionController=null;
+ app.on('before-quit',()=>collectionController?.abort());
  const actions={
   state:async(...args)=>{noArgs(args);return engine.state();},initialise:async(...args)=>{noArgs(args);return engine.initialise();},
   enroll:async(...args)=>{if(args.length!==2||typeof args[0]!=='string'||typeof args[1]!=='string'||args[0].length>36||args[1].length>68)fail('invalid_arguments');return engine.enroll(args[0],args[1]);},
   refresh:async(...args)=>{noArgs(args);return engine.refresh();},
   fetchMandate:async(...args)=>{noArgs(args);return engine.fetchMandate();},
+  generateReport:async(...args)=>{
+   if(args.length!==1||!Object.hasOwn(collectionLocales,args[0]))fail('invalid_arguments');
+   if(!localGlpi.supported())fail('glpi_platform');const text=collectionLocales[args[0]];
+   const confirmation=await dialogs.showMessageBox(window,{type:'question',message:text.generate,detail:text.detail,buttons:[text.back,text.confirm],defaultId:0,cancelId:0,noLink:true});
+   if(confirmation.response!==1)return null;
+   collectionController=new AbortController();try{return await engine.generate((id,options)=>localGlpi.collect(id,options),{signal:collectionController.signal,consent:true});}finally{collectionController=null;}
+  },
+  cancelGeneration:async(...args)=>{noArgs(args);collectionController?.abort();return null;},
   chooseReports:async(...args)=>{noArgs(args);const result=await dialogs.showOpenDialog(window,{properties:['openFile','multiSelections'],filters:[{name:'GLPI Agent JSON',extensions:['json']}]});if(result.canceled)return null;if(result.filePaths.length<1||result.filePaths.length>50)fail('file_count');
    function*files(){let total=0;for(const filename of result.filePaths){const before=fs.lstatSync(filename);if(!before.isFile()||before.isSymbolicLink())fail('invalid_report');total+=before.size;if(total>MAX_REPORT_BYTES)fail('file_size');const fd=fs.openSync(filename,fs.constants.O_RDONLY|(fs.constants.O_NOFOLLOW??0));try{const opened=fs.fstatSync(fd);if(opened.ino!==before.ino||opened.dev!==before.dev||opened.size!==before.size||!opened.isFile())fail('invalid_report');const bytes=readLimited(fd,MAX_REPORT_BYTES);if(bytes.length!==opened.size)fail('invalid_report');yield bytes;}finally{fs.closeSync(fd);}}}
    return engine.prepare(files());},
@@ -49,6 +61,7 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
  };
  for(const[name,action]of Object.entries(actions))ipcMain.handle('collector:'+name,async(event,...args)=>{
   if(!validSender(event,window))return{ok:false,error:'forbidden'};
+  if(name==='cancelGeneration'){try{return{ok:true,value:await action(...args)};}catch{return{ok:false,error:'invalid_arguments'};}}
   if(invoking)return{ok:false,error:'collector_locked'};invoking=true;try{return{ok:true,value:await action(...args)};}catch(error){return{ok:false,error:error instanceof LocalCollectorError?error.code:'unavailable'};}finally{invoking=false;}
  });
  app.on('window-all-closed',()=>app.quit());window.once('ready-to-show',()=>window.show());await window.loadURL(UI_URL);return{window,engine,store};

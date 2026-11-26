@@ -1,8 +1,8 @@
-# Cyber-Skill Collector — client graphique 0.2.0
+# Cyber-Skill Collector — client graphique 0.3.0
 
 Application locale React/shadcn embarquée dans Electron 45.4.1. L’utilisateur n’installe pas Node et ne saisit pas de commandes. Le client utilise le protocole Ed25519 du collecteur existant et la même base Supabase ; aucune base locale métier, aucun serveur GLPI ou Netdisco n’est ajouté.
 
-Cette première version couvre l’association, l’examen et la transmission de rapports GLPI déjà produits, ainsi que la préparation de profils SNMP locaux. **La collecte GLPI automatique, la découverte SNMP::Info et leur programmation restent à intégrer.** Les installateurs sont des préversions : un paquet généré ne signifie pas que sa plateforme est qualifiée ou qu’il est signé pour diffusion publique.
+Cette version ajoute la génération du rapport de cet ordinateur avec GLPI Agent 1.21, déclenchée par un bouton et une confirmation native. Elle conserve l’association, l’examen et la transmission des rapports déjà exportés et les profils SNMP locaux. **La découverte SNMP::Info et la collecte planifiée restent à intégrer.** Les installateurs sont des préversions : un paquet généré ne signifie pas que sa plateforme est qualifiée ou qu’il est signé pour diffusion publique.
 
 ## Parcours utilisateur
 
@@ -10,7 +10,7 @@ Cette première version couvre l’association, l’examen et la transmission de
 2. Cliquer **Préparer ce collecteur** : l’identité Ed25519 est créée localement et protégée par le coffre du système.
 3. Dans la console Cyber-Skill, l’administrateur avec MFA crée une invitation dans **Veille → Paramètres → Connecteurs → Collecteurs locaux**. Reporter son identifiant et son code temporaire dans l’application.
 4. Comparer l’empreinte affichée par l’application et celle de la console, puis approuver l’identité dans la console. Cliquer **Vérifier l’approbation** dans l’application.
-5. Sélectionner les rapports JSON GLPI, examiner les données nettoyées, confirmer et transmettre. Les originaux restent inchangés. Les rapports reçus suivent l’inspection et l’import natifs dans la console.
+5. Cliquer **Inventorier cet ordinateur**, confirmer l’autorisation locale, attendre la génération, puis **Examiner les données** et confirmer la transmission. Il est également possible de sélectionner des rapports JSON GLPI déjà exportés. Les originaux restent inchangés. Les rapports reçus suivent l’inspection et l’import natifs dans la console.
 6. Si nécessaire, préparer les profils SNMPv3 authPriv en lecture seule. Leur nom correspond à la référence choisie dans le périmètre réseau de la console ; les mots de passe sont renseignés uniquement sur le collecteur. Leur enregistrement ne lance pas de scan.
 
 Une coupure conserve le lot chiffré avec le même UUID, hash et numéro de séquence. Un nouvel examen est exigé après redémarrage avant transmission. Un accusé perdu peut être retrouvé sans duplication. « Abandonner ce lot » solde un lot non reçu, ou récupère simplement son accusé s’il avait déjà été reçu : aucun rapport déjà présent dans la console n’est supprimé par cette commande.
@@ -24,7 +24,7 @@ Une coupure conserve le lot chiffré avec le même UUID, hash et numéro de séq
 - macOS : Keychain via l’API asynchrone safeStorage. Windows : DPAPI via cette API. Sur Linux, le client 45 utilise l’API synchrone avec contrôle explicite du fournisseur (`gnome_libsecret` ou KWallet), et refuse `basic_text` ; migrer ce contrôle avant Electron 46, qui retire l’API synchrone. Un gestionnaire de secrets déverrouillé est nécessaire.
 - La protection dépend du compte OS. Windows DPAPI ne protège pas contre une autre application exécutée sous le même compte ; un système compromis n’entre pas dans cette frontière de confiance. Ne pas copier l’enregistrement chiffré entre systèmes ou comptes pour transférer une identité.
 - La désinstallation conserve les données chiffrées pour permettre une réinstallation. Pour retirer définitivement un collecteur, révoquer son identité dans la console et supprimer ses profils locaux ; la purge du dossier protégé suit ensuite les procédures du poste.
-- Aucun scan, installation d’agent, action sur un équipement, appel IA, e-mail ou import automatique par cette version. Aucun secret SNMP envoyé au serveur. Aucun auto-update ou téléchargement de programme dicté par une politique distante.
+- L’inventaire du poste est exécuté à la demande, sous le compte courant, sans élévation ni service. Aucun scan réseau, appel IA, e-mail ou import automatique. Aucun secret SNMP envoyé au serveur. Aucun auto-update ou téléchargement de programme dicté par une politique distante.
 
 La signature ad hoc macOS sert aux tests internes. Une identité de signature stable et la qualification de mise à jour sont nécessaires pour une diffusion publique régulière et une continuité fiable des droits Keychain.
 
@@ -62,6 +62,19 @@ Le bouton **Récupérer le mandat** demande le périmètre actuel par le protoco
 
 La validité est au plus de cinq minutes, bornée aussi par l’expiration de l’identité. Le mandat est conservé en mémoire uniquement, jamais restauré après redémarrage. Toute tentative de rafraîchissement invalide l’ancien mandat avant la requête. Une expiration, un retour en arrière d’horloge, une suspension avec divergence des horloges, un profil local absent, une désactivation ou une fenêtre horaire fermée empêchent l’autorisation locale des cibles. Une réponse lente n’allonge pas sa validité.
 
-L’interface présente les réseaux, exclusions, horaires, cadence, référence du profil et nombre de cibles calculé sans DNS. Elle indique explicitement que **le moteur n’est pas activé**. Ce lot n’exécute ni SNMP ni GLPI et ne met pas en place de service de planification. Il prépare le contrat d’autorisation à vérifier avant chaque future tâche ; une modification serveur n’annule pas magiquement une réponse déjà reçue, d’où le bail court et la récupération à renouveler avant exécution.
+L’interface présente les réseaux, exclusions, horaires, cadence, référence du profil et nombre de cibles calculé sans DNS. Elle indique explicitement que **le moteur n’est pas activé**. Le mandat réseau n’exécute pas SNMP et ne met pas en place de service de planification. La collecte GLPI du poste est distincte : consentement local et identité active requis, sans utilisation du périmètre réseau. Il prépare le contrat d’autorisation à vérifier avant chaque future tâche ; une modification serveur n’annule pas magiquement une réponse déjà reçue, d’où le bail court et la récupération à renouveler avant exécution.
 
 La route nécessite la migration additive `20261122144000_veille_collector_network_mandate.sql` et le contrôleur serveur correspondant. Une ancienne plateforme qui ne possède pas cette route échoue sans réutiliser un mandat en cache. L’association et l’import manuel restent compatibles avec le protocole précédent.
+
+
+## Génération locale — 0.3.0
+
+Le moteur est téléchargé directement depuis la [publication officielle GLPI 1.21](https://github.com/glpi-project/glpi-agent/releases/tag/1.21), avec SHA-256 compilé dans le client. Seuls GitHub et son hôte de fichiers de publication sont admis lors des redirections HTTPS. Aucun chemin, argument, programme ou URL fourni par le rendu ou la console n’est exécuté. Les archives sont bornées à 64 Mio et revérifiées à chaque utilisation ; chaque exécution part d’une extraction privée neuve. Les paquets supportés sont Windows x64 portable, macOS Apple Silicon PKG extrait sans installation, Linux x86_64 AppImage extrait sans FUSE.
+
+Le programme auxiliaire `src/glpi-runner.pl` est dérivé du [script autonome officiel](https://github.com/glpi-project/glpi-agent/blob/1.21/bin/glpi-inventory), sous GPL-2.0-or-later (source lisible et licence incluses dans le paquet). Il utilise une configuration vide, une cible stdout JSON, aucun scan des répertoires personnels ou profils, aucun identifiant de base de données, et un identifiant stable `cyber-skill-<UUID du collecteur>`. Ne pas cloner une identité de collecteur entre postes. Les informations indisponibles sans élévation restent inconnues ; aucun droit supplémentaire n’est demandé.
+
+L’identité doit être approuvée dans la console par l’administrateur avec MFA. Le statut signé est revérifié avant, toutes les 30 secondes pendant, et après la collecte. Une révocation, une expiration, une indisponibilité ou une annulation empêche la préparation du lot. L’autorisation locale s’ajoute à cette approbation. Aucun nouveau rôle, permission, schéma SQL ou compte n’est ajouté.
+
+Les processus démarrent sans shell et sans variables d’injection héritées. Le délai d’un processus est borné à trois minutes ; stdout est borné à 32 Mio et stderr est drainé sans être journalisé, avec une limite de volume. Annuler arrête l’arbre de processus. Les fichiers temporaires privés sont supprimés à la fin ; un répertoire interrompu est nettoyé à la prochaine collecte. Les octets du rapport transitent en mémoire, sont filtrés puis préparés dans le coffre chiffré existant. Une limite refuse le résultat entier. Le filtrage ne garantit pas l’identification d’un secret placé dans un champ inconnu : l’examen humain avant envoi reste obligatoire.
+
+La qualification réelle de génération est réservée à des runners GitHub jetables explicitement désignés. Elle vérifie le moteur épinglé, un rapport matériel/OS/logiciels, son identifiant stable, le passage par le filtre, l’obligation d’examen et sa transmission signée vers le contrôleur sur fixtures, sans requête client ni import réel. Aucun inventaire de la machine du développeur n’est lancé par cette recette locale. Le test `--version-only` vérifie uniquement le chargement du moteur.
