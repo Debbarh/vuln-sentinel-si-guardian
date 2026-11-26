@@ -124,8 +124,11 @@ export class LocalGlpi {
    runtimeEnv.CS_GLPI_DATA=this.platform==='linux'?path.join(root,'usr','share','glpi-agent'):path.join(root,'share');
    fs.mkdirSync(path.join(named,'var'),{mode:0o700});
    fs.writeFileSync(path.join(named,'setup.pm'),`package setup; use strict; use warnings; use parent qw(Exporter); our @EXPORT=('%setup'); our %setup=(datadir=>$ENV{CS_GLPI_DATA},libdir=>$ENV{CS_GLPI_LIB},vardir=>$ENV{CS_GLPI_WORK}.'/var'); 1;\n`,{mode:0o600,flag:'wx'});
+   // Electron can read ASAR paths; an external Perl interpreter cannot. Materialise only
+   // this trusted, packaged script in the private workspace, never a renderer-selected path.
+   const runner=path.join(named,'glpi-runner.pl');fs.writeFileSync(runner,fs.readFileSync(this.runner),{mode:0o600,flag:'wx'});
    // Our first include path replaces only upstream installation paths. Collection modules remain upstream.
-   onPhase(mode);return await runBounded(command,[...args,'-I'+named,this.runner,collectorId,mode],{cwd:named,env:runtimeEnv,signal});
+   onPhase(mode);return await runBounded(command,[...args,'-I'+named,runner,collectorId,mode],{cwd:named,env:runtimeEnv,signal});
   } finally {fs.rmSync(named,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
  }
 }
