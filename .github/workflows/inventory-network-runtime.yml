@@ -6,6 +6,9 @@ on:
       - 'scripts/inventory/build-snmp-runtime.py'
       - '.github/workflows/inventory-network-runtime.yml'
   workflow_dispatch:
+concurrency:
+  group: inventory-snmp-runtime-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

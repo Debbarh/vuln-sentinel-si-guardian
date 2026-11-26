@@ -6,6 +6,9 @@ on:
       - 'scripts/inventory/*desktop*'
       - '.github/workflows/inventory-desktop.yml'
   workflow_dispatch:
+concurrency:
+  group: inventory-desktop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

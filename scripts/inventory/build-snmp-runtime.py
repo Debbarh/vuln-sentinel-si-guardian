@@ -77,7 +77,8 @@ if sys.platform=='linux':
    dest=libdir/dep.name
    if not dest.exists():shutil.copy2(dep.resolve(),dest);pending.append(dest)
  for file in seen:
-  if file.read_bytes()[:4]==b'\x7fELF':run(['patchelf','--set-rpath','$ORIGIN/'+os.path.relpath(libdir,file.parent),file])
+  if file.read_bytes()[:4]==b'\x7fELF':
+   assert file.resolve().is_relative_to(out.resolve());file.chmod(file.stat().st_mode|0o200);run(['patchelf','--set-rpath','$ORIGIN/'+os.path.relpath(libdir,file.parent),file])
 elif sys.platform=='darwin':
  pending=[perl,*out.rglob('*.dylib'),*out.rglob('*.bundle')];seen=set()
  while pending:
