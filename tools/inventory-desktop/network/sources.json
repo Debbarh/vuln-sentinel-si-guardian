@@ -1,0 +1,32 @@
+[
+  {
+    "name": "snmp-info",
+    "url": "https://cpan.metacpan.org/authors/id/O/OL/OLIVER/SNMP-Info-3.985004.tar.gz",
+    "sha256": "8a08b9a1f12017157d54b8734c6b0aad304fbf78bb4e62a2fae3f5f462c09ecc"
+  },
+  {
+    "name": "netaddr",
+    "url": "https://cpan.metacpan.org/authors/id/M/MI/MIKER/NetAddr-IP-4.079.tar.gz",
+    "sha256": "ec5a82dfb7028bcd28bb3d569f95d87dd4166cc19867f2184ed3a59f6d6ca0e7"
+  },
+  {
+    "name": "regexp",
+    "url": "https://cpan.metacpan.org/authors/id/A/AB/ABIGAIL/Regexp-Common-2024080801.tar.gz",
+    "sha256": "0677afaec8e1300cefe246b4d809e75cdf55e2cc0f77c486d13073b69ab4fbdd"
+  },
+  {
+    "name": "perl",
+    "url": "https://cpan.metacpan.org/authors/id/L/LE/LEONT/perl-5.44.0.tar.gz",
+    "sha256": "3b855066b92491cb40e86affb1ca57d1a388aa43e51b91c7806a32c2f65f96c3"
+  },
+  {
+    "name": "net-snmp",
+    "url": "https://codeload.github.com/net-snmp/net-snmp/tar.gz/319bbd0bb36547992c0e1302fef278c6f49d0c80",
+    "sha256": "d55628385b82f600dcb98e9ca997df864e313e75b7262333ef763d6793e6d9bc"
+  },
+  {
+    "name": "mibs",
+    "url": "https://codeload.github.com/netdisco/netdisco-mibs/tar.gz/refs/tags/4.065",
+    "sha256": "d507fb9dec76b4b956d2427fd71126843c26cd0378f5ae984dee7428e25a2829"
+  }
+]

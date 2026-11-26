@@ -1,0 +1,33 @@
+name: Inventory SNMP native runtime
+on:
+  pull_request:
+    paths:
+      - 'tools/inventory-desktop/network/**'
+      - 'scripts/inventory/build-snmp-runtime.py'
+      - '.github/workflows/inventory-network-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev patchelf
+      - if: runner.os == 'macOS'
+        run: brew install openssl@3
+      - run: python scripts/inventory/build-snmp-runtime.py
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: snmp-runtime-${{ runner.os }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/network-runtime/**
+            tools/inventory-desktop/network-runtime-manifest.json

@@ -1,0 +1,761 @@
+{
+  "repository": "https://mirrors.kernel.org/sourceware/cygwin/",
+  "packages": [
+    {
+      "name": "bash",
+      "version": "5.2.21-1",
+      "path": "x86_64/release/bash/bash-5.2.21-1.tar.xz",
+      "bytes": 1650932,
+      "sha512": "c3a5594f1c248dd27a3b5aa10c31fb1651072eae878479d3d8cab09c28354ce4509a2fe230f176ad200a6484a561bc10c2dc9c74c4e9f03164190dac2e683d65",
+      "source": {
+        "path": "x86_64/release/bash/bash-5.2.21-1-src.tar.xz",
+        "bytes": 10951680,
+        "sha512": "b5c71e11f625de28282572bcadba337567119bbc97391eb9d16cafd0066089f8f3bf7b68f919245f64463304119f4297f7165141f5101a76a3cb853e4eb0ede1"
+      }
+    },
+    {
+      "name": "ca-certificates",
+      "version": "2026.2.92_v9.0.319-1",
+      "path": "noarch/release/ca-certificates/ca-certificates-2026.2.92_v9.0.319-1-noarch.tar.zst",
+      "bytes": 927382,
+      "sha512": "b00a1236b5728a6722a14b6aa4c99560e51fee3b60c216f1634d294fb454ea935c2bbe9e208b16dc9b063dd2a2bfbb8e906f80a07526b1b05e7543bac87b1310",
+      "source": {
+        "path": "src/release/ca-certificates/ca-certificates-2026.2.92_v9.0.319-1-src.tar.zst",
+        "bytes": 581723,
+        "sha512": "d6875e1d88dcf6491b14ca97ecae84959285dc08ebce917155791147031e04e43e1e46fbb53e06f2e404e2c60371d7af86765fd34baaa096646e8513f0f4b935"
+      }
+    },
+    {
+      "name": "coreutils",
+      "version": "9.0-1",
+      "path": "x86_64/release/coreutils/coreutils-9.0-1.tar.xz",
+      "bytes": 2767296,
+      "sha512": "530f47640d878f5953580f3556c492a93786191abe573322026b70206a46c7f17d05927784db3e7f2c044d1555f35941880316f7288b887eaec770a9eda4c687",
+      "source": {
+        "path": "x86_64/release/coreutils/coreutils-9.0-1-src.tar.xz",
+        "bytes": 5634596,
+        "sha512": "20ea749c3226568d4771bed23a65c93612cfb9c3f3a292e53e1ea2d0c1a155fe123d067a8ffcc4c0c35f113840f0841d9cc0b142423e9a31bde9e65b86762c46"
+      }
+    },
+    {
+      "name": "crypto-policies",
+      "version": "20190218-1",
+      "path": "noarch/release/crypto-policies/crypto-policies-20190218-1.tar.xz",
+      "bytes": 14032,
+      "sha512": "44d50ff08528df786eeb26ec1d312445ec92d77ecc9f448a3b741f7647e187f11eabdc0b38f8ab8de803e21d2e610f67eb44de7554f3fa83f6e8172e609b0054",
+      "source": {
+        "path": "noarch/release/crypto-policies/crypto-policies-20190218-1-src.tar.xz",
+        "bytes": 35588,
+        "sha512": "5c8b2319692abd3c0019f8bd53e31a86d663d42e4c1ac08579c918f410bd26fc84f6af72db34fee4f7b568f17f4bf1a695a03943d757094bbf590671e29cb8dd"
+      }
+    },
+    {
+      "name": "cygwin",
+      "version": "3.6.12-1",
+      "path": "x86_64/release/cygwin/cygwin-3.6.12-1-x86_64.tar.xz",
+      "bytes": 1621132,
+      "sha512": "c2ceaed3f6fb6c52c30c3fc06fe0ace4b5d9c452dc0a20fd31ffbeb46fd3f98cdea82136ff2feb6d889cb56731336808925f93b85bd9315f5fd544848a2bc582",
+      "source": {
+        "path": "src/release/cygwin/cygwin-3.6.12-1-src.tar.xz",
+        "bytes": 9318356,
+        "sha512": "9d70312a931f06d1158e7e913a23fb4aec4bb5fce6c5b55caf274a6d63905248625beaf1391f2d4518fbf5099523fdab2aa26834651856f4693fbf8862027889"
+      }
+    },
+    {
+      "name": "libattr1",
+      "version": "2.5.2-2",
+      "path": "x86_64/release/attr/libattr1/libattr1-2.5.2-2-x86_64.tar.xz",
+      "bytes": 6160,
+      "sha512": "345b8f84b9c4df2eeea5e211dbaff5e0382aaee788435e1f4cc69f546e1603bbb45e9baec02a37d935674fcd55fb782d924c3a1540d2f829bde4969c96945ce4",
+      "source": {
+        "path": "src/release/attr/attr-2.5.2-2-src.tar.xz",
+        "bytes": 69476,
+        "sha512": "83ea7fe61d77ccf771d2ecceeed37543dfff4b381e2b08c180e91cce396336a2b8e97e404cf9b0062cdff4ff35678d1b8902d611c5c074019f172718179e3a18"
+      }
+    },
+    {
+      "name": "libcrypt2",
+      "version": "4.5.2-1",
+      "path": "x86_64/release/libxcrypt/libcrypt2/libcrypt2-4.5.2-1-x86_64.tar.xz",
+      "bytes": 106104,
+      "sha512": "7668d29aaebba8ca94e48e810d92108db72b067b2786cea8dcf4a049c29f20f0aeb8653a6e9524869c69e0b1df9d4d0ac499a052a86f0d44178e8a8167002c97",
+      "source": {
+        "path": "src/release/libxcrypt/libxcrypt-4.5.2-1-src.tar.xz",
+        "bytes": 572544,
+        "sha512": "febb2198032521ccad5df4c1311c99cb9fc8fe11b7a67ec5199a80614a96969836f9989a48797644cb11cd7b54933ff4deaa7ed1246e171f99fe52111a51accb"
+      }
+    },
+    {
+      "name": "libdb18.1",
+      "version": "18.1.40-1",
+      "path": "x86_64/release/db/libdb18.1/libdb18.1-18.1.40-1.tar.xz",
+      "bytes": 733872,
+      "sha512": "51955ae95823c54051b5345a7dbe6927521411754dff416ad6af2061bd3c9b2230ca2ea88f9b921b4b09b7654c7dac924b0ae08af708a93604cc193d6a18f4ff",
+      "source": {
+        "path": "x86_64/release/db/db-18.1.40-1-src.tar.xz",
+        "bytes": 29961240,
+        "sha512": "83c1d346eb295975e55b593ba949bd68eb33fc60f79f9f58c63e063a2481b261f5357ac1cea707a780ec36b01d9ba3a437b376fdf3dab9705fce940d1dba3d24"
+      }
+    },
+    {
+      "name": "libffi8",
+      "version": "3.8.0-1",
+      "path": "x86_64/release/libffi/libffi8/libffi8-3.8.0-1-x86_64.tar.xz",
+      "bytes": 196924,
+      "sha512": "935a0567f740a314d70ecd4adc8c4cf5ad37c6fb43f2d26dee882d4fda71f08efb2646bee10cee6e2000f52e25cce87fa29ce07665ba6d22532e0daa76bc887c",
+      "source": {
+        "path": "src/release/libffi/libffi-3.8.0-1-src.tar.xz",
+        "bytes": 1583092,
+        "sha512": "7d8b8250fc50b8a48387ee65b7c191c14b5965c5a089c5aeef2dfaa442f0132be6ed089044fd28bf4cbbd62919e53639245671e9c8c7c9225f4c880dcea33180"
+      }
+    },
+    {
+      "name": "libgc1",
+      "version": "8.2.12-1",
+      "path": "x86_64/release/libgc/libgc1/libgc1-8.2.12-1-x86_64.tar.xz",
+      "bytes": 62392,
+      "sha512": "faf226ea2b58949da714e2c50f1aa95738082c3499e2ae4828af5173bdd617248f000bf4868636b31a2b76b3a905057ab307c4f6a0d7112f23422531a97be92d",
+      "source": {
+        "path": "x86_64/release/libgc/libgc-8.2.12-1-src.tar.xz",
+        "bytes": 1233820,
+        "sha512": "a88390833b53f31176e4ff1d6932faa9003b3890bbebb0dbce55cc95b4b8fe3f3f64dcfacae9e653fa14571db245ff4a01474db2a0b71180ed2cd5cb029310fa"
+      }
+    },
+    {
+      "name": "libgcc1",
+      "version": "14.4.0-1",
+      "path": "x86_64/release/gcc/libgcc1/libgcc1-14.4.0-1-x86_64.tar.zst",
+      "bytes": 59166,
+      "sha512": "5ac8a56e5eee285efcd6dbd05a473e795e181021d7194b8a98dfe2fa201a71f0abe2908e0b4c81490eb5ef472efaeac8e56a61a5f289eee4ad6e90e52a844ff8",
+      "source": {
+        "path": "x86_64/release/gcc/gcc-14.4.0-1-src.tar.zst",
+        "bytes": 91626118,
+        "sha512": "a4fa4be6b610a7d868271027c17c46c5f64e1b125e0bec1d51d34cc47f53a670c95841ad4fdcb5aa236244e8b09e5dc194c64e788fc5011459ba2eb29a815299"
+      }
+    },
+    {
+      "name": "libgdbm6",
+      "version": "1.26-1",
+      "path": "x86_64/release/gdbm/libgdbm6/libgdbm6-1.26-1-x86_64.tar.xz",
+      "bytes": 25436,
+      "sha512": "8ed666a5b978b40f8cfc69d270d47cd674a31eb41bac499f783137eedfde6aa02ba4346de3d5dc3184d9af10ec80f57730c7517a88732616f4c6e0ef637d4bce",
+      "source": {
+        "path": "x86_64/release/gdbm/gdbm-1.26-1-src.tar.xz",
+        "bytes": 1228800,
+        "sha512": "ad0b21614bb22c3a6f4640a38f3c99c41f38797cb3987e31b0839ec9ea5047f01f60caab7d89fc66e4221da93aae2ce225cccb5b167fa781f28544d5f79d6f9f"
+      }
+    },
+    {
+      "name": "libgdbm_compat4",
+      "version": "1.26-1",
+      "path": "x86_64/release/gdbm/libgdbm_compat4/libgdbm_compat4-1.26-1-x86_64.tar.xz",
+      "bytes": 3892,
+      "sha512": "fd026dd74c495c1ee67b790269e77e8525ad78d52d4895923443feab55f7bb32dc07b115d490143c7e0277167d9cdbef5dad4707ecc7ca6df13a9f1a5184f8ca",
+      "source": {
+        "path": "x86_64/release/gdbm/gdbm-1.26-1-src.tar.xz",
+        "bytes": 1228800,
+        "sha512": "ad0b21614bb22c3a6f4640a38f3c99c41f38797cb3987e31b0839ec9ea5047f01f60caab7d89fc66e4221da93aae2ce225cccb5b167fa781f28544d5f79d6f9f"
+      }
+    },
+    {
+      "name": "libgmp10",
+      "version": "6.3.0-1",
+      "path": "x86_64/release/gmp/libgmp10/libgmp10-6.3.0-1.tar.zst",
+      "bytes": 254680,
+      "sha512": "947cd56e1945ddf180622b453f17e6655b4ee3e79fcc91238370a8826b88cd07c31d939f1ed7b87d91344d46fee90af2560105267a9207dcca800cba72459191",
+      "source": {
+        "path": "x86_64/release/gmp/gmp-6.3.0-1-src.tar.zst",
+        "bytes": 2095913,
+        "sha512": "fb2d8d5106aef273c028e3b5772a7c1d11dcd8b82f69ce1e19c46f0fd3cfc34d49a2b76614527f0f98882efa369e7825bfb9232e746976b8e0cb35c6e38f2e8c"
+      }
+    },
+    {
+      "name": "libguile3.0_1",
+      "version": "3.0.11-1",
+      "path": "x86_64/release/guile3.0/libguile3.0_1/libguile3.0_1-3.0.11-1-x86_64.tar.xz",
+      "bytes": 6969492,
+      "sha512": "a559914ed5d62d0a701e4ce3810276436cf1ce54d579c72fc72c3b4688f2af71ef93f3cdae7089ad7f85107c7ca5c87f2e497cac6f2550b38df1bc6ba7f16230",
+      "source": {
+        "path": "src/release/guile3.0/guile3.0-3.0.11-1-src.tar.xz",
+        "bytes": 5563968,
+        "sha512": "b8c277e2c45fe97ae126201b04881db6e98eefe3601d5b615049b01beb87feba3b910557f48404cbbf7e8508b4c75e8328a39b4294246bd476ce1dcbef21c7d5"
+      }
+    },
+    {
+      "name": "libiconv2",
+      "version": "1.19-2",
+      "path": "x86_64/release/libiconv/libiconv2/libiconv2-1.19-2-x86_64.tar.xz",
+      "bytes": 555664,
+      "sha512": "a1b23e24e0a495e7163923bcf40a4b933403e0826cfc0d9bde785bc92c909b8c4fb94b1e6b2c0242f4328a723855e72ff3baab9f557ef855b7fe7a7d901b0943",
+      "source": {
+        "path": "src/release/libiconv/libiconv-1.19-2-src.tar.xz",
+        "bytes": 5086384,
+        "sha512": "62288f9458b6c5a9eec369900971e9c552747b03df0198fbe1749ca93f76bf3d3079109f115ec0f53b2dc2f72c0c8624e21fa439fc41b9a0be339465fce1c534"
+      }
+    },
+    {
+      "name": "libintl8",
+      "version": "0.26-1",
+      "path": "x86_64/release/gettext/libintl8/libintl8-0.26-1-x86_64.tar.xz",
+      "bytes": 60324,
+      "sha512": "7366bfe8a92c8992bc8d428143b3664d8b87f566060910efb4c4d37bba65026faeac4bcd93d67b6e0390b8d82bf787d9fec4bbbea488d10fd349f238e54ff9e2",
+      "source": {
+        "path": "x86_64/release/gettext/gettext-0.26-1-src.tar.xz",
+        "bytes": 9549988,
+        "sha512": "cac03748f8d93146e6f2c29745bf3d676d32080f5995d8286c4e618becadc62c0cafdfc057fd8119ceb35dc8043b9a15dc44eaaf5bb0598bb5954959ae47f00e"
+      }
+    },
+    {
+      "name": "libncursesw10",
+      "version": "6.5+20240427-1",
+      "path": "x86_64/release/ncurses/libncursesw10/libncursesw10-6.5+20240427-1.tar.xz",
+      "bytes": 393928,
+      "sha512": "08102f7a7083cb5663fecc46d819f2ece4123444a8f94c42300f03f7eebd40395f556c44b22ab58bf57321b44d9b8fb8b19358e535c7500d36e52d48b05dcca8",
+      "source": {
+        "path": "x86_64/release/ncurses/ncurses-6.5+20240427-1-src.tar.xz",
+        "bytes": 3703872,
+        "sha512": "e16cffd412ae0b998553a162041b71a5fb20b89b36a1d2acc5de633a82430010de58439fddbd16bfba1679697659a43d3672b9a3f53e03353bd4ad22a7a8f09b"
+      }
+    },
+    {
+      "name": "libp11-kit0",
+      "version": "0.26.6-1",
+      "path": "x86_64/release/p11-kit/libp11-kit0/libp11-kit0-0.26.6-1-x86_64.tar.xz",
+      "bytes": 386044,
+      "sha512": "4330ab3df8385566274b89f8d57c295dec699073d8946ce246fe766a6cd3e1060b718d4ccfe4e74094d85fb4d4d141041b546d04b18ea1a5ef75ead7caffaebc",
+      "source": {
+        "path": "src/release/p11-kit/p11-kit-0.26.6-1-src.tar.xz",
+        "bytes": 1156080,
+        "sha512": "cf2f23a2bfbc1f4708944a7ac4a4a4b874d1a2f89f9abe35d61a15148216e446cb8228445126f5f0b277d65cced067894b08c4a6d0df9681a6497cba0ca01d46"
+      }
+    },
+    {
+      "name": "libpcre1",
+      "version": "8.45-1",
+      "path": "x86_64/release/pcre/libpcre1/libpcre1-8.45-1.tar.zst",
+      "bytes": 166711,
+      "sha512": "85c793ed3622a00b811773b94c45376882513e267b9f1d2a3efa0bc42ff86a4e4bebd8362a193d302e66ae9e5c9b93befc1bb1096c0fd397e2cd0f5632c808dd",
+      "source": {
+        "path": "x86_64/release/pcre/pcre-8.45-1-src.tar.zst",
+        "bytes": 1580850,
+        "sha512": "adc2fbd4bc4b6adc1353c137525e8b56a02419237aa226912ee12e495b36ce06954975cf909cd0c8397d59b09172ba761a253bc68d31969e5b0bc85507ec77d2"
+      }
+    },
+    {
+      "name": "libpkgconf8",
+      "version": "3.0.11-1",
+      "path": "x86_64/release/pkgconf/libpkgconf8/libpkgconf8-3.0.11-1-x86_64.tar.zst",
+      "bytes": 36693,
+      "sha512": "e974ebfac166abdb716db67df8caccb81f123745eeb5fe95b1ae74af3537b4ddc861a1eb0ec9833fd39ccc4e0327428711009f766e22cf50269bdb9cd0590676",
+      "source": {
+        "path": "src/release/pkgconf/pkgconf-3.0.11-1-src.tar.zst",
+        "bytes": 433325,
+        "sha512": "541c37ffd8f7b54e92faea5a998a71a86954babe70a0f054195be6403223277d22a8b75379f6c5796c948c4077462933b7dbeef2a27cb5174edbac6149533aa3"
+      }
+    },
+    {
+      "name": "libreadline7",
+      "version": "8.2-2",
+      "path": "x86_64/release/readline/libreadline7/libreadline7-8.2-2.tar.xz",
+      "bytes": 113340,
+      "sha512": "1d27576cf49b056f35f90ad933e39c5d946bc271ddcd109daa98f95b97123b428256827889ff45ca8a76409cdb1afd0146e99c9b70150b302538356512acfe38",
+      "source": {
+        "path": "x86_64/release/readline/readline-8.2-2-src.tar.xz",
+        "bytes": 3046308,
+        "sha512": "ebedad14bf205cb9f5df0f5e4742f737e98e6bad5539996c36840d1c86d603877e0c3e4f9d0c9df9081b4c820c9b8c3224dbe8b45b9e7f5c97bc7973a35b3da4"
+      }
+    },
+    {
+      "name": "libreadline8",
+      "version": "8.3-1",
+      "path": "x86_64/release/readline/libreadline8/libreadline8-8.3-1-x86_64.tar.xz",
+      "bytes": 120084,
+      "sha512": "64142c5f305b9836c5be9a4271e4163d8b3e739a0451c0d152373eeb3338342f7cf5691e4437b8e6d0a8404c30ea7a21832e342e7a1ca3b5f3e8e3403051b96e",
+      "source": {
+        "path": "x86_64/release/readline/readline-8.3-1-src.tar.xz",
+        "bytes": 3354620,
+        "sha512": "31710b8055e4df64d6fd256f76eb513df10366faf4ee5e7f97dc75b720186ee9883c843c48da796dce5600eba0ca424500e35db0435d5cf34ad9ce631fd352c8"
+      }
+    },
+    {
+      "name": "libssl3",
+      "version": "3.5.9-1",
+      "path": "x86_64/release/openssl/libssl3/libssl3-3.5.9-1-x86_64.tar.zst",
+      "bytes": 2101048,
+      "sha512": "cc3836812d1133caaab81c17e79efffb47aa5172dce3d4644682ed73a2df2b0754d2e1e8df879479d0be148d4a329b4cd76e15dfaff6e7874fa8aabe298a8288",
+      "source": {
+        "path": "src/release/openssl/openssl-3.5.9-1-src.tar.zst",
+        "bytes": 53203241,
+        "sha512": "3c12d022311e2b02cd117740c535d512848421a5e6f806a35547bd7e8fb03976f6e92e6cae82fbfc80d90a6e34bcab6320db8808ba55b36fe63dbacea0f05663"
+      }
+    },
+    {
+      "name": "libstdc++6",
+      "version": "14.4.0-1",
+      "path": "x86_64/release/gcc/libstdc++6/libstdc++6-14.4.0-1-x86_64.tar.zst",
+      "bytes": 651767,
+      "sha512": "3d86409193c952618eee7e2dea32bdeb97f22ee800e13cc46f98b5095d4d0b1b31ac4336dc5819abb2d553ad1c2151619e9f6f337dfe921ba80fda1323f6f4e3",
+      "source": {
+        "path": "x86_64/release/gcc/gcc-14.4.0-1-src.tar.zst",
+        "bytes": 91626118,
+        "sha512": "a4fa4be6b610a7d868271027c17c46c5f64e1b125e0bec1d51d34cc47f53a670c95841ad4fdcb5aa236244e8b09e5dc194c64e788fc5011459ba2eb29a815299"
+      }
+    },
+    {
+      "name": "libtasn1_6",
+      "version": "4.21.0-1",
+      "path": "x86_64/release/libtasn1/libtasn1_6/libtasn1_6-4.21.0-1-x86_64.tar.xz",
+      "bytes": 32072,
+      "sha512": "d28713b27d5d41408b29caed785e29380da4d8b4ccdc1c479ae13906e6765bedc6d6b9e6c1c22fd2111d678fcf1663187d3de27d7ad2e104cd48c38086189e36",
+      "source": {
+        "path": "src/release/libtasn1/libtasn1-4.21.0-1-src.tar.xz",
+        "bytes": 1739292,
+        "sha512": "0ac7b0a5633f03c214ffcbafd0fe4e441da2dca0c7b9e7188e20ab673cb0ced8152134ace4d2be2130a6cac7265ce5fd3f413ef07cfe6cb0ef53916be2fab2c3"
+      }
+    },
+    {
+      "name": "libunistring5",
+      "version": "1.4.1-1",
+      "path": "x86_64/release/libunistring/libunistring5/libunistring5-1.4.1-1-x86_64.tar.xz",
+      "bytes": 498220,
+      "sha512": "cbd454f5068bfb9291d440a3b03b0c58437aa0342a199007d5cce6fa006b6b5ea4d3ba10c136fb0257ffb0d0199db73484275c632506e4ec31c81e1746667b80",
+      "source": {
+        "path": "src/release/libunistring/libunistring-1.4.1-1-src.tar.xz",
+        "bytes": 4747520,
+        "sha512": "105bacc7118918a80255089dcad8a5605a5e2769c5ce7b5077d036a4a872a007693dd024bb6c3a84eaa47e8b2db825eb39bccd344a9f7cf78ffb3d90ec459111"
+      }
+    },
+    {
+      "name": "libwrap0",
+      "version": "7.6-26",
+      "path": "x86_64/release/tcp_wrappers/libwrap0/libwrap0-7.6-26.tar.xz",
+      "bytes": 12228,
+      "sha512": "5af3a211717e1cf49a39b862f206fe52e4c6f5c691fe41cfe2027968c5bc9674beedbe178dc89ab3f79b9ebc09d5be8f440dc0c0c5edb5233112c83af9e4eb58",
+      "source": {
+        "path": "x86_64/release/tcp_wrappers/tcp_wrappers-7.6-26-src.tar.xz",
+        "bytes": 134820,
+        "sha512": "28b40e27c08c62b70bd70b87c4f2ca822748dae94624e09e700467802760e0f6ff9f0f2524bcf9f1e1b5c699b16a4d6fc30f3b908b636d5055d943b8d2034cfe"
+      }
+    },
+    {
+      "name": "libzstd1",
+      "version": "1.6.0-1",
+      "path": "x86_64/release/zstd/libzstd1/libzstd1-1.6.0-1-x86_64.tar.zst",
+      "bytes": 258475,
+      "sha512": "3a29498017396777ca93f0f595cf44f912bbd6f4bba733e4f78870fae0893cdc2d22fa5b97ab980182010781499e20a6d19fa2bb8e647ff91f7e182f4fb6e844",
+      "source": {
+        "path": "src/release/zstd/zstd-1.6.0-1-src.tar.zst",
+        "bytes": 1983211,
+        "sha512": "a973704f3cd924714abe140dda0f3de1357922e996fab078b592846573dbbff946cb13a000c2936b2f556f14c4e9980965ded27e92bd07dbc5fc0434b114d028"
+      }
+    },
+    {
+      "name": "make",
+      "version": "4.4.1-2",
+      "path": "x86_64/release/make/make-4.4.1-2.tar.xz",
+      "bytes": 598004,
+      "sha512": "9a89a0f4ceadf5c2d0390029d16274fbed0190d2410ad6beb76e39b7153f38d0d1169ad0abf57c96929e6ab0523a0a76c345868e9ae46f9cd3d708d23f6fa3e6",
+      "source": {
+        "path": "x86_64/release/make/make-4.4.1-2-src.tar.xz",
+        "bytes": 1308492,
+        "sha512": "2afc31604ff4eb13b541991f47bb53dfb762ae10e11dee504f76b0c7c17fd711fa000b8f7a51e9a59f867906ecbbf9fbb3593d0178ab106746447ea9c0e8b6f1"
+      }
+    },
+    {
+      "name": "net-snmp-agent-libs",
+      "version": "5.9.5.2-1",
+      "path": "x86_64/release/net-snmp/net-snmp-agent-libs/net-snmp-agent-libs-5.9.5.2-1-x86_64.tar.xz",
+      "bytes": 332992,
+      "sha512": "5d8edc1d1a67da83cd6c14ffa2e7af9ee267b312ce6da164f24ba4c21ad7f6f7059b223be3cd4b48dd4f92e3db78c147cdfe89838bfb7ed28d45d59711d531df",
+      "source": {
+        "path": "src/release/net-snmp/net-snmp-5.9.5.2-1-src.tar.xz",
+        "bytes": 6829924,
+        "sha512": "3b983c9001088c883334676aa73c8cfc6866f2cc13270caec9d740f1b807bffa2e637ed53d41d4911ff96e411ebcd08a5888e47f94bb1a7950a7f5f6aded6250"
+      }
+    },
+    {
+      "name": "net-snmp-devel",
+      "version": "5.9.5.2-1",
+      "path": "x86_64/release/net-snmp/net-snmp-devel/net-snmp-devel-5.9.5.2-1-x86_64.tar.xz",
+      "bytes": 3578008,
+      "sha512": "5e844f02e3134a4e781cbb1232b4b76c79adbf64998c6604229689b4ac4ad49623391add35899e9f76f25ced0a900a5453ddba237850291f9a71922a8cdb71eb",
+      "source": {
+        "path": "src/release/net-snmp/net-snmp-5.9.5.2-1-src.tar.xz",
+        "bytes": 6829924,
+        "sha512": "3b983c9001088c883334676aa73c8cfc6866f2cc13270caec9d740f1b807bffa2e637ed53d41d4911ff96e411ebcd08a5888e47f94bb1a7950a7f5f6aded6250"
+      }
+    },
+    {
+      "name": "net-snmp-libs",
+      "version": "5.9.5.2-1",
+      "path": "x86_64/release/net-snmp/net-snmp-libs/net-snmp-libs-5.9.5.2-1-x86_64.tar.xz",
+      "bytes": 487512,
+      "sha512": "7413d2e79d3660494579cc27ba7835e9078eeaa8a7b81c7569241dd92d2c160511a991ab79c49ee352d8bd488bbf96692587901bfd7a1f38823b399f41cfe628",
+      "source": {
+        "path": "src/release/net-snmp/net-snmp-5.9.5.2-1-src.tar.xz",
+        "bytes": 6829924,
+        "sha512": "3b983c9001088c883334676aa73c8cfc6866f2cc13270caec9d740f1b807bffa2e637ed53d41d4911ff96e411ebcd08a5888e47f94bb1a7950a7f5f6aded6250"
+      }
+    },
+    {
+      "name": "p11-kit",
+      "version": "0.26.6-1",
+      "path": "x86_64/release/p11-kit/p11-kit-0.26.6-1-x86_64.tar.xz",
+      "bytes": 183744,
+      "sha512": "9d01ffd7bdcb5e0c2a67d3579705508b3c5313135fbc3e26bef6e67ffe4d2f11e900ac4f3a4d966396fbc26913a5b0a3f68ffb5b83698e30ddc1ed8a706ec28d",
+      "source": {
+        "path": "src/release/p11-kit/p11-kit-0.26.6-1-src.tar.xz",
+        "bytes": 1156080,
+        "sha512": "cf2f23a2bfbc1f4708944a7ac4a4a4b874d1a2f89f9abe35d61a15148216e446cb8228445126f5f0b277d65cced067894b08c4a6d0df9681a6497cba0ca01d46"
+      }
+    },
+    {
+      "name": "p11-kit-trust",
+      "version": "0.26.6-1",
+      "path": "x86_64/release/p11-kit/p11-kit-trust/p11-kit-trust-0.26.6-1-x86_64.tar.xz",
+      "bytes": 110284,
+      "sha512": "f4a29767859bad5e52e078364a654df8207268fb87f8613d3ceb6fac4a5a02162435f000781dbae5dff1d324afe039a407d85c753b980d436373b8a09d45762d",
+      "source": {
+        "path": "src/release/p11-kit/p11-kit-0.26.6-1-src.tar.xz",
+        "bytes": 1156080,
+        "sha512": "cf2f23a2bfbc1f4708944a7ac4a4a4b874d1a2f89f9abe35d61a15148216e446cb8228445126f5f0b277d65cced067894b08c4a6d0df9681a6497cba0ca01d46"
+      }
+    },
+    {
+      "name": "perl",
+      "version": "5.44.0-1",
+      "path": "x86_64/release/perl/perl-5.44.0-1-x86_64.tar.zst",
+      "bytes": 5129424,
+      "sha512": "42f80064ff94ea778319a24e011d4a7236944c79d9db22e0ed64a7ca7d9b65bc2df5998130eb64c50aa95c173937776cc42665174c5717e84fe6dca523368f27",
+      "source": {
+        "path": "x86_64/release/perl/perl-5.44.0-1-src.tar.zst",
+        "bytes": 14927805,
+        "sha512": "26be3a3db4ed18e20898825d4503189a0e1fa6b326800f5a9b26c4dfe5d2fa6c976f918d75565610a8e74877ac7c6e0e328808d34fc0c7b1205e7dc579fdaae6"
+      }
+    },
+    {
+      "name": "perl-Clone",
+      "version": "0.510.0-1",
+      "path": "x86_64/release/perl-Clone/perl-Clone-0.510.0-1-x86_64.tar.zst",
+      "bytes": 20357,
+      "sha512": "b71cb78d7a343607080b78be98af6befaf43f834917398de6ecb74cc7d7e7c68ff4f09b1d75b9cba90bef3378793586a7a4af9a08c2f5f018823528c071f30ea",
+      "source": {
+        "path": "src/release/perl-Clone/perl-Clone-0.510.0-1-src.tar.zst",
+        "bytes": 195704,
+        "sha512": "8e70c20cd429c9da7c5e591cafce104d9277719db144bb3c6ad192de8ec8931d9b3ded726821e7f940e2ca16dfaff737122e313ede15a06000c7532995ed6018"
+      }
+    },
+    {
+      "name": "perl-Encode-Locale",
+      "version": "1.50.0-1",
+      "path": "noarch/release/perl-Encode-Locale/perl-Encode-Locale-1.50.0-1-noarch.tar.zst",
+      "bytes": 10044,
+      "sha512": "bd0394d40101b4500146ef68656ef990323e98a897f8dac8f2b3cdad250f09c045308ede205e22c03904c6c0aa5e68a319b25b7b3054f09eed2dff3d97b97d4c",
+      "source": {
+        "path": "noarch/release/perl-Encode-Locale/perl-Encode-Locale-1.50.0-1-src.tar.zst",
+        "bytes": 8992,
+        "sha512": "b8dbcf534583e32e29aeb0f9f9a165d3b058ad4f50d200920c8557c74ced38ecf00d7955d36a3a0d3e766e42e5deb3f9673fe76fe1db31eadf26a0e28b6d6a65"
+      }
+    },
+    {
+      "name": "perl-File-Listing",
+      "version": "6.160.0-1",
+      "path": "noarch/release/perl-File-Listing/perl-File-Listing-6.160.0-1-noarch.tar.zst",
+      "bytes": 16164,
+      "sha512": "a5254845786c9b80fce5d0b0d95b4506d7f7be95a30ce83591e41443ea4bd63e198baf89069d2eb1bd88f40b6cc11e106210edafd08e26be88fc9c6fbe4540ac",
+      "source": {
+        "path": "noarch/release/perl-File-Listing/perl-File-Listing-6.160.0-1-src.tar.zst",
+        "bytes": 60729,
+        "sha512": "31486691102dab4ba0620000da51590def7dfd33794dcc5bf0a6cab553a72b665900970b689738eeda6868c9f37473962f125520a4e0bdc4d6fe53127f725a3a"
+      }
+    },
+    {
+      "name": "perl-HTML-Parser",
+      "version": "3.870.0-1",
+      "path": "x86_64/release/perl-HTML-Parser/perl-HTML-Parser-3.870.0-1-x86_64.tar.zst",
+      "bytes": 101609,
+      "sha512": "6d1a082ea957b70f5391ee1c7856741ec8533ab4357d2931f3fa92d55346e66f76be88d293e0b93c8b5e67bce2c46032e0d9fa5425f3349be7742e47af0566b2",
+      "source": {
+        "path": "src/release/perl-HTML-Parser/perl-HTML-Parser-3.870.0-1-src.tar.zst",
+        "bytes": 154075,
+        "sha512": "970e5eca8a000e0bdf35ff982f5bbf07b70ce54e83108f0b8c1a13a7e6a1870051b92f210c1b0cb26bbc8b01a30b4163712752da72c226b8772f2c1f342d463f"
+      }
+    },
+    {
+      "name": "perl-HTML-Tagset",
+      "version": "3.240.0-1",
+      "path": "noarch/release/perl-HTML-Tagset/perl-HTML-Tagset-3.240.0-1-noarch.tar.zst",
+      "bytes": 10051,
+      "sha512": "06cdcb97c508dcffef03d98a2934f22b126329abb06f82556c1284cfa78d7c397527d48718d9a98a62ff31acf47d85e8af6ff14668f869135edbcb2125ad3f7f",
+      "source": {
+        "path": "noarch/release/perl-HTML-Tagset/perl-HTML-Tagset-3.240.0-1-src.tar.zst",
+        "bytes": 8734,
+        "sha512": "aa2a4b118660a53465059eeb5cf6e305a9a89cea2f6b22b6140779663566f709b64d7017026ee5f4abccc88155309271bde9e76ee660c763612d90d7d33500c4"
+      }
+    },
+    {
+      "name": "perl-HTTP-Cookies",
+      "version": "6.120.0-1",
+      "path": "noarch/release/perl-HTTP-Cookies/perl-HTTP-Cookies-6.120.0-1-noarch.tar.zst",
+      "bytes": 29029,
+      "sha512": "8a8df5d13666568d091ed56d8dad26bf009289d162cc93107cb6c8401c89664b097e3bbe83b2da3aadc96fba047c7e198bd8137737735fcb3f44bad8424b64b1",
+      "source": {
+        "path": "noarch/release/perl-HTTP-Cookies/perl-HTTP-Cookies-6.120.0-1-src.tar.zst",
+        "bytes": 50286,
+        "sha512": "0e316d875bf9ba00c6e9e89d0297ed69a5ac3ca03936a7dfd0170c11004fd3b888124b3380b522c723688d2d81a4cd9a85b2e53909b48cf99c49ff21a8f51c9a"
+      }
+    },
+    {
+      "name": "perl-HTTP-Date",
+      "version": "6.80.0-1",
+      "path": "noarch/release/perl-HTTP-Date/perl-HTTP-Date-6.80.0-1-noarch.tar.zst",
+      "bytes": 16798,
+      "sha512": "433a30d7d1f022ee5012059b89e46d554c2d8ee8d40bf2f3ee6e708c4b1241389da7e59cd759b972d408a987fb6d9c0e9452d6c1fe23b397a4a7ee5f265f57de",
+      "source": {
+        "path": "noarch/release/perl-HTTP-Date/perl-HTTP-Date-6.80.0-1-src.tar.zst",
+        "bytes": 36287,
+        "sha512": "7416b772dfae7cc315217707a4c262292a8e6f9863ce17aaa7b73ff5a7a7a3eab0dc78b7228e9115bbaa98aa6349068730e5b8bed871928027cb1a096bc1e25e"
+      }
+    },
+    {
+      "name": "perl-HTTP-Message",
+      "version": "7.40.0-1",
+      "path": "noarch/release/perl-HTTP-Message/perl-HTTP-Message-7.40.0-1-noarch.tar.zst",
+      "bytes": 84945,
+      "sha512": "085b5629235a6949b094533ad0f0a1ba3f949587a4b80b3d925b3b6d6692ad349cfda5796417e1ec369a1b69a035ce2c4c3a28341ecbd410f1b6ed9c0fbf239c",
+      "source": {
+        "path": "noarch/release/perl-HTTP-Message/perl-HTTP-Message-7.40.0-1-src.tar.zst",
+        "bytes": 97868,
+        "sha512": "9a6dc91f59050c1e844e19e98a4211dd2ad6bace7c233d2862a32bd2b6367bdd14ba7909378113360ae4d0edb3f9734949c711c206181e3d26ddf72f2041dfe3"
+      }
+    },
+    {
+      "name": "perl-HTTP-Negotiate",
+      "version": "6.10.0-1",
+      "path": "noarch/release/perl-HTTP-Negotiate/perl-HTTP-Negotiate-6.10.0-1-noarch.tar.zst",
+      "bytes": 11033,
+      "sha512": "a6209f62d9353eca3ded9c2828a9f486cf5e2aabaf56d63a775e9db0a75ba2308c267bfd254ad5c68ba76eba7808a2fa352078ef739175abd5e7851dd7059040",
+      "source": {
+        "path": "noarch/release/perl-HTTP-Negotiate/perl-HTTP-Negotiate-6.10.0-1-src.tar.zst",
+        "bytes": 9451,
+        "sha512": "61a1d9a1deddbb2f9e810cb495afed1f3ac28344790d049fd4e66523093a1d5a1f965006dcd9325ee601690d63d4f915af269582c0bfdb8959527b6c6f602c32"
+      }
+    },
+    {
+      "name": "perl-IO-HTML",
+      "version": "1.4.0-1",
+      "path": "noarch/release/perl-IO-HTML/perl-IO-HTML-1.4.0-1-noarch.tar.zst",
+      "bytes": 18708,
+      "sha512": "4f0e5689e9ad6f99fd532463be3220642f2749f0376641fd33d0b42b5d310c6072a7551cc8d208e5a70a48be20922bb5c8eacdf86283a6c90be217c793f465ac",
+      "source": {
+        "path": "noarch/release/perl-IO-HTML/perl-IO-HTML-1.4.0-1-src.tar.zst",
+        "bytes": 21581,
+        "sha512": "4c33dce77c8a1964aca5d05ad2ad38b2d05fddd779b6caf71cd8a892055b7e89f067c2438373df777150fcbc857c24ef12c61ede7d0e0b284be804dec9611470"
+      }
+    },
+    {
+      "name": "perl-LWP-MediaTypes",
+      "version": "6.50.0-1",
+      "path": "noarch/release/perl-LWP-MediaTypes/perl-LWP-MediaTypes-6.50.0-1-noarch.tar.zst",
+      "bytes": 24891,
+      "sha512": "d635716969896de82c72151c8ba62e4c7e597e9e9c9c9965108dbb6dff7d708bf7fa7e5f7c30ea02e0d7d86200dd9e2bc4f7e045756e5da70fd4d2a62be6bfbe",
+      "source": {
+        "path": "noarch/release/perl-LWP-MediaTypes/perl-LWP-MediaTypes-6.50.0-1-src.tar.zst",
+        "bytes": 41010,
+        "sha512": "6f3ae5e0698b711e013a72195c85721b0b8b743bab5a164e5ed1552a0901a280563cef941283917aa697d80fa0bd2c10d06c4397911b9cc5465cee7c187721a8"
+      }
+    },
+    {
+      "name": "perl-MIME-Base32",
+      "version": "1.303.0-1",
+      "path": "noarch/release/perl-MIME-Base32/perl-MIME-Base32-1.303.0-1-noarch.tar.zst",
+      "bytes": 5708,
+      "sha512": "2eedbbd264896d0fc1e54efef0683930a1d88a4989323c710569551b1d9fc9ddfa41535c44e4658c4c2fc47d4134d80ec607211211bde7bb835066f62c497334",
+      "source": {
+        "path": "noarch/release/perl-MIME-Base32/perl-MIME-Base32-1.303.0-1-src.tar.zst",
+        "bytes": 14755,
+        "sha512": "e7bf9dfa14bc6e861d89485e6fc98d1247f48b29df7f082758147745b1ae5a1ff2296562e8db68f7fe8a970a02f31515be1e7811dbcee085c770596a418ac9de"
+      }
+    },
+    {
+      "name": "perl-Net-HTTP",
+      "version": "6.240.0-1",
+      "path": "noarch/release/perl-Net-HTTP/perl-Net-HTTP-6.240.0-1-noarch.tar.zst",
+      "bytes": 30016,
+      "sha512": "c087ff704555f848c8e5994e8278a3a1ea56e3080bf33c59d152090d7265e5ad3ff9b4f54716a2b15d5c42b20c599731ef1dabdcf02d8fc1200c075e2e08fdb6",
+      "source": {
+        "path": "noarch/release/perl-Net-HTTP/perl-Net-HTTP-6.240.0-1-src.tar.zst",
+        "bytes": 44571,
+        "sha512": "48fa2dad2682e8d09892ae42b0bb4a6e0d97ec80723fa8242186b4909258109ee7044bd689600af191f3854bf6400678f04c0965ee3b854e14cb61ad6bb0c1f2"
+      }
+    },
+    {
+      "name": "perl-TimeDate",
+      "version": "2.350.0-1",
+      "path": "noarch/release/perl-TimeDate/perl-TimeDate-2.350.0-1-noarch.tar.zst",
+      "bytes": 68427,
+      "sha512": "84878834b0b8729e618982bfe1821b3cb970709e3a5a5526b4a6503d66be35ae224e10b509196d1c4f26dfde3c3e1523e1a6ae7ab73522a3c2890c596835dd18",
+      "source": {
+        "path": "noarch/release/perl-TimeDate/perl-TimeDate-2.350.0-1-src.tar.zst",
+        "bytes": 69768,
+        "sha512": "c8d62909b22bb554c49eea8a2d1df3eb0d2a706f8012a67b7b1ec960ec48b97a88e0ada852b034f77d561df00ac15bad9df5983b035caa2b7539a0cdb5d85c0d"
+      }
+    },
+    {
+      "name": "perl-Try-Tiny",
+      "version": "0.320.0-1",
+      "path": "noarch/release/perl-Try-Tiny/perl-Try-Tiny-0.320.0-1-noarch.tar.zst",
+      "bytes": 18867,
+      "sha512": "ffd52c82e75ded67338df3e17fddee9264edbcf9f265f388b00613f413c886ea2aeb238ac91f34b7702e0ebe0f0a875b06b8ff2e11ba271f4e9ff166544b7ab6",
+      "source": {
+        "path": "noarch/release/perl-Try-Tiny/perl-Try-Tiny-0.320.0-1-src.tar.zst",
+        "bytes": 36891,
+        "sha512": "d79fd687437aaf90c436b1abafa064f2e638ef17d209db047737748006d017a5944880ef82e8f9ef640e2c6f48695e57446df53c075dc20c05f552b1fdd8ea5e"
+      }
+    },
+    {
+      "name": "perl-URI",
+      "version": "5.400.0-1",
+      "path": "noarch/release/perl-URI/perl-URI-5.400.0-1-noarch.tar.zst",
+      "bytes": 111596,
+      "sha512": "234712965d278883315e37ea8895c7cb0f00b5f8ecb8b5962508574aa800f7addb8672b2304e07565f8a44e75dd4316d6455ab903fcbb43485202175e5039d66",
+      "source": {
+        "path": "src/release/perl-URI/perl-URI-5.400.0-1-src.tar.zst",
+        "bytes": 141856,
+        "sha512": "0fadff07d79f648a227b2a04cc6fb5af507dbeaaa8006a3efe8528674a2400f6aff291e67b6bed44bf2cff95afa502e2ed1397a523b0657e3906e47afd1a864e"
+      }
+    },
+    {
+      "name": "perl-WWW-RobotRules",
+      "version": "6.30.0-1",
+      "path": "noarch/release/perl-WWW-RobotRules/perl-WWW-RobotRules-6.30.0-1-noarch.tar.zst",
+      "bytes": 19473,
+      "sha512": "2228d8ce13279b99f1f2b87782a3a0adca957371b5774f7ecf9e3edf95576be7ad05389c4ea4c1ad2df80d179798321ee90a2206952c823c19f34a2ebdc7bd5e",
+      "source": {
+        "path": "noarch/release/perl-WWW-RobotRules/perl-WWW-RobotRules-6.30.0-1-src.tar.zst",
+        "bytes": 30187,
+        "sha512": "5f06a47562cca0843ce4810537ffe6f2ec468d2b406312eafb4bd2b95c75426b6a647ca5999cda02025b3a3e1c145fdda045c6be1f544854149b1a7e96268531"
+      }
+    },
+    {
+      "name": "perl-libwww-perl",
+      "version": "6.830.0-1",
+      "path": "noarch/release/perl-libwww-perl/perl-libwww-perl-6.830.0-1-noarch.tar.zst",
+      "bytes": 178917,
+      "sha512": "d1228b1ae9a6d2f99627bcf740ee9444546552d554d4126c80e0b8e7bfe2527ca33b22dc070c3c5f3b0310f2c45987c725b007148717a8606ab5afc4a1efb963",
+      "source": {
+        "path": "noarch/release/perl-libwww-perl/perl-libwww-perl-6.830.0-1-src.tar.zst",
+        "bytes": 191909,
+        "sha512": "09651d53cd67d9971a8671bd14b99a970972ac5ba7300ef621c3f8bf30ea4f0e11e3b98c4d09a806bcde5a6d27af55946c5ff142c51b18da0f59958fb9422527"
+      }
+    },
+    {
+      "name": "perl-net-snmp",
+      "version": "5.9.5.2-1",
+      "path": "x86_64/release/net-snmp/perl-net-snmp/perl-net-snmp-5.9.5.2-1-x86_64.tar.xz",
+      "bytes": 239264,
+      "sha512": "ad74a4a95dbd11fbe661f4c93fb0cfa4ed404823da053be35f7972f1e8dc60fb88de8c2ccf54a7aa6de54a4a80298bfa1395b67731b76a2e2b217293258b6176",
+      "source": {
+        "path": "src/release/net-snmp/net-snmp-5.9.5.2-1-src.tar.xz",
+        "bytes": 6829924,
+        "sha512": "3b983c9001088c883334676aa73c8cfc6866f2cc13270caec9d740f1b807bffa2e637ed53d41d4911ff96e411ebcd08a5888e47f94bb1a7950a7f5f6aded6250"
+      }
+    },
+    {
+      "name": "perl_autorebase",
+      "version": "5.44.0-1",
+      "path": "x86_64/release/perl/perl_autorebase/perl_autorebase-5.44.0-1-x86_64.tar.zst",
+      "bytes": 175,
+      "sha512": "55cd94604cfa3e2491df45e5a3715f32b2dee8298a656ca2da8de2eba4096329c595228a8c950760e9641b2c6097309571350c0ffe1c8d13759eb76ec841a4f8",
+      "source": {
+        "path": "x86_64/release/perl/perl-5.44.0-1-src.tar.zst",
+        "bytes": 14927805,
+        "sha512": "26be3a3db4ed18e20898825d4503189a0e1fa6b326800f5a9b26c4dfe5d2fa6c976f918d75565610a8e74877ac7c6e0e328808d34fc0c7b1205e7dc579fdaae6"
+      }
+    },
+    {
+      "name": "perl_base",
+      "version": "5.44.0-1",
+      "path": "x86_64/release/perl/perl_base/perl_base-5.44.0-1-x86_64.tar.zst",
+      "bytes": 3772189,
+      "sha512": "3039e7a60c950cd682d8372f948ec83f7ebea27e9b425ab7406ed2eff0bebb80f7622423cf82b9ab07e34deb183bdf1b56fe129c8306bd2cfb04e7cd96beb992",
+      "source": {
+        "path": "x86_64/release/perl/perl-5.44.0-1-src.tar.zst",
+        "bytes": 14927805,
+        "sha512": "26be3a3db4ed18e20898825d4503189a0e1fa6b326800f5a9b26c4dfe5d2fa6c976f918d75565610a8e74877ac7c6e0e328808d34fc0c7b1205e7dc579fdaae6"
+      }
+    },
+    {
+      "name": "pkg-config",
+      "version": "3.0.11-1",
+      "path": "x86_64/release/pkgconf/pkg-config/pkg-config-3.0.11-1-x86_64.tar.zst",
+      "bytes": 11218,
+      "sha512": "e6d8fec5bd0e70786427c3017549187aa361c64dba9bcb023b986577c0591ffc81ee1d2f7ab189bbad9279ebbf69c9670f996ece035a1730ae6f7c7e731c6689",
+      "source": {
+        "path": "src/release/pkgconf/pkgconf-3.0.11-1-src.tar.zst",
+        "bytes": 433325,
+        "sha512": "541c37ffd8f7b54e92faea5a998a71a86954babe70a0f054195be6403223277d22a8b75379f6c5796c948c4077462933b7dbeef2a27cb5174edbac6149533aa3"
+      }
+    },
+    {
+      "name": "pkgconf",
+      "version": "3.0.11-1",
+      "path": "x86_64/release/pkgconf/pkgconf-3.0.11-1-x86_64.tar.zst",
+      "bytes": 74120,
+      "sha512": "dfae9d0aa1aebb7642fe7662110e44ccb6698aee79e72a66c764b3428345578c7635e2c116d9ed1b637513bd6a342bfbc2d6bb22cc175800b242e81b849a3f09",
+      "source": {
+        "path": "src/release/pkgconf/pkgconf-3.0.11-1-src.tar.zst",
+        "bytes": 433325,
+        "sha512": "541c37ffd8f7b54e92faea5a998a71a86954babe70a0f054195be6403223277d22a8b75379f6c5796c948c4077462933b7dbeef2a27cb5174edbac6149533aa3"
+      }
+    },
+    {
+      "name": "terminfo",
+      "version": "6.5+20240427-1",
+      "path": "x86_64/release/ncurses/terminfo/terminfo-6.5+20240427-1.tar.xz",
+      "bytes": 94760,
+      "sha512": "128fb04f188bbf2af3060416193c9879a9cbbf7e5486febf851f35c3d9d00b9d61a0e2bf4be575d2308fd665a224ce5674485dcfd071125c3a8d199a4b88a042",
+      "source": {
+        "path": "x86_64/release/ncurses/ncurses-6.5+20240427-1-src.tar.xz",
+        "bytes": 3703872,
+        "sha512": "e16cffd412ae0b998553a162041b71a5fb20b89b36a1d2acc5de633a82430010de58439fddbd16bfba1679697659a43d3672b9a3f53e03353bd4ad22a7a8f09b"
+      }
+    },
+    {
+      "name": "tzcode",
+      "version": "2026f-1",
+      "path": "x86_64/release/tzcode/tzcode-2026f-1-x86_64.tar.xz",
+      "bytes": 187836,
+      "sha512": "fa4bb1117c7faa0efc23a69a2576956c831943c71e4cbf593c992840e1770cbffbc4011cb0269e22d560f960ff2eb8bd86e5d54690f2901c4d860387cf102d5b",
+      "source": {
+        "path": "src/release/tzcode/tzcode-2026f-1-src.tar.xz",
+        "bytes": 333788,
+        "sha512": "1ae49dde5f8764d6240a394ea114896b167b2139b9f8257a8e78b3ca0c837632de570007c0b1c0b72d786b2303ad874eabaffd28e0b5043c3b988a47bbc5875b"
+      }
+    },
+    {
+      "name": "tzdata",
+      "version": "2026f-1",
+      "path": "noarch/release/tzdata/tzdata-2026f-1-noarch.tar.xz",
+      "bytes": 186144,
+      "sha512": "581e9a9f9310081ec8357c3038b6822fdf68a4f96a89c0b64b5c74cae12fb1961b4ea3cbdf47754f5cf82e1cf31c532f3a7a81d66f82a6463b8fa9fd746dfa79",
+      "source": {
+        "path": "src/release/tzdata/tzdata-2026f-1-src.tar.xz",
+        "bytes": 490108,
+        "sha512": "07f7434111722244a1d088b760f05346a276591339b7b10f9f2494da80afe2a5f0657a1cb8fc936c16c5ad5d06c75df54fcb7613f6e3f743d81a4cd0b5267488"
+      }
+    },
+    {
+      "name": "zlib0",
+      "version": "1.4-1",
+      "path": "x86_64/release/zlib/zlib0/zlib0-1.4-1-x86_64.tar.zst",
+      "bytes": 46925,
+      "sha512": "2aa35b5560283f6ace3f53af7df5feab55de5f3bed4edbb4ee8da9d2a498ff9c031b3276a8267cc963fe717f5ee25c6440ec42103b6cc92f7ecc387f9f0bb63c",
+      "source": {
+        "path": "src/release/zlib/zlib-1.4-1-src.tar.zst",
+        "bytes": 1322042,
+        "sha512": "346253796d80bb47ab86d6c8ffd47fd139cf48dd2353e8a11d96e47fb655832475dc570d00fd95ed653fb9c738341c387cedb59a83530f71182e71d662b9b8f2"
+      }
+    }
+  ]
+}
