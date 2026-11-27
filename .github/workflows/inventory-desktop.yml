@@ -72,6 +72,9 @@ jobs:
       - run: npm audit --prefix tools/inventory-desktop --audit-level=moderate
       - run: node tools/inventory-desktop/node_modules/electron-builder/cli.js --projectDir tools/inventory-desktop --${{ matrix.target }} --publish never
       - run: node scripts/inventory/verify-desktop-package.mjs
+      - run: python scripts/inventory/test-desktop-transfer.py
+      - if: runner.os == 'Windows'
+        run: python scripts/inventory/prepare-desktop-transfer.py
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: collector-preview-${{ matrix.target }}
@@ -88,3 +91,33 @@ jobs:
             .codex/artifacts/cyber-skill/desktop-client/native-qa.json
             .codex/artifacts/cyber-skill/desktop-client/glpi-qa.json
             .codex/artifacts/cyber-skill/desktop-client/snmp-qa.json
+      - if: runner.os == 'Windows' && hashFiles('tools/inventory-desktop/release/transfer/part-0.bin') != ''
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-0
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/transfer/part-0.bin
+            tools/inventory-desktop/release/transfer/manifest.json
+      - if: runner.os == 'Windows' && hashFiles('tools/inventory-desktop/release/transfer/part-1.bin') != ''
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-1
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/transfer/part-1.bin
+            tools/inventory-desktop/release/transfer/manifest.json
+      - if: runner.os == 'Windows' && hashFiles('tools/inventory-desktop/release/transfer/part-2.bin') != ''
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-2
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/transfer/part-2.bin
+            tools/inventory-desktop/release/transfer/manifest.json

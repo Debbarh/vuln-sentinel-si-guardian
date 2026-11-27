@@ -1,19 +1,21 @@
-# Cyber-Skill Collector — client graphique 0.3.0
+# Cyber-Skill Collector — client graphique 0.4.1
 
 Application locale React/shadcn embarquée dans Electron 45.4.1. L’utilisateur n’installe pas Node et ne saisit pas de commandes. Le client utilise le protocole Ed25519 du collecteur existant et la même base Supabase ; aucune base locale métier, aucun serveur GLPI ou Netdisco n’est ajouté.
 
-Cette version ajoute la génération du rapport de cet ordinateur avec GLPI Agent 1.21, déclenchée par un bouton et une confirmation native. Elle conserve l’association, l’examen et la transmission des rapports déjà exportés et les profils SNMP locaux. **La découverte SNMP::Info et la collecte planifiée restent à intégrer.** Les installateurs sont des préversions : un paquet généré ne signifie pas que sa plateforme est qualifiée ou qu’il est signé pour diffusion publique.
+Cette version génère les rapports GLPI Agent 1.21 du poste et découvre le périmètre réseau autorisé avec SNMP::Info. Elle ajoute la planification supervisée et la reprise à l’ouverture de session, tout en conservant l’association, l’examen et la transmission manuelle. Les installateurs sont des préversions qualifiées sur Windows x64, macOS Apple Silicon et Ubuntu x64 ; ils ne disposent pas encore des signatures de diffusion Windows et de la notarisation Apple.
 
 ## Parcours utilisateur
 
 1. Installer puis ouvrir l’application. Sur macOS, ouvrir le DMG et déplacer Cyber-Skill Collector dans Applications. La préversion utilise une signature ad hoc, sans notarisation Apple ; elle peut demander une autorisation explicite dans les réglages de sécurité. Ne pas désactiver globalement les protections du système.
 2. Cliquer **Préparer ce collecteur** : l’identité Ed25519 est créée localement et protégée par le coffre du système.
-3. Dans la console Cyber-Skill, l’administrateur avec MFA crée une invitation dans **Veille → Paramètres → Connecteurs → Collecteurs locaux**. Reporter son identifiant et son code temporaire dans l’application.
+3. Dans la console Cyber-Skill, l’administrateur avec MFA crée une invitation dans **Organisation → Collecteurs locaux**. Reporter son identifiant et son code temporaire dans l’application.
 4. Comparer l’empreinte affichée par l’application et celle de la console, puis approuver l’identité dans la console. Cliquer **Vérifier l’approbation** dans l’application.
 5. Cliquer **Inventorier cet ordinateur**, confirmer l’autorisation locale, attendre la génération, puis **Examiner les données** et confirmer la transmission. Il est également possible de sélectionner des rapports JSON GLPI déjà exportés. Les originaux restent inchangés. Les rapports reçus suivent l’inspection et l’import natifs dans la console.
-6. Si nécessaire, préparer les profils SNMPv3 authPriv en lecture seule. Leur nom correspond à la référence choisie dans le périmètre réseau de la console ; les mots de passe sont renseignés uniquement sur le collecteur. Leur enregistrement ne lance pas de scan.
+6. Si nécessaire, préparer les profils SNMPv3 authPriv en lecture seule. Leur nom correspond à la référence choisie dans le périmètre réseau de la console ; les mots de passe sont renseignés uniquement sur le collecteur. Leur enregistrement ne lance pas de scan. Définir le périmètre dans la console, récupérer le mandat dans l’application puis cliquer **Découvrir le réseau autorisé**. Examiner et transmettre les résultats.
+7. Pour les tâches sans surveillance, ouvrir **Collecte planifiée** dans la console, choisir GLPI et/ou SNMP et décider séparément de la transmission automatique. Autoriser ensuite cette politique dans l’application locale. Le collecteur reprend après ouverture de session et récupération du coffre OS.
+8. Dans la console, examiner les rapports GLPI avant import ; pour le réseau, utiliser **Inventaire réseau**, consulter l’historique et confirmer le rattachement aux actifs existants. Les voisins affichés dans la carte restent passifs.
 
-Une coupure conserve le lot chiffré avec le même UUID, hash et numéro de séquence. Un nouvel examen est exigé après redémarrage avant transmission. Un accusé perdu peut être retrouvé sans duplication. « Abandonner ce lot » solde un lot non reçu, ou récupère simplement son accusé s’il avait déjà été reçu : aucun rapport déjà présent dans la console n’est supprimé par cette commande.
+Une coupure conserve le lot chiffré avec le même UUID, hash et numéro de séquence. Un nouvel examen est exigé après redémarrage pour la transmission manuelle ; seuls les lots créés sous la politique automatisée autorisée peuvent être repris sans examen supplémentaire. Un accusé perdu peut être retrouvé sans duplication. « Abandonner ce lot » solde un lot non reçu, ou récupère simplement son accusé s’il avait déjà été reçu : aucun rapport déjà présent dans la console n’est supprimé par cette commande.
 
 ## Protection et limites
 
@@ -24,7 +26,7 @@ Une coupure conserve le lot chiffré avec le même UUID, hash et numéro de séq
 - macOS : Keychain via l’API asynchrone safeStorage. Windows : DPAPI via cette API. Sur Linux, le client 45 utilise l’API synchrone avec contrôle explicite du fournisseur (`gnome_libsecret` ou KWallet), et refuse `basic_text` ; migrer ce contrôle avant Electron 46, qui retire l’API synchrone. Un gestionnaire de secrets déverrouillé est nécessaire.
 - La protection dépend du compte OS. Windows DPAPI ne protège pas contre une autre application exécutée sous le même compte ; un système compromis n’entre pas dans cette frontière de confiance. Ne pas copier l’enregistrement chiffré entre systèmes ou comptes pour transférer une identité.
 - La désinstallation conserve les données chiffrées pour permettre une réinstallation. Pour retirer définitivement un collecteur, révoquer son identité dans la console et supprimer ses profils locaux ; la purge du dossier protégé suit ensuite les procédures du poste.
-- L’inventaire du poste est exécuté à la demande, sous le compte courant, sans élévation ni service. Aucun scan réseau, appel IA, e-mail ou import automatique. Aucun secret SNMP envoyé au serveur. Aucun auto-update ou téléchargement de programme dicté par une politique distante.
+- Les tâches sont exécutées sous le compte courant, sans élévation. La planification est enregistrée uniquement après accord local ; les découvertes respectent le mandat courant. Aucun appel IA, e-mail ou import automatique. Aucun secret SNMP envoyé au serveur. Aucun auto-update ou téléchargement de programme dicté par une politique distante.
 
 La signature ad hoc macOS sert aux tests internes. Une identité de signature stable et la qualification de mise à jour sont nécessaires pour une diffusion publique régulière et une continuité fiable des droits Keychain.
 
@@ -50,7 +52,7 @@ Les composants/tokens, le logo approuvé, le filtre de rapports, le protocole et
 
 Le workflow `inventory-desktop.yml` teste les PR ciblées sur Windows, macOS et Linux, puis fabrique les préversions. Il n’utilise aucun secret client ni serveur de production, ne publie pas de release et ne fusionne rien. La recette native vérifie le vrai coffre OS, le protocole signé sur fixtures, les grands compteurs, l’exclusion des secrets, les quatre langues/RTL, les deux largeurs, l’absence de réseau dans le rendu et la restauration chiffrée après redémarrage. Une plateforme qui ne passe pas ces contrôles n’obtient pas d’artefact qualifié.
 
-`verify-desktop-package.mjs` contrôle le contenu ASAR, les empreintes des fichiers compilés, les licences et les fuses de production, puis génère les SHA-256 et le reçu de qualification. La recette et ses fichiers temporaires ne sont jamais embarqués. Les changements de ce client n’exigent aucune migration SQL ni modification de permission sur Cyber-Skill.
+`verify-desktop-package.mjs` contrôle le contenu ASAR, les empreintes des fichiers compilés, les licences et les fuses de production, puis génère les SHA-256 et le reçu de qualification. La recette et ses fichiers temporaires ne sont jamais embarqués. Les migrations serveur `20261126190000` et `20261126200000` prolongent le même schéma de collecte et les droits administrateur/MFA. Elles sont nécessaires pour la supervision 0.4.0.
 
 Les outils de packaging utilisent une surcharge ciblée de minimatch 11.0.9 pour remplacer les versions 7–11.0.0 signalées par npm audit ; les anciennes API 3/5 restent inchangées. Les notices des dépendances effectivement incluses sont générées ; le texte MIT omis du paquet npm react-remove-scroll-bar est conservé depuis son dépôt officiel avec URL de commit et empreinte dans `licenses/supplemental.json`.
 
@@ -78,3 +80,26 @@ L’identité doit être approuvée dans la console par l’administrateur avec 
 Les processus démarrent sans shell et sans variables d’injection héritées. Le délai d’un processus est borné à trois minutes ; stdout est borné à 32 Mio et stderr est drainé sans être journalisé, avec une limite de volume. Annuler arrête l’arbre de processus. Les fichiers temporaires privés sont supprimés à la fin ; un répertoire interrompu est nettoyé à la prochaine collecte. Les octets du rapport transitent en mémoire, sont filtrés puis préparés dans le coffre chiffré existant. Une limite refuse le résultat entier. Le filtrage ne garantit pas l’identification d’un secret placé dans un champ inconnu : l’examen humain avant envoi reste obligatoire.
 
 La qualification réelle de génération est réservée à des runners GitHub jetables explicitement désignés. Elle vérifie le moteur épinglé, un rapport matériel/OS/logiciels, son identifiant stable, le passage par le filtre, l’obligation d’examen et sa transmission signée vers le contrôleur sur fixtures, sans requête client ni import réel. Aucun inventaire de la machine du développeur n’est lancé par cette recette locale. Le test `--version-only` vérifie uniquement le chargement du moteur.
+
+
+## Supervision et découverte — client 0.4.0
+
+Le client intègre désormais un ordonnanceur GLPI/SNMP, lié à une politique de l’organisation et à un accord local. Il reste suspendu par défaut. Le lancement automatique est enregistré dans la session de l’utilisateur (LaunchAgent macOS, ouverture de session Windows, autostart Linux/DEB). Le coffre système doit être accessible après connexion ; il ne s’agit pas d’un service privilégié avant ouverture de session. Quitter arrête les tâches ; une fermeture de fenêtre conserve le collecteur dans la barre système si l’automatisation est autorisée.
+
+Les mandats sont récupérés par requêtes signées ; ils ne constituent pas un cache d’autorisation hors ligne. Un changement de politique ou de périmètre exige un nouvel accord local. Les lots manuels ne sont jamais envoyés par l’ordonnanceur. La transmission automatique est un choix distinct de l’administrateur. L’application des rapports reste soumise au rapprochement et aux droits existants de la console.
+
+Le moteur SNMP::Info / Net-SNMP est distribué avec ses dépendances vérifiées, MIB et archives de sources. Les identifiants SNMPv3 authPriv sont lus depuis l’enregistrement local chiffré puis transmis au processus par stdin, sans fichier d’identifiants ni argument de commande. Les IPv4 RFC1918 et IPv6 ULA du périmètre sont interrogées séquentiellement, à débit borné ; les voisins observés ne sont pas suivis. Les processus sont bornés en durée, mémoire et taille de sortie. Sous macOS, la mémoire résidente est supervisée toutes les 100 ms ; cette surveillance ne constitue pas une limite instantanée du noyau.
+
+La construction du runtime est distincte de celle de l’interface. `inventory-network-runtime.yml` est déclenché manuellement pour reconstruire les sources épinglées ; `restore-snmp-runtime.py` vérifie ensuite l’archive native et les empreintes de tous ses fichiers. Les métadonnées d’installation CPAN et les fichiers de gestion du dépôt amont omis par le transport des artefacts sont explicitement recensés et exclus du manifeste de distribution ; aucune bibliothèque ou MIB manquante n’est ignorée. Les artefacts de préversion ont une rétention limitée : renouveler les identifiants/empreintes du runtime lors d’une reconstruction ou de leur expiration. Cela ne concerne pas les installateurs déjà publiés, dont le moteur est embarqué.
+
+La recette SNMP utilise uniquement un agent synthétique, lié à l’adresse propre d’un runner jetable : SHA-256/AES, refus du périmètre public, identifiants erronés, compteur 64 bits, déplacement du runtime et transmission signée vers un contrôleur de fixture. Ces fichiers de recette et leurs dépendances Python ne sont jamais distribués. Les migrations serveur de supervision sont nécessaires à ce lot ; elles prolongent la même base Supabase.
+
+**Publication vérifiée le 27 novembre 2026** : Actions `45960281712`, 27 contrôles natifs par plateforme ; installateurs proposés dans la console en production. Preuves de livraison : `.codex/artifacts/cyber-skill/collector-network/`. GLPI inventorie l’ordinateur où il s’exécute ; l’inventaire logiciel des autres postes exige leur propre agent autorisé. SNMP ne déduit pas leurs logiciels installés.
+
+## Reprise fiable — client 0.4.1
+
+Une découverte partiellement échouée conserve la cadence autorisée (le maximum des intervalles de planification et de découverte), même après redémarrage. Une perte d’accusé provoque la retransmission du même lot signé ; elle ne déclenche pas une nouvelle exploration immédiate. Le dernier succès ne progresse que pour un cycle terminé.
+
+Réautoriser la même politique pour réparer le lancement de session après une mise à jour conserve le cycle, le lot et sa prochaine échéance. Une pause reste effective après redémarrage. Une politique ou un périmètre modifié exige toujours un nouvel accord local. Le lancement de session ne se réactive pas à chaque ouverture de l’application.
+
+Les livraisons restent en préversion, sans certificat Windows ni notarisation Apple. La chaîne Windows produit automatiquement des fragments de transfert avec empreintes, reconstruits et vérifiés avant publication du seul installateur complet.
