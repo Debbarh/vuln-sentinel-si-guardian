@@ -115,7 +115,16 @@ if windows:
  run([compiler,'-O2','-Wall','-Wextra','-municode','-static-libgcc',desktop/'network/worker-limiter.c','-o',launcher])
 else:run(['cc','-O2','-Wall','-Wextra',desktop/'network/worker-limiter.c','-o',launcher]+(['-lproc']if sys.platform=='darwin'else[]))
 shutil.copy2(desktop/'network/worker-limiter.c',out/'sources/worker-limiter.c')
-includes=['-I'+p.as_posix()for p in libdirs]
+def perl_path(p):
+ value=p.as_posix()
+ # Cygwin AutoLoader treats a DOS drive prefix as a relative path. Use its
+ # POSIX drive namespace for Perl arguments, while CreateProcess keeps DOS paths.
+ if windows:
+  match=re.fullmatch(r'([A-Za-z]):/(.*)',value)
+  assert match,'Expected an absolute Windows build path'
+  return '/cygdrive/'+match[1].lower()+'/'+match[2]
+ return value
+includes=['-I'+perl_path(p)for p in libdirs]
 verify='use SNMP;use SNMP::Info;use NetAddr::IP;use Regexp::Common;die "version" unless $SNMP::Info::VERSION eq "3.985004";print "SNMP runtime loaded\\n";'
 run([perl,*includes,'-e',verify],env=base_env)
 manifest={'version':1,'platform':sys.platform,'arch':platform.machine().lower(),'snmpInfo':'3.985004','netSnmp':'5.9.5.2','limiter':str(launcher.relative_to(out)).replace('\\','/'),'executable':str(perl.relative_to(out)).replace('\\','/'),'include': [str(p.relative_to(out)).replace('\\','/')for p in libdirs],'mibs':[str(p.relative_to(out)).replace('\\','/')for p in (out/'mibs').iterdir()if p.is_dir()],'sources':sources,'files':{str(p.relative_to(out)).replace('\\','/'):sha(p)for p in sorted(out.rglob('*'))if p.is_file()}}
