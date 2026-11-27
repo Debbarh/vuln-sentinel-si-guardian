@@ -1,0 +1,5 @@
+export const UI_URL='cyberskill://collector/index.html';
+export const CSP="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+export function validSender(event,window){return!!window&&!window.isDestroyed()&&event.sender===window.webContents&&event.senderFrame===window.webContents.mainFrame&&event.senderFrame?.url===UI_URL;}
+export function assetPath(input){let u;try{u=new URL(input);}catch{return null;}if(u.protocol!=='cyberskill:'||u.hostname!=='collector'||u.port||u.username||u.password||u.search||u.hash)return null;let pathname;try{pathname=decodeURIComponent(u.pathname);}catch{return null;}if(pathname==='/index.html')return'index.html';if(/^\/assets\/[a-zA-Z0-9_.-]+\.(?:js|css|png|svg|woff2?)$/.test(pathname))return pathname.slice(1);return null;}
+export const browserPreferences=preload=>({preload,nodeIntegration:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,webviewTag:false,spellcheck:false,devTools:false,partition:'cyber-skill-collector'});

@@ -1,0 +1,4 @@
+# Keep verified licence bytes identical on every build platform.
+* text=auto eol=lf
+*.png binary
+*.ico binary

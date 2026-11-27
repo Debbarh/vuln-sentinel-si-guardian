@@ -1,0 +1,123 @@
+name: Inventory desktop preview qualification
+on:
+  pull_request:
+    paths:
+      - 'tools/inventory-desktop/**'
+      - 'scripts/inventory/*desktop*'
+      - '.github/workflows/inventory-desktop.yml'
+  workflow_dispatch:
+concurrency:
+  group: inventory-desktop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            target: mac
+          - os: windows-2025
+            target: win
+          - os: ubuntu-24.04
+            target: linux
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 26.13.0
+          cache: npm
+          cache-dependency-path: |
+            tools/inventory-desktop/package-lock.json
+      - run: npm ci --ignore-scripts --prefix tools/inventory-desktop
+      - run: node tools/inventory-desktop/node_modules/electron/install.js
+      - run: python scripts/inventory/restore-snmp-runtime.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - run: |
+          python -m pip install --only-binary=:all: --require-hashes -r tools/inventory-desktop/qa/snmp-fixture-requirements.txt --target tools/inventory-desktop/qa/snmp-fixture-deps
+      - run: node scripts/inventory/build-desktop.mjs
+      - run: node tools/inventory-desktop/node_modules/typescript/bin/tsc -p tools/inventory-desktop/tsconfig.json --noEmit
+      - run: npm test --prefix tools/inventory-desktop
+      - run: node scripts/inventory/build-desktop-qa.mjs
+      - name: Qualify real standalone GLPI on disposable runner
+        run: node tools/inventory-desktop/qa/glpi-qualification.cjs
+        env:
+          CS_GLPI_DISPOSABLE_RUNNER: "true"
+      - name: Qualify SNMPv3 on synthetic own-runner agent only
+        shell: bash
+        run: |
+          export CS_FIXTURE_PYTHON="$(python -c 'import sys;print(sys.executable)')"
+          node tools/inventory-desktop/qa/snmp-qualification.cjs
+      - if: runner.os != 'Linux'
+        run: node tools/inventory-desktop/qa/check-native.mjs
+      - if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          sudo apt-get update
+          sudo apt-get install -y xvfb dbus-x11 gnome-keyring libsecret-1-0 libgtk-3-0 libnss3 libasound2t64 libgbm1
+          xvfb-run -a dbus-run-session -- bash -euc '
+            export XDG_CURRENT_DESKTOP=GNOME
+            export DESKTOP_SESSION=gnome
+            test_keyring_password=$(openssl rand -hex 32)
+            printf "%s" "$test_keyring_password" | gnome-keyring-daemon --unlock --components=secrets
+            node tools/inventory-desktop/qa/check-native.mjs
+          '
+      - run: npm audit --prefix tools/inventory-desktop --audit-level=moderate
+      - run: node tools/inventory-desktop/node_modules/electron-builder/cli.js --projectDir tools/inventory-desktop --${{ matrix.target }} --publish never
+      - run: node scripts/inventory/verify-desktop-package.mjs
+      - run: python scripts/inventory/test-desktop-transfer.py
+      - if: runner.os == 'Windows'
+        run: python scripts/inventory/prepare-desktop-transfer.py
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: collector-preview-${{ matrix.target }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/qualification.json
+            tools/inventory-desktop/release/SHA256SUMS
+            tools/inventory-desktop/release/*.dmg
+            tools/inventory-desktop/release/*.zip
+            tools/inventory-desktop/release/*.exe
+            tools/inventory-desktop/release/*.AppImage
+            tools/inventory-desktop/release/*.deb
+            .codex/artifacts/cyber-skill/desktop-client/native-qa.json
+            .codex/artifacts/cyber-skill/desktop-client/glpi-qa.json
+            .codex/artifacts/cyber-skill/desktop-client/snmp-qa.json
+      - if: runner.os == 'Windows' && hashFiles('tools/inventory-desktop/release/transfer/part-0.bin') != ''
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-0
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/transfer/part-0.bin
+            tools/inventory-desktop/release/transfer/manifest.json
+      - if: runner.os == 'Windows' && hashFiles('tools/inventory-desktop/release/transfer/part-1.bin') != ''
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-1
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/transfer/part-1.bin
+            tools/inventory-desktop/release/transfer/manifest.json
+      - if: runner.os == 'Windows' && hashFiles('tools/inventory-desktop/release/transfer/part-2.bin') != ''
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-2
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
+          path: |
+            tools/inventory-desktop/release/transfer/part-2.bin
+            tools/inventory-desktop/release/transfer/manifest.json

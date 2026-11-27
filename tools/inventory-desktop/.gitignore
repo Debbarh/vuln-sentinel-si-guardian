@@ -1,0 +1,13 @@
+node_modules/
+build/
+release/
+*.log
+
+qa/fixture.cjs
+qa/glpi-qualification.cjs
+
+network-runtime/
+network-runtime-manifest.json
+qa/snmp-fixture-deps/
+
+qa/snmp-qualification.cjs
