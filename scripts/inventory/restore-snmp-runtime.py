@@ -24,6 +24,12 @@ try:
    with z.open(entry)as source,file.open('xb')as dest:shutil.copyfileobj(source,dest,1024*1024)
    if sys.platform!='win32':file.chmod(0o755 if name.startswith('network-runtime/bin/')or file.suffix in ['.so','.dylib','.bundle']else 0o644)
  m=json.loads((out/'network-runtime-manifest.json').read_text());assert m['platform']==sys.platform
+ missing=[name for name in m['files']if not(out/'network-runtime'/name).is_file()]
+ print(json.dumps({'archiveOmittedMetadata':missing}))
+ assert all(Path(name).name=='.packlist'or(name.startswith('mibs/.github/')or name.startswith('mibs/')and Path(name).name in ['.gitignore','.gitattributes','.travis.yml','.gitmodules'])for name in missing),'Missing runtime dependency'
+ for name in missing:del m['files'][name]
+ m['excludedInstallMetadata']=missing
  for name,pin in m['files'].items():assert sha(out/'network-runtime'/name)==pin,name
+ (out/'network-runtime-manifest.json').write_text(json.dumps(m,indent=2)+'\n')
  print(json.dumps({'restoredQualifiedRuntime':True,'platform':sys.platform,'artifact':artifact,'files':len(m['files'])}))
 finally:archive.unlink(missing_ok=True)
