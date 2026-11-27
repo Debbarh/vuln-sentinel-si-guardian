@@ -43,10 +43,12 @@ export function collectionEnvironment(runtimeRoot, work, platform=process.platfo
 }
 
 /** Bounded pipes; no shell, persistent logs, inherited stdin or elevated privileges. */
-export function runBounded(command,args,{cwd,env,signal,timeout=180000,limit=MAX_REPORT_BYTES,capture=true,platform=process.platform}={}) {
+export function runBounded(command,args,{cwd,env,signal,timeout=180000,limit=MAX_REPORT_BYTES,capture=true,platform=process.platform,input}={}) {
  abort(signal);
+ if(input!==undefined&&(!Buffer.isBuffer(input)||input.length>16384))fail('invalid_arguments');
  return new Promise((resolve,reject)=>{
-  const child=spawn(command,args,{cwd,env,shell:false,windowsHide:true,detached:platform!=='win32',stdio:['ignore','pipe','pipe']});
+  const child=spawn(command,args,{cwd,env,shell:false,windowsHide:true,detached:platform!=='win32',stdio:[input===undefined?'ignore':'pipe','pipe','pipe']});
+  if(input!==undefined){child.stdin.on('error',()=>{});child.stdin.end(input);}
   let bytes=0,stderr=0,reason=null,done=false;const chunks=[];
   const stop=code=>{if(reason)return;reason=code;
    if(child.pid){if(platform==='win32'){

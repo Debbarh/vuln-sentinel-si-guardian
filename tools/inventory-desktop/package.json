@@ -1,7 +1,7 @@
 {
   "name": "cyber-skill-inventory-desktop",
   "productName": "Cyber-Skill Collector",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "private": true,
   "description": "Collecteur local s\u00e9curis\u00e9 Cyber-Skill",
   "author": {
@@ -102,6 +102,10 @@
       {
         "from": "node_modules/electron/dist/LICENSES.chromium.html",
         "to": "licenses/LICENSES.chromium.html"
+      },
+      {
+        "from": "network-runtime",
+        "to": "network-runtime"
       }
     ]
   },

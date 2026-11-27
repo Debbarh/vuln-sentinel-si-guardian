@@ -24,7 +24,7 @@ jobs:
           - os: ubuntu-24.04
             target: linux
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 35
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -35,6 +35,12 @@ jobs:
             tools/inventory-desktop/package-lock.json
       - run: npm ci --ignore-scripts --prefix tools/inventory-desktop
       - run: node tools/inventory-desktop/node_modules/electron/install.js
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev patchelf
+      - if: runner.os == 'macOS'
+        run: brew install openssl@3
+      - run: python scripts/inventory/build-snmp-runtime.py
+      - run: python -m pip install --only-binary=:all: --require-hashes -r tools/inventory-desktop/qa/snmp-fixture-requirements.txt --target tools/inventory-desktop/qa/snmp-fixture-deps
       - run: node scripts/inventory/build-desktop.mjs
       - run: node tools/inventory-desktop/node_modules/typescript/bin/tsc -p tools/inventory-desktop/tsconfig.json --noEmit
       - run: npm test --prefix tools/inventory-desktop
@@ -43,6 +49,11 @@ jobs:
         run: node tools/inventory-desktop/qa/glpi-qualification.cjs
         env:
           CS_GLPI_DISPOSABLE_RUNNER: "true"
+      - name: Qualify SNMPv3 on synthetic own-runner agent only
+        shell: bash
+        run: |
+          export CS_FIXTURE_PYTHON="$(python -c 'import sys;print(sys.executable)')"
+          node tools/inventory-desktop/qa/snmp-qualification.cjs
       - if: runner.os != 'Linux'
         run: node tools/inventory-desktop/qa/check-native.mjs
       - if: runner.os == 'Linux'
@@ -76,3 +87,4 @@ jobs:
             tools/inventory-desktop/release/*.deb
             .codex/artifacts/cyber-skill/desktop-client/native-qa.json
             .codex/artifacts/cyber-skill/desktop-client/glpi-qa.json
+            .codex/artifacts/cyber-skill/desktop-client/snmp-qa.json

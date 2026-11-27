@@ -43,8 +43,8 @@ export async function handleCollector(request:Request,env:ApiEnv,http:Http=fetch
  const reply=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...headers,...(status===429?{'Retry-After':'3600'}:status===409?{'Retry-After':'5'}:{})}});
  let lease:string|undefined,id:string|undefined,batch:string|undefined;
  try{
-  const url=new URL(request.url),action=/^\/collector\/v1\/(enroll|push|status|discard|policy)$/.exec(url.pathname.replace(/^.*\/veille-api/,''))?.[1];
-  if(!['enroll','push','status','discard','policy'].includes(action??''))return reply({error:'not_found'},404);
+  const url=new URL(request.url),action=/^\/collector\/v1\/(enroll|push|push-network|status|discard|policy|tasks)$/.exec(url.pathname.replace(/^.*\/veille-api/,''))?.[1];
+  if(!['enroll','push','push-network','status','discard','policy','tasks'].includes(action??''))return reply({error:'not_found'},404);
   if(request.method!=='POST')return reply({error:'method_not_allowed'},405);
   if(request.headers.has('origin')||url.search||!/^application\/json(?:\s*;\s*charset=utf-8)?$/i.test(request.headers.get('content-type')??'')||!['identity',''].includes(request.headers.get('content-encoding')??''))throw new CollectorError('invalid',400);
   const origin=env.collectorOrigin;if(!origin||!env.url||!env.serviceKey||!/^https:\/\//.test(origin)||new URL(origin).origin!==origin)throw new CollectorError('unavailable',503);
@@ -62,11 +62,11 @@ export async function handleCollector(request:Request,env:ApiEnv,http:Http=fetch
    ||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(time)||!Number.isFinite(Date.parse(time))||new Date(time).toISOString()!==time||Math.abs(now()-Date.parse(time))>300000)throw new CollectorError('forbidden',401);
   const key=await call<{public_key:string;fingerprint:string;status:string;id:string;sequence:string;expires_at:string}>(env,http,'watch_collector_key',{collector:id});
   if(!key||key.id!==id||!await verify(key.public_key,requestMessage(origin,action!,id,batch,sequence,time,hash),signature))throw new CollectorError('forbidden',401);
-  if(action==='status'||action==='policy'){
+  if(action==='status'||action==='policy'||action==='tasks'){
    let raw='';const content=await limitedJson(new Response(request.body),512,value=>{raw=value;});if(JSON.stringify(content)!=='{}'||hash!==await sha256(raw))throw new CollectorError('integrity',422);
-   if(action==='policy'){
+   if(action==='policy'||action==='tasks'){
     if(key.status!=='active')throw new CollectorError('forbidden',401);
-    return reply(await call(env,http,'watch_collector_network_mandate',{collector:id,key_fingerprint:key.fingerprint,request_id:batch}));
+    return reply(await call(env,http,action==='tasks'?'watch_collector_automation_mandate':'watch_collector_network_mandate',{collector:id,key_fingerprint:key.fingerprint,request_id:batch}));
    }
    return reply({id:key.id,fingerprint:key.fingerprint,status:key.status,sequence:key.sequence,expires_at:key.expires_at});
   }
@@ -79,7 +79,7 @@ export async function handleCollector(request:Request,env:ApiEnv,http:Http=fetch
   if(!admission.lease||!UUID.test(admission.lease))throw new CollectorError('unavailable',503);lease=admission.lease;
   if(action==='discard'){const discarded=await call(env,http,'watch_collector_discard',{collector:id,batch,lease,key_fingerprint:key.fingerprint});lease=undefined;return reply(discarded);}
   const init:RequestInit&{duplex:string}={method:'POST',headers:headersOf(env),body:escapedPayload(request,{collector:id,batch,lease,key_fingerprint:key.fingerprint}),duplex:'half',signal:AbortSignal.timeout(100000)};
-  const received=await result(await http(`${env.url}/rest/v1/rpc/watch_collector_receive`,init));lease=undefined;return reply(received);
+  const received=await result(await http(`${env.url}/rest/v1/rpc/${action==='push-network'?'watch_collector_receive_network':'watch_collector_receive'}`,init));lease=undefined;return reply(received);
  }catch(error){
   if(lease)await call(env,http,'watch_collector_abort',{collector:id,batch,lease}).catch(()=>{});
   if(error instanceof CollectorError)return reply({error:error.code},error.status);

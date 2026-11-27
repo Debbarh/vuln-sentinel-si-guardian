@@ -1,5 +1,7 @@
 // Shared signed transport. No filesystem, subprocess, platform credentials or automatic requests.
 import{sign,createHash,generateKeyPairSync,createPrivateKey,createPublicKey,randomUUID}from'node:crypto';
+import{isIP}from'node:net';
+import{isLosslessNumber}from'lossless-json';
 import{enrollmentMessage,requestMessage,UUID,HEX,MAX_WIRE_BYTES}from'./protocol.ts';
 import{readFullReport}from'./report-json.ts';
 export const MAX_REPORT_BYTES=32*1024*1024;
@@ -33,10 +35,21 @@ export function preparePayload(state,files){
  }
  if(!count)fail('file_count');if(reports.reduce((n,s)=>n+Buffer.byteLength(s),0)>MAX_REPORT_BYTES)fail('file_size');const sequence=String(Number(state.sequence)+1);if(!Number.isSafeInteger(Number(sequence)))fail('invalid_state');const body=JSON.stringify({reports});if(Buffer.byteLength(body)>MAX_WIRE_BYTES)fail('file_size');return{version:1,id:randomUUID(),sequence,hash:digest(body),body,masked,count};
 }
-export function checkPending(state,pending){if(pending?.version!==1||!UUID.test(pending.id)||typeof pending.body!=='string'||Buffer.byteLength(pending.body)>MAX_WIRE_BYTES||digest(pending.body)!==pending.hash||![Number(state.sequence),Number(state.sequence)+1].includes(Number(pending.sequence))||!Number.isSafeInteger(Number(pending.sequence))||String(Number(pending.sequence))!==pending.sequence||Number(pending.sequence)<1)fail('invalid_pending_batch');}
+export function prepareNetworkPayload(state,files){
+ if(!state.collectorId)fail('not_enrolled');let total=0,masked=0;const reports=[],seen=new Set();
+ for(const bytes of files){total+=bytes.length;if(reports.length>=50)fail('file_count');if(total>MAX_REPORT_BYTES)fail('file_size');let report;
+  try{report=readFullReport(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{fail('invalid_report');}const r=report.payload,target=r?.target;
+  const privateTarget=typeof target==='string'&&(isIP(target)===4?(/^(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(target)):isIP(target)===6&&/^f[cd][0-9a-f]{2}:/i.test(target));
+  if(r?.format!=='cyber-skill-snmp-info-1'||r.source!=='netdisco-snmp-info'||!privateTarget||!isLosslessNumber(r.policy_revision)||!(/^[1-9]\d{0,9}$/.test(r.policy_revision.value))||BigInt(r.policy_revision.value)>2147483647n||!r.values||typeof r.values!=='object'||Array.isArray(r.values)||!r.fields||typeof r.fields!=='object'||Array.isArray(r.fields)||seen.has(target))fail('invalid_report');
+  seen.add(target);reports.push(report.json);masked+=report.exclusions.length;
+ }
+ if(!reports.length)fail('file_count');const body=JSON.stringify({reports}),sequence=String(Number(state.sequence)+1);if(Buffer.byteLength(body)>MAX_WIRE_BYTES||!Number.isSafeInteger(Number(sequence)))fail('file_size');return{version:1,kind:'network',id:randomUUID(),sequence,hash:digest(body),body,masked,count:reports.length};
+}
+export function checkPending(state,pending){if((pending?.kind!==undefined&&pending.kind!=='network')||pending?.version!==1||!UUID.test(pending.id)||typeof pending.body!=='string'||Buffer.byteLength(pending.body)>MAX_WIRE_BYTES||digest(pending.body)!==pending.hash||![Number(state.sequence),Number(state.sequence)+1].includes(Number(pending.sequence))||!Number.isSafeInteger(Number(pending.sequence))||String(Number(pending.sequence))!==pending.sequence||Number(pending.sequence)<1)fail('invalid_pending_batch');}
 export async function deliverPending(identity,pending,action,http=fetch,clock=Date.now){
  if(!['push','discard'].includes(action))fail('invalid_arguments');const{state,key}=identityParts(identity);if(!state.collectorId)fail('not_enrolled');checkPending(state,pending);
- const body=action==='discard'?JSON.stringify({hash:pending.hash}):pending.body,response=await send(state,action,body,signedHeaders(state,key,action,pending.id,pending.sequence,body,clock),http);
+ const wireAction=action==='push'&&pending.kind==='network'?'push-network':action;
+ const body=action==='discard'?JSON.stringify({hash:pending.hash}):pending.body,response=await send(state,wireAction,body,signedHeaders(state,key,wireAction,pending.id,pending.sequence,body,clock),http);
  if(response.ack!==true||response.id!==pending.id||response.sequence!==pending.sequence||response.hash!==pending.hash||!['queued','prepared','applied','rejected'].includes(response.status))fail('invalid_acknowledgement');return response;
 }
 export async function getIdentityStatus(identity,http=fetch,clock=Date.now){const{state,key}=identityParts(identity);if(!state.collectorId)fail('not_enrolled');const response=await send(state,'status','{}',signedHeaders(state,key,'status',randomUUID(),String(Number(state.sequence)+1),'{}',clock),http);if(response.id!==state.collectorId||response.fingerprint!==state.fingerprint||!['pending','active','revoked','expired'].includes(response.status))fail('invalid_acknowledgement');return response;}

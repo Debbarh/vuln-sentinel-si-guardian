@@ -63,17 +63,30 @@
   },
   "shared/client.mjs": {
     "source": "tools/inventory-collector/signed-client.mjs",
-    "sourceSha256": "ae396b5f5e64673f6f3e5e57152df6ded25646430f2c0be038495b7935f8ac71",
-    "sha256": "984a1b6822735d4183987ac3433ee7e77c73d82a669115f7ead7a7d3aea02eac"
+    "sourceSha256": "5affbe68bf8003d99743bf4e25bc00f913117977fd78937b296a1520779fae69",
+    "sha256": "bdc5bbd36c16cc420debeb73fae84fc22bdeb5b0463f26d05495b7b1367e3997"
   },
   "qa/server-handler.ts": {
     "source": "supabase/functions/veille-api/collector/handler.ts",
-    "sourceSha256": "066777478b1584e994126891dda7e12dc83973e0d040e3155b0b585dcf4407ee",
-    "sha256": "981795e57a17d0ad7b053777300d701eba2de5fc5bd26611d89e7acdcafc7a21"
+    "sourceSha256": "ac8463b6f08d190d876eb8bbd7676a9c5d028ebb421fbdddd15e86b2b4854418",
+    "sha256": "7dfc3011ea4d7773fddf7ecdc98c0ad9479c317fd1c7a224b507b4a37fe3e1fd"
   },
   "shared/network-policy.ts": {
     "source": "src/features/veille/inventory/network-policy.ts",
     "sourceSha256": "5fe6db6bcba384fb136aa7250dc9735d72c797fde4e807ffb6172c6f722ec8a5",
     "sha256": "57bbe32d6f29715c1bc45f421847c032fb45ccd201f495c68e208479629fe800"
+  },
+  "shared/automation-policy.ts": {
+    "source": "src/features/veille/inventory/automation-policy.ts",
+    "sourceSha256": "20c9b38194135510d1bea1bc712a39ea14c593cc31853ffb4dc5011afe2c0ff2",
+    "sha256": "418f54a4233d98b27b2b94eb3b49f75fe9ce51045db58f4d762534ac645bfe44"
+  },
+  "network/client/snmp-info.pl": {
+    "source": "tools/inventory-collector/network/snmp-info.pl",
+    "sha256": "b2b3f852b3a23724e122e2d1a65b8d94c8ece020b28c6a29b6d062182096f258"
+  },
+  "network/client/CyberSkill/SnmpInfo.pm": {
+    "source": "tools/inventory-collector/network/CyberSkill/SnmpInfo.pm",
+    "sha256": "c76d1ee50f57c15550017f7bf90a3d6215c9b3250180f6043c85a473115f3a94"
   }
 }
