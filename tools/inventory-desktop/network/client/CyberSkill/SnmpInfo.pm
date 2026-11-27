@@ -77,7 +77,7 @@ sub collect {
  my($report,$failure);
  eval {
   local $SIG{__WARN__}=sub{};
-  $info=$factory->({DestHost=>$host,RemotePort=>161,Version=>3,SecLevel=>'authPriv',SecName=>$c->{username},AuthProto=>({SHA256=>'SHA-256',SHA384=>'SHA-384',SHA512=>'SHA-512'}->{$c->{auth_protocol}}),AuthPass=>$c->{auth_password},PrivProto=>$c->{privacy_protocol},PrivPass=>$c->{privacy_password},AutoSpecify=>1,IgnoreNetSNMPConf=>1,MibDirs=>$mibs,Debug=>0,Timeout=>1_000_000,Retries=>0,BulkRepeaters=>5});
+  $info=$factory->({DestHost=>$host,RemotePort=>161,Version=>3,SecLevel=>'authPriv',SecName=>$c->{username},AuthProto=>({SHA256=>'SHA-256',SHA384=>'SHA-384',SHA512=>'SHA-512'}->{$c->{auth_protocol}}),AuthPass=>$c->{auth_password},PrivProto=>$c->{privacy_protocol},PrivPass=>$c->{privacy_password},AutoSpecify=>1,BigInt=>1,IgnoreNetSNMPConf=>1,MibDirs=>$mibs,Debug=>0,Timeout=>1_000_000,Retries=>0,BulkRepeaters=>5});
   die "network_unavailable\n" if !$info||$info->error();
   if($native){SNMP::loadModules('SNMP-FRAMEWORK-MIB');$info->globals()->{snmpEngineID}='snmpEngineID';}
   my(%values,%status);
@@ -91,7 +91,7 @@ sub collect {
     my $v;my $ok=eval{$v=$info->$method();1};
     if(!$ok){die "network_timeout\n" if $@=~/^network_timeout/;$status{$method}='failed';next;}
     $values{$method}=$v;$status{$method}=$info->error()?(defined($v)?'partial':'failed'):(defined($v)?'observed':'unavailable');
-    if($info->can('fetch_info')){my $meta=$info->fetch_info($method);$status{$method}='partial' if ref($meta)eq'HASH'&&defined($meta->{status})&&$meta->{status}ne'absent';}
+    if($info->can('fetch_info')){my $meta=$info->fetch_info($method);$status{$method}='partial' if ref($meta)eq'HASH'&&defined($meta->{status})&&$meta->{status}=~/^(?:partial|failed|timeout)$/;}
    }
   }
   # No recursion/follow-up to neighbour IPs, CLI commands, hostnames or URLs in returned fields.

@@ -6,6 +6,7 @@ async function diagnostic(verified,dir,target,config,profile,desktop){
  const {root,m}=verified,work=path.join(dir,'diagnostic');fs.mkdirSync(path.join(work,'CyberSkill'),{recursive:true,mode:0o700});
  fs.copyFileSync(path.join(desktop,'network/client/snmp-info.pl'),path.join(work,'snmp-info.pl'));
  let source=fs.readFileSync(path.join(desktop,'network/client/CyberSkill/SnmpInfo.pm'),'utf8');
+ source=source.replace('local $SIG{__WARN__}=sub{};','local $SIG{__WARN__}=sub{print STDERR @_};');
  source=source.replace('}or $failure=$@;', '}or do {$failure=$@;warn "CI failure stage: ".$failure;};');
  source=source.replace('die "network_unavailable\\n" if !$info||$info->error();','warn "CI constructor: ".($info?($info->error()//"ok"):"undefined")."\\n";die "network_unavailable\\n" if !$info||$info->error();');
  fs.writeFileSync(path.join(work,'CyberSkill/SnmpInfo.pm'),source,{mode:0o600});
@@ -28,7 +29,7 @@ try{
  const worker=new LocalSnmp(path.join(dir,'relocated-runtime'),path.join(desktop,'network-runtime-manifest.json'),path.join(desktop,'network/client'),dir),verified=await worker.verify();
  const config={enabled:true,site:'CI fixture',ranges:[target+'/32'],exclusions:[],interval_minutes:60,timezone:'UTC',start_minute:0,end_minute:1440,credential_ref:'fixture'};
  const profile={username:'cs-fixture-ro',authProtocol:'SHA256',privacyProtocol:'AES',authPassword:'fixture-auth-only',privacyPassword:'fixture-priv-only'};
- let bytes;try{bytes=await worker.collect(verified,target,config,profile);}catch(error){await diagnostic(verified,dir,target,config,profile,desktop);throw error;}let report;try{report=JSON.parse(bytes.toString());}finally{bytes.fill(0);}
+ let bytes;try{bytes=await worker.collect(verified,target,config,profile);}catch(error){await diagnostic(verified,dir,target,config,profile,desktop);console.log('Synthetic agent diagnostic: '+diagnostics.slice(-5000));throw error;}let report;try{report=JSON.parse(bytes.toString());}finally{bytes.fill(0);}
  assert.equal(report.values.name,'cs-fixture-switch');assert.equal(report.target,target);assert.ok(report.values.description.includes('CI fixture'));assert.ok(report.values.snmpEngineID);assert.ok(!JSON.stringify(report).includes('fixture-auth-only'));
  await assert.rejects(worker.collect(verified,'8.8.8.8',config,profile));
  await assert.rejects(worker.collect(verified,target,config,{...profile,authPassword:'wrong-fixture-password'}));

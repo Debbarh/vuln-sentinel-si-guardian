@@ -87,6 +87,6 @@
   },
   "network/client/CyberSkill/SnmpInfo.pm": {
     "source": "tools/inventory-collector/network/CyberSkill/SnmpInfo.pm",
-    "sha256": "c76d1ee50f57c15550017f7bf90a3d6215c9b3250180f6043c85a473115f3a94"
+    "sha256": "bc0543892eef981e828200e1c9b9194088993d937ebef43b1889059c02df24a1"
   }
 }
