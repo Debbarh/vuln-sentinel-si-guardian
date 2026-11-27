@@ -58,6 +58,9 @@ export class CollectorScheduler{
     // After a lost acknowledgement, deliver the existing batch before deciding
     // when to retry failed targets. Never turn transport recovery into a new scan.
     if(r.networkRun?.cycle===cycle.id&&r.networkRun.completedAt&&r.networkRun.failures&&(!r.automation.networkRetryAt||this.clock()<r.automation.networkRetryAt))fail('network_partial');
+    // Consume a due retry before starting it; an acknowledgement lost on this
+    // attempt must not inherit the previous attempt's already elapsed deadline.
+    await this.engine.store.exclusive(async()=>{const saved=await this.engine.record();saved.automation.networkRetryAt=null;await this.engine.store.write(saved);});
     await this.network.step(m.network,{consent:true,signal:this.controller.signal,authorize:()=>authorised(),scheduled:scheduled('network'),cycle:cycle.id});
     r=await this.engine.record();if(r.pending&&m.config.transmit)await this.engine.deliverScheduled(current,()=>authorised());
     r=await this.engine.record();

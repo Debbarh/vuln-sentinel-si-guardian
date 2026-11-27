@@ -1,8 +1,5 @@
 name: Split qualified Windows installer artifact
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/inventory-installer-transfer.yml'
   workflow_dispatch:
 permissions:
   contents: read
