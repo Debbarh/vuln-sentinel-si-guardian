@@ -12,10 +12,17 @@ async def main():
  config.add_transport(snmp,udp.DOMAIN_NAME,udp.UdpTransport().open_server_mode((str(address),161)))
  config.add_v3_user(snmp,'cs-fixture-ro',config.USM_AUTH_HMAC192_SHA256,'fixture-auth-only',config.USM_PRIV_CFB128_AES,'fixture-priv-only')
  config.add_vacm_user(snmp,3,'cs-fixture-ro','authPriv',readSubTree=(1,3,6),writeSubTree=(),notifySubTree=())
- mib=snmp.get_mib_builder();(Instance,)=mib.import_symbols('SNMPv2-SMI','MibScalarInstance')
+ mib=snmp.get_mib_builder();Scalar,Instance=mib.import_symbols('SNMPv2-SMI','MibScalar','MibScalarInstance');mib.load_modules('SNMPv2-MIB')
  # Only synthetic MIB data. No modules which inspect the runner are loaded.
  defs=[('sysDescr',(1,3,6,1,2,1,1,1),rfc1902.OctetString('Cyber-Skill CI fixture')),('sysObjectID',(1,3,6,1,2,1,1,2),rfc1902.ObjectIdentifier((1,3,6,1,4,1,99999,1))),('sysUpTime',(1,3,6,1,2,1,1,3),rfc1902.TimeTicks(12345)),('sysName',(1,3,6,1,2,1,1,5),rfc1902.OctetString('cs-fixture-switch')),('sysServices',(1,3,6,1,2,1,1,7),rfc1902.Integer32(2)),('ifNumber',(1,3,6,1,2,1,2,1),rfc1902.Integer32(1))]
- mib.export_symbols('CYBER-SKILL-FIXTURE',*[Instance(oid,(0,),value)for name,oid,value in defs])
+ parents=[];instances=[]
+ for name,oid,value in defs:
+  if name=='ifNumber':parent=Scalar(oid,rfc1902.Integer32()).setMaxAccess('readonly');parents.append(parent)
+  else:(parent,)=mib.import_symbols('SNMPv2-MIB',name)
+  instances.append(Instance(oid,(0,),parent.syntax.clone(value)))
+ for oid,value in [((1,3,6,1,2,1,31,1,1,1,1),rfc1902.OctetString('EthernetFixture1')),((1,3,6,1,2,1,31,1,1,1,6),rfc1902.Counter64(18446744073709551615))]:
+  parents.append(Scalar(oid,value.clone()).setMaxAccess('readonly'));instances.append(Instance(oid,(1,),value))
+ mib.export_symbols('CYBER-SKILL-FIXTURE',*parents,*instances)
  ctx=context.SnmpContext(snmp);cmdrsp.GetCommandResponder(snmp,ctx);cmdrsp.NextCommandResponder(snmp,ctx);cmdrsp.BulkCommandResponder(snmp,ctx)
  snmp.transport_dispatcher.job_started(1)
  print('READY',flush=True)
