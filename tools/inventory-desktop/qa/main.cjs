@@ -4,5 +4,5 @@ require('../build/runtime.cjs').startApplication({dataDirectory:process.env.CS_D
  const data=process.env.CS_DESKTOP_QA_DATA,proof=path.join(data,'asar-proof.json');if(fs.existsSync(proof))return;
  const directory=path.join(data,'asar-source'),archive=path.join(data,'runner.asar');fs.mkdirSync(directory,{recursive:true});fs.copyFileSync(path.join(__dirname,'../src/glpi-runner.pl'),path.join(directory,'glpi-runner.pl'));
  const{createPackage}=await import('@electron/asar');await createPackage(directory,archive);
- const passed=await verifyAsarRunner(path.join(data,'asar-engine'),path.join(archive,'glpi-runner.pl'));fs.writeFileSync(proof,JSON.stringify({passed,hardwareInventoryPerformed:false}));
+ const result=await verifyAsarRunner(path.join(data,'asar-engine'),path.join(archive,'glpi-runner.pl'));fs.writeFileSync(proof,JSON.stringify(result));
 }).catch(()=>{require('electron').app.quit();});

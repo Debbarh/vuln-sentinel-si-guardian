@@ -6,7 +6,7 @@ async function main(){
 if(process.env.GITHUB_ACTIONS!=='true')throw Error('Disposable CI only');
 const target=Object.values(os.networkInterfaces()).flat().find(i=>i?.family==='IPv4'&&!i.internal&&(/^(10\.|192\.168\.)/.test(i.address)||/^172\.(1[6-9]|2\d|3[01])\./.test(i.address)))?.address;
 assert.ok(target,'Runner needs a private address belonging to itself');
-const desktop=path.resolve('tools/inventory-desktop'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'cs-snmp-fixture-'));
+const desktop=path.resolve('tools/inventory-desktop'),dir=fs.mkdtempSync(path.join(desktop,'.snmp-fixture-'));
 const script=path.join(desktop,'qa/snmp-agent.py'),deps=path.join(desktop,'qa/snmp-fixture-deps'),python=process.env.CS_FIXTURE_PYTHON||'python';
 const agent=spawn(process.platform==='win32'?python:'sudo',process.platform==='win32'?[script,target,deps]:['-n','--preserve-env=GITHUB_ACTIONS',python,script,target,deps],{stdio:['ignore','pipe','pipe'],windowsHide:true,env:process.env});let ready='';let diagnostics='';agent.stderr.on('data',b=>{diagnostics+=b.toString();});
 try{
