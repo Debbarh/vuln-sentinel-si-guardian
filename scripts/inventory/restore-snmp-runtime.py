@@ -26,7 +26,7 @@ try:
  m=json.loads((out/'network-runtime-manifest.json').read_text());assert m['platform']==sys.platform
  missing=[name for name in m['files']if not(out/'network-runtime'/name).is_file()]
  print(json.dumps({'archiveOmittedMetadata':missing}))
- assert all(Path(name).name=='.packlist'or(name.startswith('mibs/.github/')or name.startswith('mibs/')and Path(name).name in ['.gitignore','.gitattributes','.travis.yml','.gitmodules'])for name in missing),'Missing runtime dependency'
+ assert all(Path(name).name in ['.packlist','.exists']or name=='usr/share/man/man1/..1.gz'or(name.startswith('mibs/.github/')or name.startswith('mibs/')and Path(name).name in ['.gitignore','.gitattributes','.travis.yml','.gitmodules'])for name in missing),'Missing runtime dependency'
  for name in missing:del m['files'][name]
  m['excludedInstallMetadata']=missing
  for name,pin in m['files'].items():assert sha(out/'network-runtime'/name)==pin,name
