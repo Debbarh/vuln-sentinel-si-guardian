@@ -1,0 +1,65 @@
+name: Split qualified Windows installer artifact
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/inventory-installer-transfer.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  split:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Fetch and split the immutable qualified archive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/Debbarh/vuln-sentinel-si-guardian/actions/artifacts/15180083815/zip > "$RUNNER_TEMP/qualified-windows.zip"
+          python - <<'PY'
+          import os,hashlib,json
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP']);archive=root/'qualified-windows.zip'
+          def sha(file):
+              h=hashlib.sha256()
+              with file.open('rb')as f:
+                  for chunk in iter(lambda:f.read(1024*1024),b''):h.update(chunk)
+              return h.hexdigest()
+          pin='91a6de474e8605ff49bd2b84f90da71d2efd8010a76048eeca7024fcfdc57159'
+          assert archive.stat().st_size==552148188 and sha(archive)==pin
+          output=root/'collector-transfer';output.mkdir();parts=[]
+          with archive.open('rb')as f:
+              for index in range(3):
+                  data=f.read(192*1024*1024);assert data
+                  file=output/('part-'+str(index)+'.bin');file.write_bytes(data)
+                  parts.append({'name':file.name,'size':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+              assert not f.read(1)
+          manifest={'sourceRun':45960281712,'sourceCommit':'ec100fca83c88e04bcf67fad4f89808261d9bbce','archiveSha256':pin,'archiveSize':archive.stat().st_size,'parts':parts}
+          (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          print(json.dumps(manifest))
+          PY
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-0
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/collector-transfer/part-0.bin
+            ${{ runner.temp }}/collector-transfer/manifest.json
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-1
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/collector-transfer/part-1.bin
+            ${{ runner.temp }}/collector-transfer/manifest.json
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4
+        with:
+          name: collector-transfer-win-2
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            ${{ runner.temp }}/collector-transfer/part-2.bin
+            ${{ runner.temp }}/collector-transfer/manifest.json
