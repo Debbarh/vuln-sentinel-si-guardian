@@ -15,7 +15,7 @@ try{
  const worker=new LocalSnmp(path.join(dir,'relocated-runtime'),path.join(desktop,'network-runtime-manifest.json'),path.join(desktop,'network/client'),dir),verified=await worker.verify();
  const config={enabled:true,site:'CI fixture',ranges:[target+'/32'],exclusions:[],interval_minutes:60,timezone:'UTC',start_minute:0,end_minute:1440,credential_ref:'fixture'};
  const profile={username:'cs-fixture-ro',authProtocol:'SHA256',privacyProtocol:'AES',authPassword:'fixture-auth-only',privacyPassword:'fixture-priv-only'};
- const bytes=await worker.collect(verified,target,config,profile);let report;try{assert.ok(bytes.toString().includes('18446744073709551615'));report=parse(bytes.toString());}finally{bytes.fill(0);}
+ const bytes=await worker.collect(verified,target,config,profile);let report;try{report=parse(bytes.toString());if(!bytes.toString().includes('18446744073709551615'))console.log(JSON.stringify({syntheticCounterStatus:report.fields?.i_octet_in64,syntheticCounter:String(report.values?.i_octet_in64?.['1']),syntheticInterface:report.values?.i_name}));assert.ok(bytes.toString().includes('18446744073709551615'));}finally{bytes.fill(0);}
  assert.equal(report.values.name,'cs-fixture-switch');assert.equal(report.target,target);assert.ok(report.values.description.includes('CI fixture'));assert.ok(report.values.snmpEngineID);assert.ok(!JSON.stringify(report).includes('fixture-auth-only'));
  await assert.rejects(worker.collect(verified,'8.8.8.8',config,profile));
  await assert.rejects(worker.collect(verified,target,config,{...profile,authPassword:'wrong-fixture-password'}));
