@@ -35,7 +35,7 @@ export class LocalSnmp{
    const env=collectionEnvironment(root,work);env.CS_SNMP_RUNTIME=perlPath(root);env.CS_SNMP_WORK=perlPath(work);env.CS_SNMP_MIBS=JSON.stringify(m.mibs.map(p=>perlPath(path.join(root,p))));env.HOME=perlPath(work);env.SNMPCONFPATH=perlPath(work);env.SNMP_PERSISTENT_DIR=perlPath(work);
    if(process.platform==='win32'){env.PATH=path.join(root,'bin')+';'+env.PATH;env.LANG='C.UTF-8';env.LC_ALL='C.UTF-8';}
    input=Buffer.from(JSON.stringify({host:target,scope:policy,credentials:{version:'3',security_level:'authPriv',username:profile.username,auth_protocol:profile.authProtocol,privacy_protocol:profile.privacyProtocol,auth_password:profile.authPassword,privacy_password:profile.privacyPassword}}));
-   return await runBounded(path.join(root,m.limiter),[path.join(root,m.executable).replaceAll('\\','/'),'-f',...m.include.map(p=>'-I'+perlPath(path.join(root,p))),'-I'+perlPath(work),perlPath(path.join(work,'snmp-info.pl'))],{env,cwd:work,signal,input,timeout:Math.min(timeout,65000)});
+   return await runBounded(path.join(root,m.limiter),[path.join(root,m.executable).replaceAll('\\','/'),'-f',...m.include.map(p=>'-I'+perlPath(path.join(root,p))),'-I'+perlPath(work),perlPath(path.join(work,'snmp-info.pl'))],{env,cwd:work,signal,input,stderrCodes:['network_invalid','network_forbidden','credentials_invalid','dependency_unavailable','network_timeout','network_unavailable'],timeout:Math.min(timeout,65000)});
   }finally{input?.fill(0);fs.rmSync(work,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
  }
 }

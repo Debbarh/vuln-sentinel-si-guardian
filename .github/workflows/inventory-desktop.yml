@@ -11,6 +11,7 @@ concurrency:
   cancel-in-progress: true
 permissions:
   contents: read
+  actions: read
 jobs:
   native:
     strategy:
@@ -35,11 +36,9 @@ jobs:
             tools/inventory-desktop/package-lock.json
       - run: npm ci --ignore-scripts --prefix tools/inventory-desktop
       - run: node tools/inventory-desktop/node_modules/electron/install.js
-      - if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y build-essential libssl-dev patchelf
-      - if: runner.os == 'macOS'
-        run: brew install openssl@3
-      - run: python scripts/inventory/build-snmp-runtime.py
+      - run: python scripts/inventory/restore-snmp-runtime.py
+        env:
+          GH_TOKEN: ${{ github.token }}
       - run: |
           python -m pip install --only-binary=:all: --require-hashes -r tools/inventory-desktop/qa/snmp-fixture-requirements.txt --target tools/inventory-desktop/qa/snmp-fixture-deps
       - run: node scripts/inventory/build-desktop.mjs

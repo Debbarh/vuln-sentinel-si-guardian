@@ -10,7 +10,8 @@ const script=path.join(desktop,'qa/snmp-agent.py'),deps=path.join(desktop,'qa/sn
 const agent=spawn(process.platform==='win32'?python:'sudo',process.platform==='win32'?[script,target,deps]:['-n','--preserve-env=GITHUB_ACTIONS',python,script,target,deps],{stdio:['ignore','pipe','pipe'],windowsHide:true,env:process.env});let ready='';let diagnostics='';agent.stderr.on('data',b=>{diagnostics+=b.toString();});
 try{
  await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Fixture startup timeout '+diagnostics.slice(-1000))),30000);agent.on('error',reject);agent.on('exit',code=>{clearTimeout(timer);reject(Error('Fixture agent exit '+code+' '+diagnostics.slice(-1000)));});agent.stdout.on('data',b=>{ready+=b.toString();if(ready.includes('READY')){clearTimeout(timer);resolve();}});});
- const worker=new LocalSnmp(path.join(desktop,'network-runtime'),path.join(desktop,'network-runtime-manifest.json'),path.join(desktop,'network/client'),dir),verified=await worker.verify();
+ fs.renameSync(path.join(desktop,'network-runtime'),path.join(dir,'relocated-runtime'));
+ const worker=new LocalSnmp(path.join(dir,'relocated-runtime'),path.join(desktop,'network-runtime-manifest.json'),path.join(desktop,'network/client'),dir),verified=await worker.verify();
  const config={enabled:true,site:'CI fixture',ranges:[target+'/32'],exclusions:[],interval_minutes:60,timezone:'UTC',start_minute:0,end_minute:1440,credential_ref:'fixture'};
  const profile={username:'cs-fixture-ro',authProtocol:'SHA256',privacyProtocol:'AES',authPassword:'fixture-auth-only',privacyPassword:'fixture-priv-only'};
  const bytes=await worker.collect(verified,target,config,profile);let report;try{report=JSON.parse(bytes.toString());}finally{bytes.fill(0);}
@@ -24,7 +25,7 @@ try{
  await engine.initialise();await engine.enroll('22222222-2222-4222-8222-222222222222','cse_'+'a'.repeat(64));await engine.prepareNetwork([Buffer.from(JSON.stringify({...report,policy_revision:1}))]);await assert.rejects(engine.deliver('push',true),/review_required/);await engine.preview();await engine.deliver('push',true);assert.equal(received,1);
  const sourceFiles=['src/snmp-local.mjs','src/network-discovery.mjs','network/client/snmp-info.pl','network/client/CyberSkill/SnmpInfo.pm','shared/client.mjs'];const sourceHashes=Object.fromEntries(sourceFiles.map(p=>[p,hash(fs.readFileSync(path.join(desktop,p)))]));
  const proof={passed:true,platform:process.platform,arch:process.arch,snmpV3AuthPriv:true,sha256Aes:true,ownRunnerFixtureOnly:true,publicTargetRefused:true,wrongCredentialsRefused:true,manualReviewEnforced:true,signedNetworkTransmission:true,engineIdObserved:true,runtimeManifestSha256:hash(fs.readFileSync(path.join(desktop,'network-runtime-manifest.json'))),sourceHashes,actualCustomerRequests:0};fs.mkdirSync('.codex/artifacts/cyber-skill/desktop-client',{recursive:true});fs.writeFileSync('.codex/artifacts/cyber-skill/desktop-client/snmp-qa.json',JSON.stringify(proof,null,2)+'\n');console.log(JSON.stringify(proof));
-}finally{if(agent.exitCode===null){if(process.platform==='win32')agent.kill();else{spawn('sudo',['-n','kill','-TERM',String(agent.pid)],{stdio:'ignore'});}}fs.rmSync(dir,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
+}finally{if(fs.existsSync(path.join(dir,'relocated-runtime')))fs.renameSync(path.join(dir,'relocated-runtime'),path.join(desktop,'network-runtime'));if(agent.exitCode===null){if(process.platform==='win32')agent.kill();else{spawn('sudo',['-n','kill','-TERM',String(agent.pid)],{stdio:'ignore'});}}fs.rmSync(dir,{recursive:true,force:true,maxRetries:3,retryDelay:100});}
 
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

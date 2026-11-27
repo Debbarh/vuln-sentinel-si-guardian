@@ -18,23 +18,22 @@ export class NetworkDiscovery{
    let run=old&&old.hash===fingerprint&&old.revision===expected.value.revision&&old.cycle===cycle&&old.index<expected.targets.length?{...old}:{revision:expected.value.revision,hash:fingerprint,cycle,index:0,successes:0,failures:0,total:expected.targets.length,startedAt:this.clock(),completedAt:null};
    const profile=initial.profiles.find(p=>p.name===expected.value.config.credential_ref);if(!profile)fail('credentials_invalid');
    for(let index=run.index;index<expected.targets.length;index++){
-    const target=expected.targets[index],m=await fresh(target);this.progress={...run,index,total:expected.targets.length};let raw,clean;
+    const target=expected.targets[index],m=await fresh(target),started=performance.now();this.progress={...run,index,total:expected.targets.length};let raw,clean,validationError=null,validation=null;const timer=setInterval(()=>{if(validation)return;validation=fresh(target).catch(error=>{validationError=error;this.controller.abort();}).finally(()=>{validation=null;});},30000);
     try{
      const remaining=Date.parse(m.value.expires_at)-this.clock();if(remaining<1000)fail('mandate_required');
      raw=await this.worker.collect(verified,target,m.value.config,profile,{signal:this.controller.signal,timeout:Math.min(65000,remaining)});
-     await fresh(target);const result=readFullReport(new TextDecoder('utf-8',{fatal:true}).decode(raw));const report=result.payload;
+     if(validation)await validation;if(validationError)throw validationError;await fresh(target);const result=readFullReport(new TextDecoder('utf-8',{fatal:true}).decode(raw));const report=result.payload;
      if(report.target!==target||report.format!=='cyber-skill-snmp-info-1'||report.source!=='netdisco-snmp-info')fail('invalid_report');
      clean=Buffer.from(stringify({...report,policy_revision:m.value.revision}));if(clean.length>MAX_REPORT_BYTES)fail('file_size');
     }catch(error){
-     if(this.controller.signal.aborted||['mandate_changed','mandate_required','forbidden','automation_changed','automation_window','collection_cancelled'].includes(error.code))throw error;
+     if(validationError)throw validationError;if(this.controller.signal.aborted||['mandate_changed','mandate_required','forbidden','automation_changed','automation_window','collection_cancelled'].includes(error.code))throw error;
      // A failed target is not manufactured into a discovered asset or a successful inventory.
      run={...run,index:index+1,failures:run.failures+1};if(!files.length)await this.save(run);continue;
-    }finally{raw?.fill(0);}
+    }finally{clearInterval(timer);if(validation)await validation;raw?.fill(0);const delay=1000-(performance.now()-started);if(delay>0&&!this.controller.signal.aborted)await new Promise(resolve=>setTimeout(resolve,delay));}
     if(total+clean.length>MAX_REPORT_BYTES){clean.fill(0);break;}
     files.push(clean);total+=clean.length;run={...run,index:index+1,successes:run.successes+1};this.progress={...run};
     if(files.length===50)break;
-    // Sequential single-target requests, with a fixed pause; returned neighbours are never followed.
-    await new Promise(resolve=>setTimeout(resolve,1000));
+    // The finally block rate-limits successes and failures alike. Neighbours are never followed.
    }
    if(run.index===expected.targets.length)run.completedAt=this.clock();
    if(files.length)return await this.engine.prepareNetwork(files,run,scheduled);

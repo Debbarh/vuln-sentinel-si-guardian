@@ -43,13 +43,13 @@ export function collectionEnvironment(runtimeRoot, work, platform=process.platfo
 }
 
 /** Bounded pipes; no shell, persistent logs, inherited stdin or elevated privileges. */
-export function runBounded(command,args,{cwd,env,signal,timeout=180000,limit=MAX_REPORT_BYTES,capture=true,platform=process.platform,input}={}) {
+export function runBounded(command,args,{cwd,env,signal,timeout=180000,limit=MAX_REPORT_BYTES,capture=true,platform=process.platform,input,stderrCodes=[]}={}) {
  abort(signal);
  if(input!==undefined&&(!Buffer.isBuffer(input)||input.length>16384))fail('invalid_arguments');
  return new Promise((resolve,reject)=>{
   const child=spawn(command,args,{cwd,env,shell:false,windowsHide:true,detached:platform!=='win32',stdio:[input===undefined?'ignore':'pipe','pipe','pipe']});
   if(input!==undefined){child.stdin.on('error',()=>{});child.stdin.end(input);}
-  let bytes=0,stderr=0,reason=null,done=false;const chunks=[];
+  let bytes=0,stderr=0,stderrTail='',reason=null,done=false;const chunks=[];
   const stop=code=>{if(reason)return;reason=code;
    if(child.pid){if(platform==='win32'){
     const system=env?.SystemRoot||'C:\\Windows';const killer=spawn(path.join(system,'System32','taskkill.exe'),['/PID',String(child.pid),'/T','/F'],{windowsHide:true,shell:false,stdio:'ignore',env});killer.on('error',()=>child.kill());
@@ -59,10 +59,10 @@ export function runBounded(command,args,{cwd,env,signal,timeout=180000,limit=MAX
   const timer=setTimeout(()=>stop('collection_timeout'),timeout);
   const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',onAbort);};
   child.stdout.on('data',chunk=>{bytes+=chunk.length;if(bytes>limit)stop('collection_size');else if(capture)chunks.push(chunk);});
-  child.stderr.on('data',chunk=>{stderr+=chunk.length;if(stderr>1024*1024)stop('collection_failed');});
+  child.stderr.on('data',chunk=>{stderr+=chunk.length;if(stderrCodes.length)stderrTail=(stderrTail+chunk.toString('utf8')).slice(-512);if(stderr>1024*1024)stop('collection_failed');});
   child.on('error',()=>{if(done)return;done=true;cleanup();reject(Error('collection_failed'));});
   child.on('close',code=>{if(done)return;done=true;cleanup();
-   if(reason||code!==0){for(const chunk of chunks)chunk.fill(0);try{fail(reason??'collection_failed');}catch(e){reject(e);}return;}
+   if(reason||code!==0){for(const chunk of chunks)chunk.fill(0);const last=stderrTail.trim().split(/\r?\n/).at(-1);try{fail(reason??(stderrCodes.includes(last)?last:'collection_failed'));}catch(e){reject(e);}return;}
    const result=Buffer.concat(chunks);for(const chunk of chunks)chunk.fill(0);resolve(result);
   });
   if(signal?.aborted)onAbort();
