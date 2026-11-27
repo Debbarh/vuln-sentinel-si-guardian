@@ -64,3 +64,34 @@ it('keeps an existing batch intact and stops cancelled generation without creati
  await expect(f.engine.generate(async()=>{c.abort();return bytes;},{consent:true,signal:c.signal})).rejects.toThrow('collection_cancelled');expect((await f.store.read()).pending).toBe(null);expect(bytes.every(n=>n===0)).toBe(true);
  await f.engine.prepare([report]);const pending=(await f.store.read()).pending,collect=vi.fn();await expect(f.engine.generate(collect,{consent:true})).rejects.toThrow('pending_batch_exists');expect((await f.store.read()).pending).toEqual(pending);expect(collect).not.toHaveBeenCalled();
 });
+
+it('creates a fresh association only after confirmation and a fresh revoked/expired status',async()=>{
+ const f=fixture();await enrolled(f);const old=await f.store.read(),bytes=fs.readFileSync(f.store.file);
+ await expect(f.engine.reassociate(false,old.identity.state.fingerprint)).rejects.toThrow('collection_consent');
+ await expect(f.engine.reassociate(true,'0'.repeat(64))).rejects.toThrow('association_changed');
+ await expect(f.engine.reassociate(true,old.identity.state.fingerprint)).rejects.toThrow('association_active');
+ f.engine.http=vi.fn().mockRejectedValue(Error('offline'));await expect(f.engine.reassociate(true,old.identity.state.fingerprint)).rejects.toThrow('offline');expect(fs.readFileSync(f.store.file)).toEqual(bytes);
+ for(const status of ['revoked','expired']){
+  const g=fixture();await enrolled(g);const before=await g.store.read();g.engine.http=vi.fn(async()=>Response.json({id,fingerprint:before.identity.state.fingerprint,status}));
+  const result=await g.engine.reassociate(true,before.identity.state.fingerprint),after=await g.store.read();expect(result.enrolled).toBe(false);expect(result.status).toBe('local');expect(result.fingerprint).not.toBe(before.identity.state.fingerprint);expect(after.identity.privateKey).not.toBe(before.identity.privateKey);expect(after.identity.state.sequence).toBe('0');expect(result.automation).toBe(null);expect(result.networkMandate).toBe(null);
+ }
+});
+it('retains an old pending batch encrypted for export without transferring it to the new identity',async()=>{
+ const f=fixture();await enrolled(f);await f.engine.prepare([report]);await f.engine.saveProfile({name:'snmp-local',username:'inventory-ro',authProtocol:'SHA256',privacyProtocol:'AES',authPassword:'SNMP-AUTH-SECRET',privacyPassword:'SNMP-PRIV-SECRET'});
+ const before=await f.store.read();before.automation={enabled:true,revision:1,cycle:{id:'old-cycle'}};await f.store.write(before);
+ f.engine.http=vi.fn(async()=>Response.json({id,fingerprint:before.identity.state.fingerprint,status:'revoked'}));const summary=await f.engine.reassociate(true,before.identity.state.fingerprint);const after=await f.store.read();
+ expect(after.pending).toBe(null);expect(after.recoveryBatch.body).toBe(before.pending.body);expect(after.profiles).toEqual(before.profiles);expect(after.automation).toBe(null);expect(summary.recovery).toMatchObject({kind:'glpi',count:1});expect(JSON.stringify(summary)).not.toMatch(/PRIVATE KEY|SNMP-AUTH-SECRET|DESKTOP-A/);
+ const recovered=await new DesktopEngine(f.store,{http:f.engine.http}).recoveredReports();expect(recovered.reports[0]).toContain('18446744073709551615');expect(recovered.reports[0]).not.toMatch(/LICENSE-SECRET|AUTH-SECRET/);
+ expect(fs.readFileSync(f.store.file).toString()).not.toMatch(/PRIVATE KEY|alice|SNMP-AUTH|DESKTOP-A/);expect(f.net.reports).toHaveLength(0);
+ await expect(f.engine.clearRecovery(false,summary.recovery.id)).rejects.toThrow('collection_consent');await expect(f.engine.clearRecovery(true,'wrong')).rejects.toThrow('association_changed');await f.engine.clearRecovery(true,summary.recovery.id);expect((await f.engine.state()).recovery).toBe(null);
+});
+it('keeps the old record intact if identity replacement cannot be persisted',async()=>{
+ const f=fixture();await enrolled(f);await f.engine.prepare([report]);const old=await f.store.read();f.engine.http=vi.fn(async()=>Response.json({id,fingerprint:old.identity.state.fingerprint,status:'revoked'}));f.store.write=vi.fn().mockRejectedValue(Error('disk full'));await expect(f.engine.reassociate(true,old.identity.state.fingerprint)).rejects.toThrow('disk full');expect(await f.store.read()).toEqual(old);
+});
+it('never overwrites an existing retained batch on a second association recovery',async()=>{
+ const f=fixture();await enrolled(f);await f.engine.prepare([report]);const old=await f.store.read();f.engine.http=vi.fn(async()=>Response.json({id,fingerprint:old.identity.state.fingerprint,status:'revoked'}));await f.engine.reassociate(true,old.identity.state.fingerprint);
+ const record=await f.store.read();record.identity=old.identity;record.pending=old.pending;await f.store.write(record);const bytes=fs.readFileSync(f.store.file);await expect(f.engine.reassociate(true,old.identity.state.fingerprint)).rejects.toThrow('recovery_batch_exists');expect(fs.readFileSync(f.store.file)).toEqual(bytes);
+});
+it('persists the observed revocation and pauses previously authorised automatic work',async()=>{
+ const f=fixture();await enrolled(f);const record=await f.store.read();record.automation={enabled:true};await f.store.write(record);f.engine.http=vi.fn(async()=>Response.json({id,fingerprint:record.identity.state.fingerprint,status:'revoked'}));const value=await f.engine.refresh();expect(value.status).toBe('revoked');expect(value.automation.enabled).toBe(false);expect(value.verifiedAt).not.toBe(null);
+});

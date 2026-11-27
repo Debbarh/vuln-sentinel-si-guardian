@@ -1,4 +1,4 @@
-# Cyber-Skill Collector — client graphique 0.4.1
+# Cyber-Skill Collector — client graphique 0.4.2
 
 Application locale React/shadcn embarquée dans Electron 45.4.1. L’utilisateur n’installe pas Node et ne saisit pas de commandes. Le client utilise le protocole Ed25519 du collecteur existant et la même base Supabase ; aucune base locale métier, aucun serveur GLPI ou Netdisco n’est ajouté.
 
@@ -103,3 +103,9 @@ Une découverte partiellement échouée conserve la cadence autorisée (le maxim
 Réautoriser la même politique pour réparer le lancement de session après une mise à jour conserve le cycle, le lot et sa prochaine échéance. Une pause reste effective après redémarrage. Une politique ou un périmètre modifié exige toujours un nouvel accord local. Le lancement de session ne se réactive pas à chaque ouverture de l’application.
 
 Les livraisons restent en préversion, sans certificat Windows ni notarisation Apple. La chaîne Windows produit automatiquement des fragments de transfert avec empreintes, reconstruits et vérifiés avant publication du seul installateur complet.
+
+## Réassociation après révocation — client 0.4.2
+
+« Vérifier l’approbation » affiche désormais un état de chargement, une confirmation et la date du contrôle. Une identité révoquée ou expirée propose « Créer une nouvelle association ». Le dialogue natif demande confirmation ; le serveur est interrogé à nouveau et une identité encore active ou en attente est refusée. Une nouvelle paire de clés est créée et une nouvelle invitation puis l’approbation MFA de sa nouvelle empreinte restent nécessaires. L’ancienne identité reste révoquée ; aucun changement de permission serveur.
+
+Les profils SNMP restent chiffrés localement. La planification, les consentements et la progression réseau sont réinitialisés. Un lot en attente reste chiffré dans une copie isolée, accessible à l’export JSON par un sélecteur de dossier natif, sans retransmission automatique. L’export crée un sous-dossier privé et conserve les valeurs numériques exactes ; il ne contient aucune clé privée de collecteur. La suppression de cette copie exige une confirmation distincte. Une seconde copie n’écrase jamais une première copie non supprimée. Les JSON GLPI exportés peuvent être sélectionnés manuellement pour un nouvel examen ; une observation réseau exige une nouvelle découverte et son périmètre courant.

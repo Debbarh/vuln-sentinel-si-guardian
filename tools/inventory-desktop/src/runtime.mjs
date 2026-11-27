@@ -9,6 +9,8 @@ import{CollectorScheduler,policyDigest}from'./automation.mjs';
 import{LocalSnmp}from'./snmp-local.mjs';
 import{NetworkDiscovery}from'./network-discovery.mjs';
 import{discoveryLocales}from'../renderer/discovery-locales.ts';
+import{associationLocales}from'../renderer/association-locales.ts';
+import{exportRecoveredReports}from'./recovery-export.mjs';
 import{configureLoginService}from'./login-service.mjs';
 const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.svg':'image/svg+xml','.woff':'font/woff','.woff2':'font/woff2'};
 function osCrypto(){
@@ -52,6 +54,12 @@ export async function startApplication({dataDirectory,crypto,http,dialogs=dialog
   state:async(...args)=>{noArgs(args);return snapshot();},initialise:async(...args)=>{noArgs(args);return engine.initialise();},
   enroll:async(...args)=>{if(args.length!==2||typeof args[0]!=='string'||typeof args[1]!=='string'||args[0].length>36||args[1].length>68)fail('invalid_arguments');return engine.enroll(args[0],args[1]);},
   refresh:async(...args)=>{noArgs(args);return engine.refresh();},
+  reassociate:async(...args)=>{if(args.length!==1||!Object.hasOwn(associationLocales,args[0]))fail('invalid_arguments');const text=associationLocales[args[0]],before=await engine.state();
+   const result=await dialogs.showMessageBox(window,{type:'warning',message:text.confirm,detail:text.detail,buttons:[text.cancel,text.accept],defaultId:0,cancelId:0,noLink:true});if(result.response!==1)return null;
+   await scheduler.pause();if(app.isPackaged)configureLoginService(app,false);await engine.reassociate(true,before.fingerprint);return snapshot();
+  },
+  exportRecovery:async(...args)=>{if(args.length!==1||!Object.hasOwn(associationLocales,args[0]))fail('invalid_arguments');const text=associationLocales[args[0]],reports=await engine.recoveredReports();const result=await dialogs.showOpenDialog(window,{title:text.exportTitle,properties:['openDirectory','createDirectory']});if(result.canceled)return null;if(result.filePaths.length!==1)fail('invalid_arguments');exportRecoveredReports(result.filePaths[0],reports);return snapshot();},
+  clearRecovery:async(...args)=>{if(args.length!==1||!Object.hasOwn(associationLocales,args[0]))fail('invalid_arguments');const text=associationLocales[args[0]],before=await engine.state();const result=await dialogs.showMessageBox(window,{type:'warning',message:text.removeTitle,detail:text.removeDetail,buttons:[text.cancel,text.removeAccept],defaultId:0,cancelId:0,noLink:true});if(result.response!==1)return null;return engine.clearRecovery(true,before.recovery?.id);},
   fetchMandate:async(...args)=>{noArgs(args);return engine.fetchMandate();},
   generateReport:async(...args)=>{
    if(args.length!==1||!Object.hasOwn(collectionLocales,args[0]))fail('invalid_arguments');
